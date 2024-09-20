@@ -6,9 +6,68 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+  export type User = {
+    avatar_key: string | null
+    avatar_url: string | null
+    channels: string[] | null
+    created_at: string | null
+    email: string
+    id: string
+    is_away: boolean
+    name: string | null
+    phone: string | null
+    type: string | null
+  }
+  
+  export type Workspace = {
+    admin_id: string
+    created_at: string
+    id: string
+    image_url: string
+    invite_code: string | null
+    name: string
+    slug: string
+  }
+
 export type Database = {
   public: {
     Tables: {
+      members_workspaces: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_workspaces_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "members_workspaces_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_key: string | null
@@ -21,7 +80,6 @@ export type Database = {
           name: string | null
           phone: string | null
           type: string | null
-          workplaces: string[] | null
         }
         Insert: {
           avatar_key?: string | null
@@ -34,7 +92,6 @@ export type Database = {
           name?: string | null
           phone?: string | null
           type?: string | null
-          workplaces?: string[] | null
         }
         Update: {
           avatar_key?: string | null
@@ -47,12 +104,49 @@ export type Database = {
           name?: string | null
           phone?: string | null
           type?: string | null
-          workplaces?: string[] | null
         }
         Relationships: [
           {
             foreignKeyName: "users_id_fkey"
             columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspaces: {
+        Row: {
+          admin_id: string
+          created_at: string
+          id: string
+          image_url: string
+          invite_code: string | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          id?: string
+          image_url: string
+          invite_code?: string | null
+          name: string
+          slug: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          invite_code?: string | null
+          name?: string
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspaces_admin_id_fkey"
+            columns: ["admin_id"]
             isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]

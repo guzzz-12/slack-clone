@@ -9,5 +9,5 @@ export type User = {
   name: string | null;
   phone: string | null;
   type: string | null;
-  workplaces: string[] | null;
+  workspaces: string[] | null;
 }
