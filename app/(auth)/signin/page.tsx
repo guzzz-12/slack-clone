@@ -34,7 +34,6 @@ const AuthPage = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
 
   const formProps = useForm<AuthFormType>({
     resolver: zodResolver(AuthFormSchema),
@@ -43,10 +42,11 @@ const AuthPage = () => {
     }
   });
 
+  // Verificar si el usuario está autenticado y redirigirlo si lo está
   useEffect(() => {
-    const getUser = async () => {
+    const geSession = async () => {
       try {
-        const {data, error} = await supabaseBrowserClient.auth.getUser();
+        const {data, error} = await supabaseBrowserClient.auth.getSession();
 
         if (error) {
           throw new Error(error.message);
@@ -64,9 +64,7 @@ const AuthPage = () => {
       }
     }
 
-    getUser();
-    
-    setIsMounted(true);
+    geSession();
   }, []);
 
   // Iniciar sesión o regstrarse con google o github
@@ -103,7 +101,7 @@ const AuthPage = () => {
         options: {
           shouldCreateUser: true,
           // Redirigir a este endpoint para verificar el hash de autenticación del magic link
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_PROJECT_URL!}/api/auth/confirm`
+          emailRedirectTo: process.env.NEXT_PUBLIC_PROJECT_URL!
         }
       });
 

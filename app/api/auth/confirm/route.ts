@@ -12,24 +12,23 @@ export async function GET(request: NextRequest) {
   
   const type = searchParams.get("type") as EmailOtpType | null;
 
-  console.log({token_hash, type});
+  console.log({MAGIC_LINK_LOGIN_PARAMS: {token_hash, type}});
 
   if (token_hash && type) {
-    const { error } = await supabaseServerClient().auth.verifyOtp({
+    const supabase = supabaseServerClient();
+
+    const { data, error } = await supabase.auth.verifyOtp({
       type,
       token_hash
     });
 
     if (error) {
       console.log({magic_link_error: error.message});
+      return redirect("/login");
     }
 
-    if (!error) {
-      // redirect user to specified redirect URL or root of app
-      return redirect(process.env.NEXT_PUBLIC_PROJECT_URL!);
-    }
+    console.log("MAGIC_LINK_LOGIN_SUCCESS", data.user);
   }
 
-  // redirect the user to an error page with some instructions
-  return redirect("/signin");
+  return redirect(process.env.NEXT_PUBLIC_PROJECT_URL!);
 }
