@@ -72,12 +72,12 @@ export async function POST(req: NextRequest) {
     // Data de la imagen subida al bucket
     const uploadData = uploadRes.data as UploadResponseData;
     const uploadedImageUrl = `${process.env.BACKBLAZE_BUCKET_URL}/${uploadData.fileName}`;
-    
+
     fileId = uploadData.fileId;
     fileName = uploadData.fileName;
 
     // Crear el workspace en la base de datos
-    const {data, error: workspaceInsertError} = await supabaseServerClient()
+    const {data: wsData, error: wsInsertError} = await supabase
       .from("workspaces")
       .insert({
         name,
@@ -85,19 +85,23 @@ export async function POST(req: NextRequest) {
         image_url: uploadedImageUrl,
         admin_id: user.id
       })
-      .select("*");
+      .select("*")
+      .limit(1)
+      .single();
     
-    if (workspaceInsertError) {
-      throw new Error(workspaceInsertError.message);
+    if (wsInsertError) {
+      throw new Error(`wsInsertError_${wsInsertError.message}`);
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json(wsData);
     
   } catch (error: any) {
     console.log(`Error creando Workspace`, error.message);
 
     // Eliminar la imagen del bucket en caso de error de supabase
-    b2Client.deleteFileVersion({fileId, fileName});
+    if ((error.message as string).startsWith("wsInsertError_")) {
+      b2Client.deleteFileVersion({fileId, fileName});
+    }
 
     return NextResponse.json({message: "Internal server error"}, {status: 500});
   }
