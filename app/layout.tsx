@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Lato } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Slack Clone",
@@ -18,17 +19,23 @@ const RootLayout = ({children}: {children: ReactNode}) => {
   return (
     <html lang="en">
       <body className={`${lato.className} antialiased`}>
-        {children}
-        <Toaster
-          position="bottom-left"
-          toastOptions={{
-            style: {
-              color: "white",
-              backgroundColor: "#451c49"
-            },
-            duration: 5000
-          }}
-        />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster
+            position="bottom-left"
+            toastOptions={{
+              style: {
+                color: "white",
+                backgroundColor: "#451c49"
+              },
+              duration: 5000
+            }}
+          />
+        </ThemeProvider>
       </body>
     </html>
   );
