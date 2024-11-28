@@ -1,6 +1,7 @@
 "use client"
 
 import { Dispatch, SetStateAction, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Controller, useFormContext } from "react-hook-form";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -23,6 +24,8 @@ interface Props {
 
 const Step2 = ({setStep}: Props) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const router = useRouter();
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState("");
@@ -67,20 +70,19 @@ const Step2 = ({setStep}: Props) => {
         }
       });
 
-      // Agregar al admin como miembro del workspace
-      await axios({
-        method: "GET",
-        url: `/api/workspace/add-member?workspace_id=${data.id}&member_id=${data.admin_id}`
-      });
-
       formProps.reset();
       setImageFile(null);
       setImagePreview("");
 
+      toast.success("Workspace created successfully");
+
+      // Redirigir al workspace después de un pequeño delay
+      setTimeout(() => {
+        router.push(`/workspace/${data.id}`);
+      }, 500);
+
     } catch (error: any) {
       console.log(error);
-
-    } finally {
       setSubmitting(false);
     }
   }
