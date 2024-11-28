@@ -121,7 +121,7 @@ const AuthPage = () => {
   }
 
   return (
-    <main className="relative flex justify-center items-center min-h-screen p-5 text-center bg-white">
+    <main className="relative flex justify-center items-center min-h-screen p-5 text-center">
       {loadingUser &&
         <Spinner />
       }
@@ -134,13 +134,12 @@ const AuthPage = () => {
           </div>
 
           <Typography
-            className="mb-1 text-neutral-900"
+            className="mb-1"
             variant="h3"
             text="Sign in to your Slack account"
           />
 
           <Typography
-            className="text-neutral-900"
             variant="p"
             text="We suggest using the email address that you use at work"
           />
@@ -182,7 +181,7 @@ const AuthPage = () => {
 
           <div className="flex justify-between items-center gap-4 my-4">
             <div className="w-full h-[1px] bg-border" />
-            <Typography className="text-neutral-900" text="OR" variant="p" />
+            <Typography text="OR" variant="p" />
             <div className="w-full h-[1px] bg-border" />
           </div>
 
@@ -226,7 +225,7 @@ const AuthPage = () => {
               }
 
               <Button
-                className="bg-primary-dark hover:bg-primary-light"
+                className="text-white bg-primary-dark hover:bg-primary-light"
                 disabled={loading}
               >
                 <Typography text="Sign in with email" variant="p" />

@@ -2,6 +2,7 @@
 
 import { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
+import { useTheme } from "next-themes";
 import Typography from "../Typography";
 import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
@@ -15,6 +16,8 @@ interface Props {
 
 const Step1 = ({setStep}: Props) => {
   const formProps = useFormContext<FormType>();
+
+  const {theme} = useTheme();
 
   const onSubmitHandler = async () => {
     // Validar manualmente el campo name al intentar pasar al siguiente step
@@ -53,7 +56,7 @@ const Step1 = ({setStep}: Props) => {
             <FormItem>
               <FormControl>
                 <Input
-                  className={cn("text-neutral-900", formProps.formState.errors.name ? "border-destructive" : "border")}
+                  className={cn(theme === "light" ? "text-neutral-900" : "text-white", formProps.formState.errors.name ? "border-destructive" : "border")}
                   placeholder="My Workspace"
                   {...field}
                 />
@@ -64,8 +67,11 @@ const Step1 = ({setStep}: Props) => {
           )}
         />
 
-        <Button className="w-max bg-primary-dark hover:bg-primary-light">
-          <Typography text="Continue" variant="p" />
+        <Button className="w-max text-white bg-primary-dark hover:bg-primary-light">
+          <Typography
+            text="Continue"
+            variant="p"
+          />
         </Button>
       </form>
     </div>

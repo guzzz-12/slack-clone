@@ -223,11 +223,11 @@ const Step2 = ({setStep}: Props) => {
           </Button>
 
           <Button
-            className="flex justify-center items-center gap-1 bg-primary-dark hover:bg-primary-light"
+            className="flex justify-center items-center gap-1 text-white bg-primary-dark hover:bg-primary-light"
             type="submit"
             disabled={processingImage || submitting}
           >
-            {submitting && <LuLoader2 className="text-white animate-spin" size={16} />}
+            {submitting && <LuLoader2 className="animate-spin" size={16} />}
             <Typography text="Create Workspace" variant="p" />
           </Button>
         </div>
