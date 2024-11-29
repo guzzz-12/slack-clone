@@ -4,7 +4,8 @@ import { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 import { useTheme } from "next-themes";
 import Typography from "../Typography";
-import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
+import FormErrorMessage from "./FormErrorMessage";
+import { FormControl, FormField, FormItem } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { FormType } from "@/app/workspace/create/page";
@@ -61,8 +62,8 @@ const Step1 = ({setStep}: Props) => {
                   {...field}
                 />
               </FormControl>
-
-              <FormMessage className="text-left translate-y-[-5px]" />
+              
+              <FormErrorMessage />
             </FormItem>
           )}
         />

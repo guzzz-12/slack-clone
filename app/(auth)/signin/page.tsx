@@ -12,8 +12,9 @@ import { RxGithubLogo } from "react-icons/rx";
 import Typography from "@/components/Typography";
 import Alert from "@/components/Alert";
 import Spinner from "@/components/Spinner";
+import FormErrorMessage from "@/components/createWorkspace/FormErrorMessage";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { supabaseBrowserClient } from "@/utils/supabase/supabaseBrowserClient";
 import { cn } from "@/lib/utils";
@@ -44,7 +45,7 @@ const AuthPage = () => {
 
   // Verificar si el usuario está autenticado y redirigirlo si lo está
   useEffect(() => {
-    const geSession = async () => {
+    const getSession = async () => {
       try {
         const {data, error} = await supabaseBrowserClient.auth.getSession();
 
@@ -64,10 +65,10 @@ const AuthPage = () => {
       }
     }
 
-    geSession();
+    getSession();
   }, []);
 
-  // Iniciar sesión o regstrarse con google o github
+  // Iniciar sesión o registrarse con google o github
   const onSocialSubmitHandler = async (provider: "google" | "github") => {
     try {
       setLoading(true);
@@ -204,7 +205,7 @@ const AuthPage = () => {
                       />
                     </FormControl>
 
-                    <FormMessage className="text-left translate-y-[-5px]" />
+                    <FormErrorMessage />
                   </FormItem>
                 )}
               />

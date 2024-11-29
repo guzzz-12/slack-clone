@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Controller, useFormContext } from "react-hook-form";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { useTheme } from "next-themes";
 import { FaRegImage } from "react-icons/fa6";
 import { FaRegTimesCircle } from "react-icons/fa";
 import { LuLoader2 } from "react-icons/lu";
@@ -26,6 +27,8 @@ const Step2 = ({setStep}: Props) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const router = useRouter();
+
+  const {theme} = useTheme();
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState("");
@@ -204,7 +207,7 @@ const Step2 = ({setStep}: Props) => {
 
         {formProps.formState.errors.image &&
           <Typography
-            className="text-sm text-left text-destructive font-medium translate-y-[-5px]"
+            className={cn("text-sm text-left font-medium translate-y-[-5px]", theme === "dark" ? "text-red-500" : "text-destructive")}
             text={formProps.formState.errors.image.message as string}
             variant="p"
           />

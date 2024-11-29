@@ -2,8 +2,8 @@ import { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Lato } from "next/font/google";
 import { Toaster } from "react-hot-toast";
-import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Slack Clone",
