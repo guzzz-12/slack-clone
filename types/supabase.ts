@@ -29,6 +29,11 @@ export type Json =
     slug: string
   }
 
+  export type WorkspaceWithMembers = {
+    workspace: Workspace;
+    members: User[]
+  };
+
 export type Database = {
   public: {
     Tables: {

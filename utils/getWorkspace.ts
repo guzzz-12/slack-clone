@@ -1,11 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import { supabaseServerClient } from "./supabase/supabaseServerClient";
-import { Workspace } from "@/types/supabase";
+import { WorkspaceWithMembers } from "@/types/supabase";
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Consultar un workspace del usuario autenticado especificando la id del workspace */
-export const getWorkspace = async (workspaceId: string): Promise<Workspace | null> => {
+export const getWorkspace = async (workspaceId: string): Promise<WorkspaceWithMembers> => {
   const supabase = supabaseServerClient();
 
   // Validar la ID del workspace
@@ -20,20 +20,33 @@ export const getWorkspace = async (workspaceId: string): Promise<Workspace | nul
     return redirect("/login");
   }
 
-  const {data, error} = await supabase
-    .from("members_workspaces")
-    .select("workspaces(*)")
-    .eq("user_id", user.id)
-    .eq("workspace_id", workspaceId)
+  // Consultar el workspace
+  const {data: workspaceData, error: workspaceError} = await supabase
+    .from("workspaces")
+    .select("*")
+    .eq("id", workspaceId)
     .limit(1);
+  
+  // Consultar los miembros del workspace
+  const {data: membersData, error: membersError} = await supabase
+    .from("workspaces")
+    .select("members:members_workspaces(member:users(*))")
+    .eq("id", workspaceId);
 
-  if (error) {
-    throw new Error(error.message)
+  // Verificar si hubo errores al consultar el workspace o los miembros
+  if (workspaceError || membersError) {
+    throw new Error(workspaceError?.message || membersError?.message)
   }
 
-  if (!data[0]) {
+  // Verificar si el workspace o los miembros no fueron encontrados
+  if (!workspaceData || !membersData) {
     return notFound();
   }
 
-  return data[0].workspaces;
+  const data = {
+    workspace: workspaceData[0],
+    members: membersData[0]?.members.map(item => item.member!),
+  } satisfies WorkspaceWithMembers;
+
+  return data;
 }
