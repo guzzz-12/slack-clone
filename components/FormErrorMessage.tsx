@@ -1,5 +1,5 @@
 import { useTheme } from "next-themes";
-import { FormMessage } from "../ui/form";
+import { FormMessage } from "./ui/form";
 import { cn } from "@/lib/utils";
 
 const FormErrorMessage = () => {

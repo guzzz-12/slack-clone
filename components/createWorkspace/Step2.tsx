@@ -50,7 +50,10 @@ const Step2 = ({setStep}: Props) => {
     setImageFile(img);
     setImagePreview(imgPreview);
 
+    // Actualizar el campo image en el formulario
     formProps.setValue("image", img);
+
+    // Validar manualmente el campo image al seleccionar una imagen
     formProps.trigger("image");
   }
 
@@ -74,6 +77,7 @@ const Step2 = ({setStep}: Props) => {
       });
 
       formProps.reset();
+      
       setImageFile(null);
       setImagePreview("");
 

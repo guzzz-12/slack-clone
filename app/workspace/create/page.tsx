@@ -25,7 +25,7 @@ const CreateWorkspacePage = () => {
 
   return (
     <main className="grid place-content-center w-screen h-screen bg-neutral-800 text-white">
-      <section className="w-[550px] p-3">
+      <section className="w-[550px] px-6 py-4 border rounded-md border-neutral-400">
         <FormProvider {...formProps}>
           <AnimatePresence initial={true} mode="wait">
             {step === 1 && (

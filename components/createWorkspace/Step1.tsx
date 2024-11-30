@@ -4,7 +4,7 @@ import { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 import { useTheme } from "next-themes";
 import Typography from "../Typography";
-import FormErrorMessage from "./FormErrorMessage";
+import FormErrorMessage from "../FormErrorMessage";
 import { FormControl, FormField, FormItem } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -57,7 +57,7 @@ const Step1 = ({setStep}: Props) => {
             <FormItem>
               <FormControl>
                 <Input
-                  className={cn(theme === "light" ? "text-neutral-900" : "text-white", formProps.formState.errors.name ? "border-destructive" : "border")}
+                  className={cn("px-3 py-5 text-base", theme === "light" ? "text-neutral-900" : "text-white", formProps.formState.errors.name ? "border-destructive" : "border")}
                   placeholder="My Workspace"
                   {...field}
                 />

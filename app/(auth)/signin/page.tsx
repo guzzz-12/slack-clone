@@ -12,7 +12,7 @@ import { RxGithubLogo } from "react-icons/rx";
 import Typography from "@/components/Typography";
 import Alert from "@/components/Alert";
 import Spinner from "@/components/Spinner";
-import FormErrorMessage from "@/components/createWorkspace/FormErrorMessage";
+import FormErrorMessage from "@/components/FormErrorMessage";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -45,15 +45,19 @@ const AuthPage = () => {
 
   // Verificar si el usuario está autenticado y redirigirlo si lo está
   useEffect(() => {
-    const getSession = async () => {
+    const getUser = async () => {
       try {
-        const {data, error} = await supabaseBrowserClient.auth.getSession();
+        const {data, error} = await supabaseBrowserClient.auth.getUser();
 
         if (error) {
+          if (error.name === "AuthSessionMissingError") {
+            return;
+          }
+
           throw new Error(error.message);
         }
 
-        if (data) {
+        if (data.user) {
           return router.replace("/");
         }
 
@@ -65,7 +69,7 @@ const AuthPage = () => {
       }
     }
 
-    getSession();
+    getUser();
   }, []);
 
   // Iniciar sesión o registrarse con google o github
