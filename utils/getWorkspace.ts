@@ -25,12 +25,13 @@ export const getWorkspace = async (workspaceId: string): Promise<WorkspaceWithMe
     .from("workspaces")
     .select("*")
     .eq("id", workspaceId)
-    .limit(1);
+    .limit(1)
+    .single();
   
   // Consultar los miembros del workspace
   const {data: membersData, error: membersError} = await supabase
     .from("workspaces")
-    .select("members:members_workspaces(member:users(*))")
+    .select("members:members_workspaces(member:users(id, email, name, is_away, avatar_url))")
     .eq("id", workspaceId);
 
   // Verificar si hubo errores al consultar el workspace o los miembros
@@ -44,7 +45,7 @@ export const getWorkspace = async (workspaceId: string): Promise<WorkspaceWithMe
   }
 
   const data = {
-    workspace: workspaceData[0],
+    workspace: workspaceData,
     members: membersData[0]?.members.map(item => item.member!),
   } satisfies WorkspaceWithMembers;
 

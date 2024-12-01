@@ -31,7 +31,7 @@ export type Json =
 
   export type WorkspaceWithMembers = {
     workspace: Workspace;
-    members: User[]
+    members: Partial<User>[]
   };
 
 export type Database = {
