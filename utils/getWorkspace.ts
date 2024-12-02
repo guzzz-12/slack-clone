@@ -45,8 +45,8 @@ export const getWorkspace = async (workspaceId: string): Promise<WorkspaceWithMe
   }
 
   const data = {
-    workspace: workspaceData,
-    members: membersData[0]?.members.map(item => item.member!),
+    workspaceData: workspaceData,
+    workspaceMembers: membersData[0]?.members.map(item => item.member!),
   } satisfies WorkspaceWithMembers;
 
   return data;
