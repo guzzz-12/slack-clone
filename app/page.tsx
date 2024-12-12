@@ -6,10 +6,10 @@ const Home = async () => {
   const workspaces = await getAllUserWorkspaces(true);
 
   if (workspaces.length === 0) {
-    return redirect("workspace/create");
+    return redirect("/create-workspace");
   }
 
-  return redirect(`/workspace/${workspaces[0].id}`);
+  return redirect("/user-workspaces");
 }
 
 export default Home;
