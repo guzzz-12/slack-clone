@@ -84,7 +84,8 @@ const AuthPage = () => {
           queryParams: {
             access_type: "offline",
             prompt: "consent",
-          }
+          },
+          scopes: "https://www.googleapis.com/auth/userinfo.profile"
         }
       });
 
