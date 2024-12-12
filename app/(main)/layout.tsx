@@ -13,7 +13,7 @@ const MainLayout = async ({children}: Props) => {
   const user = await getUserData();
 
   return (
-    <section className="flex justify-start items-stretch h-screen pt-8 pr-4 pb-2 bg-black">
+    <section className="flex justify-start items-stretch h-screen pt-8 pr-2 pb-2 bg-black">
       <Sidebar userData={user} />
       <InfoSection />
       {children}

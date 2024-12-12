@@ -1,8 +1,9 @@
 "use client"
 
-import { Dispatch, SetStateAction } from "react";
-import { useFormContext } from "react-hook-form";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { useFormContext } from "react-hook-form";
 import Typography from "../Typography";
 import FormErrorMessage from "../FormErrorMessage";
 import { FormControl, FormField, FormItem } from "../ui/form";
@@ -16,6 +17,18 @@ interface Props {
 }
 
 const Step1 = ({setStep}: Props) => {
+  const router = useRouter();
+
+  const [selectedWorkspace, setSelectedWorkspace] = useState("");
+  
+  useEffect(() => {
+    const selectedWorkspaceId = localStorage.getItem("selectedWorkspaceId");
+
+    if (selectedWorkspaceId) {
+      setSelectedWorkspace(selectedWorkspaceId);
+    }
+  }, []);
+
   const formProps = useFormContext<FormType>();
 
   const {theme} = useTheme();
@@ -68,12 +81,34 @@ const Step1 = ({setStep}: Props) => {
           )}
         />
 
-        <Button className="w-max text-white bg-primary-dark hover:bg-primary-light">
-          <Typography
-            text="Continue"
-            variant="p"
-          />
-        </Button>
+        <div className="flex justify-start items-center gap-1 w-full">
+          <Button
+            className="w-max text-white bg-primary-dark hover:bg-primary-light"
+            type="submit"
+          >
+            <Typography
+              text="Continue"
+              variant="p"
+            />
+          </Button>
+
+          {/* Navegar de regreso al workspace seleccionado */}
+          {selectedWorkspace && (
+            <Button
+              className="w-max text-white hover:bg-neutral-900"
+              variant="ghost"
+              type="button"
+              onClick={() => {
+                router.push(`/workspace/${selectedWorkspace}`);
+              }}
+            >
+              <Typography
+                text="Cancel"
+                variant="p"
+              />
+            </Button>
+          )}
+        </div>
       </form>
     </div>
   );
