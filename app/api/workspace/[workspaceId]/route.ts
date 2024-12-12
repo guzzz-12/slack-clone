@@ -12,9 +12,11 @@ export async function GET(req: Request, {params}: Context) {
     const workspaceId = (await params).workspaceId;
     
     const workspaceWithMembers = await getWorkspace(workspaceId);
-    const userWorkspaces = await getUserWorkspaces();
   
-    return NextResponse.json({...workspaceWithMembers, userWorkspaces});
+    return NextResponse.json({
+      workspaceData: workspaceWithMembers.workspaceData,
+      workspaceMembers: workspaceWithMembers.workspaceMembers
+    });
     
   } catch (error) {
     console.log(`Error consultando workspace`, error);

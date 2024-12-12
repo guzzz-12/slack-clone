@@ -1,19 +1,28 @@
 import { supabaseServerClient } from "./supabase/supabaseServerClient";
 import { getUserData } from "./getUserData";
-import { Workspace } from "@/types/supabase";
+
+type UserWorkspacesWithMembers = {
+  workspace_id: string;
+  workspace_name: string;
+  workspace_image: string;
+  members: {
+    username: string;
+    email: string;
+    avatar_url: string;
+  }[];
+}[];
 
 // Consultar todos los workspaces a los que pertenece el usuario autenticado
-export const getUserWorkspaces = async (): Promise<Workspace[]> => {
+export const getUserWorkspaces = async (): Promise<UserWorkspacesWithMembers> => {
   const supabase = supabaseServerClient();
 
   // Consultar la data del usuario en la base de datos
   const userData = await getUserData();
 
-  // Consultar los workspaces del usuario a través de la tabla pivote
-  const {data, error} = await supabase
-    .from("members_workspaces")
-    .select("workspaces(*)")
-    .eq("user_id", userData.id);
+  // Consultar los workspaces del usuario con sus miembros
+  const {data, error} = await supabase.rpc("get_workspaces_with_members", {
+    user_id: userData.id
+  });
 
   if (error) {    
     throw new Error(error.message);
@@ -23,8 +32,5 @@ export const getUserWorkspaces = async (): Promise<Workspace[]> => {
     return [];
   }
 
-  // Reestructurar la data a un array de objetos filtrando los nulls
-  const workspaces = data.map(workspace => workspace.workspaces!);
-
-  return workspaces;
+  return data as UserWorkspacesWithMembers;
 }
