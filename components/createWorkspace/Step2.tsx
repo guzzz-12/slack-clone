@@ -13,7 +13,7 @@ import { FaArrowLeft } from "react-icons/fa6";
 import { Button } from "../ui/button";
 import Typography from "../Typography";
 import { imageCompressor, imgToBase64 } from "@/utils/imageCompression";
-import { FormType } from "@/app/workspace/create/page";
+import { FormType } from "@/app/create-workspace/page";
 import { cn } from "@/lib/utils";
 import { Workspace } from "@/types/supabase";
 

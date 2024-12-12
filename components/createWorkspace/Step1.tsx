@@ -8,7 +8,7 @@ import FormErrorMessage from "../FormErrorMessage";
 import { FormControl, FormField, FormItem } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { FormType } from "@/app/workspace/create/page";
+import { FormType } from "@/app/create-workspace/page";
 import { cn } from "@/lib/utils";
 
 interface Props {
