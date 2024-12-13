@@ -254,7 +254,7 @@ const Sidebar = ({userData}: Props) => {
                     alt={userData.name || "User avatar"}
                   />
 
-                  <div className={cn("absolute -bottom-0.5 -right-0.5 w-[14px] h-[14px] rounded-full border-[3px] border-white z-10", userData.is_away ? "bg-neutral-400" : "bg-green-500")}/>
+                  <div className={cn("absolute -bottom-0.5 -right-0.5 w-[14px] h-[14px] rounded-full border-[3px] border-white z-10", isAway ? "bg-neutral-400" : "bg-green-500")}/>
                 </div>
               </TooltipTrigger>
 
@@ -280,7 +280,7 @@ const Sidebar = ({userData}: Props) => {
                       <Typography
                         className="text-xs text-neutral-300"
                         variant="p"
-                        text={isAway? "Unavailable" : "Available"}
+                        text={isAway ? "Unavailable" : "Available"}
                       />
                     </div>
                   </div>
