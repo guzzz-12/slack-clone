@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { WorkspaceWithMembers } from "@/types/supabase";
+import { Workspace, WorkspaceWithMembers } from "@/types/supabase";
 
 interface Props {
   params: {
@@ -15,7 +15,7 @@ interface Props {
 const WorkspaceDetailPage = ({params}: Props) => {
   const {workspaceId} = params;
 
-  const {setLoadingWorkspaces, setCurrentWorkspace} = useWorkspace();
+  const {setLoadingWorkspaces, setCurrentWorkspace, setUserWorkspaces} = useWorkspace();
 
   // Consultar el workspace y sus miembros
   useEffect(() => {
@@ -23,12 +23,15 @@ const WorkspaceDetailPage = ({params}: Props) => {
       try {
         setLoadingWorkspaces(true);
 
-        const res = await axios<WorkspaceWithMembers>(`/api/workspace/${workspaceId}`);
+        const currentWorkspace = await axios<WorkspaceWithMembers>(`/api/workspace/${workspaceId}`);
+        const userWorkspaces = await axios<Workspace[]>("/api/workspace/user-workspaces");
 
         setCurrentWorkspace({
-          workspaceData: res.data.workspaceData,
-          workspaceMembers: res.data.workspaceMembers
+          workspaceData: currentWorkspace.data.workspaceData,
+          workspaceMembers: currentWorkspace.data.workspaceMembers
         });
+
+        setUserWorkspaces(userWorkspaces.data);
 
       } catch (error: any) {
         toast.error(error.message);
