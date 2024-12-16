@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { RiHome2Fill } from "react-icons/ri";
 import { PiChatsTeardrop } from "react-icons/pi";
 import { FiPlus } from "react-icons/fi";
 import toast from "react-hot-toast";
+import WorkspaceItem from "./WorkspaceItem";
 import Typography from "./Typography";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { Button } from "./ui/button";
@@ -28,7 +29,7 @@ const Sidebar = ({userData}: Props) => {
   const [isAway, setIsAway] = useState(() => userData.is_away);
   const [loading, setLoading] = useState(false);
 
-  const {loadingWorkspaces, currentWorkspace} = useWorkspace();
+  const {currentWorkspace, userWorkspaces, loadingWorkspaces} = useWorkspace();
 
   // Cerrar sesión
   const signoutHandler = async () => {
@@ -77,7 +78,7 @@ const Sidebar = ({userData}: Props) => {
   }
 
   return (
-    <aside className="flex flex-col justify-start items-stretch h-full w-16 px-4 bg-black">
+    <div className="flex flex-col justify-start items-stretch h-full w-16 px-4 bg-black">
       <nav className="flex flex-col justify-between items-center flex-grow gap-4 max-h-full">
         {loadingWorkspaces && (
           <ul className="flex flex-col items-center gap-3 max-h-full flex-grow">
@@ -117,36 +118,24 @@ const Sidebar = ({userData}: Props) => {
                   <TooltipContent className="p-0" side="bottom" sideOffset={10}>
                     <Card className="w-[350px] border-0">
                       <CardContent className="flex flex-col p-0">
-                        <Link
-                          className="flex items-center gap-2 px-2 py-1 hover:opacity-70 cursor-pointer"
-                          href={`/workspace/${currentWorkspace.workspaceData.id}`}
-                          onClick={(e) => {
-                            if (loading) {
-                              e.preventDefault();
-                            }
-                          }}
-                        >
-                          <img
-                            className="block w-10 h-10 object-cover object-center rounded-full"
-                            src={currentWorkspace.workspaceData.image_url}
-                            alt={currentWorkspace.workspaceData.name}
-                          />
+                        {/* Mostrar el item del workspace actual */}
+                        <WorkspaceItem
+                          workspace={currentWorkspace.workspaceData}
+                          loading={loading}
+                        />
 
-                          <div>
-                            <Typography
-                              className="text-sm"
-                              variant="p"
-                              text={currentWorkspace.workspaceData.name}
-                            />
-                            {currentWorkspace.workspaceData.invite_code && (
-                              <Typography
-                                className="text-xs text-neutral-500"
-                                variant="p"
-                                text={currentWorkspace.workspaceData.invite_code}
+                        {/* Mostrar los demás workspaces del usuario */}
+                        {userWorkspaces
+                          .filter(w => w.id !== currentWorkspace.workspaceData.id)
+                          .map(wsp => (
+                            <Fragment key={wsp.id}>
+                              <WorkspaceItem
+                                workspace={wsp}
+                                loading={loading}
                               />
-                            )}
-                          </div>
-                        </Link>
+                            </Fragment>
+                          ))
+                        }
 
                         <Separator />
 
@@ -314,7 +303,7 @@ const Sidebar = ({userData}: Props) => {
           </TooltipProvider>
         </div>
       )}
-    </aside>
+    </div>
   )
 }
 
