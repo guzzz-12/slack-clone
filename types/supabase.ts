@@ -6,37 +6,76 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-  export type User = {
-    avatar_key: string | null
-    avatar_url: string | null
-    channels: string[] | null
-    created_at: string | null
-    email: string
-    id: string
-    is_away: boolean
-    name: string | null
-    phone: string | null
-    type: string | null
-  }
-  
-  export type Workspace = {
-    admin_id: string
-    created_at: string
-    id: string
-    image_url: string
-    invite_code: string | null
-    name: string
-    slug: string
-  }
+export type User = {
+  avatar_key: string | null
+  avatar_url: string | null
+  channels: string[] | null
+  created_at: string | null
+  email: string
+  id: string
+  is_away: boolean
+  name: string | null
+  phone: string | null
+  type: string | null
+}
 
-  export type WorkspaceWithMembers = {
-    workspaceData: Workspace;
-    workspaceMembers: Partial<User>[]
-  }
+export type Workspace = {
+  admin_id: string
+  created_at: string
+  id: string
+  image_url: string
+  invite_code: string | null
+  name: string
+  slug: string
+}
+
+export type WorkspaceWithMembers = {
+  workspaceData: Workspace;
+  workspaceMembers: Partial<User>[]
+}
 
 export type Database = {
   public: {
     Tables: {
+      channels: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          workspace_id: string
+          ws_admin_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          workspace_id?: string
+          ws_admin_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          workspace_id?: string
+          ws_admin_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channels_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channels_ws_admin_id_fkey"
+            columns: ["ws_admin_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       members_workspaces: {
         Row: {
           created_at: string
