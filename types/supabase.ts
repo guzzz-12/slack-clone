@@ -48,6 +48,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_public: boolean | null
           name: string
           workspace_id: string
           ws_admin_id: string
@@ -55,6 +56,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_public?: boolean | null
           name: string
           workspace_id?: string
           ws_admin_id?: string
@@ -62,6 +64,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_public?: boolean | null
           name?: string
           workspace_id?: string
           ws_admin_id?: string

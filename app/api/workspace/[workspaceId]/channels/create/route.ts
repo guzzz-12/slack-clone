@@ -12,8 +12,11 @@ export async function POST(req: Request, {params}: Context) {
   try {
     const workspaceId = (await params).workspaceId;
 
-    // Extraer el name del workspace de la data del formulario
-    let {name} = await req.json() as {name: string};
+    // Extraer la data del formulario
+    let {name, chanelType} = await req.json() as {
+      name: string,
+      chanelType: "public" | "private"
+    };
 
     const supabase = supabaseServerClient();
 
@@ -29,6 +32,8 @@ export async function POST(req: Request, {params}: Context) {
     .insert({
       // Capitalizar el name
       name: name.charAt(0).toUpperCase() + name.toLowerCase().slice(1),
+      // Convertir a boolean los strings "public" y "private"
+      is_public: chanelType === "public" ? true : false,
       workspace_id: workspaceId,
       ws_admin_id: user.id
     })
