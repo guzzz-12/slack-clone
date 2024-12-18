@@ -1,8 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { supabaseServerClient } from "./supabase/supabaseServerClient";
 import { WorkspaceWithMembers } from "@/types/supabase";
-
-const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { uuidRegex } from "./constants";
 
 /** Consultar un workspace del usuario autenticado especificando la id del workspace */
 export const getWorkspace = async (workspaceId: string): Promise<WorkspaceWithMembers> => {
@@ -27,6 +26,11 @@ export const getWorkspace = async (workspaceId: string): Promise<WorkspaceWithMe
     .eq("id", workspaceId)
     .limit(1)
     .single();
+
+  // Verificar si hubo error al consultar el workspace
+  if (workspaceError) {
+    throw workspaceError;
+  }
   
   // Consultar los miembros del workspace
   const {data: membersData, error: membersError} = await supabase
@@ -34,9 +38,9 @@ export const getWorkspace = async (workspaceId: string): Promise<WorkspaceWithMe
     .select("members:members_workspaces(member:users(id, email, name, is_away, avatar_url))")
     .eq("id", workspaceId);
 
-  // Verificar si hubo errores al consultar el workspace o los miembros
-  if (workspaceError || membersError) {
-    throw new Error(workspaceError?.message || membersError?.message)
+  // Verificar si hubo error al consultar los miembros
+  if (membersError) {
+    throw membersError;
   }
 
   // Verificar si el workspace o los miembros no fueron encontrados
