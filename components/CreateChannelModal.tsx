@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Separator } from "./ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "./ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useWorkspace } from "@/hooks/useWorkspace";
@@ -34,7 +35,8 @@ const ChannelFormSchema = z.object({
     .max(60, {message: "The channel name must be at most 100 characters long"})
     .refine((val) => {
       return val.trim() !== "";
-    }, {message: "The channel name cannot be empty"})
+    }, {message: "The channel name cannot be empty"}),
+    channelType: z.enum(["public", "private"])
 });
 
 type ChannelFormType = z.infer<typeof ChannelFormSchema>;
@@ -52,7 +54,8 @@ const CreateChannelModal = ({isOpen, setIsOpen, setChannels}: Props) => {
   const formProps = useForm<ChannelFormType>({
     resolver: zodResolver(ChannelFormSchema),
     defaultValues: {
-      channelName: ""
+      channelName: "",
+      channelType: "public"
     }
   });
 
@@ -80,6 +83,7 @@ const CreateChannelModal = ({isOpen, setIsOpen, setChannels}: Props) => {
         url: `/api/workspace/${currentWorkspace.workspaceData.id}/channels/create`,
         data: {
           name: values.channelName,
+          channelType: values.channelType
         }
       });
 
@@ -153,6 +157,38 @@ const CreateChannelModal = ({isOpen, setIsOpen, setChannels}: Props) => {
                       {...field}
                     />
                   </FormControl>
+
+                  <FormErrorMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={formProps.control}
+              name="channelType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Channel type</FormLabel>
+
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue="public"
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+
+                    <SelectContent>
+                      <SelectItem value="public">
+                        Public
+                      </SelectItem>
+                      <SelectItem value="private">
+                        Private
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
 
                   <FormErrorMessage />
                 </FormItem>
