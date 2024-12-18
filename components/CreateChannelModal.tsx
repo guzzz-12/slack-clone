@@ -4,7 +4,7 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useTheme } from "next-themes";
 import toast from "react-hot-toast";
 import Typography from "./Typography";
@@ -95,7 +95,15 @@ const CreateChannelModal = ({isOpen, setIsOpen, setChannels}: Props) => {
       setIsOpen(false);
 
     } catch (error: any) {
-      toast.error(error.message, {duration: 10000});
+      let message = error.message;
+
+      if (error instanceof AxiosError && error.response?.status.toString().startsWith("4")) {
+        message = error.response.data.message;
+        formProps.setError("channelName", {message});
+      }
+
+      toast.error(message, {duration: 10000});
+
       setSubmitting(false);
     }
   }  

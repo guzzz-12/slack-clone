@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { redirect } from "next/navigation";
 import { supabaseServerClient } from "@/utils/supabase/supabaseServerClient";
+import { isPostgresError } from "@/utils/constants";
 
 interface Context {
   params: Promise<{workspaceId: string}>
@@ -12,7 +13,7 @@ export async function POST(req: Request, {params}: Context) {
     const workspaceId = (await params).workspaceId;
 
     // Extraer el name del workspace de la data del formulario
-    const {name} = await req.json() as {name: string};
+    let {name} = await req.json() as {name: string};
 
     const supabase = supabaseServerClient();
 
@@ -26,7 +27,8 @@ export async function POST(req: Request, {params}: Context) {
     const {data, error} = await supabase
     .from("channels")
     .insert({
-      name,
+      // Capitalizar el name
+      name: name.charAt(0).toUpperCase() + name.toLowerCase().slice(1),
       workspace_id: workspaceId,
       ws_admin_id: user.id
     })
@@ -34,13 +36,24 @@ export async function POST(req: Request, {params}: Context) {
     .single();
     
     if (error) {
-      throw new Error(error.message);
+      throw error;
     }
 
     return NextResponse.json(data);
     
   } catch (error) {
+    if (isPostgresError(error)) {
+      const {message, code} = error;
+  
+      console.log(`Error PostgreSQL creando channel: ${message}, code: ${code}`);
+  
+      if (code === "23505") {
+        return NextResponse.json({message: "There's already a channel with that name"}, {status: 409});
+      }
+    }
+
     console.log(`Error creando channel`, error);
+
     return NextResponse.json({message: "Internal server error"}, {status: 500});
   }
 }

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { PostgrestError } from "@supabase/supabase-js";
 import { getWorkspace } from "@/utils/getWorkspace";
-import { uuidRegex } from "@/utils/constants";
+import { isPostgresError, uuidRegex } from "@/utils/constants";
 
 interface Context {
   params: Promise<{workspaceId: string}>
@@ -25,11 +24,6 @@ export async function GET(_req: Request, {params}: Context) {
     });
     
   } catch (error: any) {
-    // Verificar si el error es de PostgreSQL
-    const isPostgresError = (error: any): error is PostgrestError => {
-      return "details" in error;
-    }
-
     if (isPostgresError(error)) {
       const {message, code} = error;
 
