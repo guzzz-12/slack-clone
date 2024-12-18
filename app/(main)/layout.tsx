@@ -15,7 +15,7 @@ const MainLayout = async ({children}: Props) => {
   return (
     <section className="flex justify-start items-stretch h-screen pt-8 pr-2 pb-2 bg-black">
       <Sidebar userData={user} />
-      <InfoSection />
+      <InfoSection userData={user} />
       {children}
     </section>
   );

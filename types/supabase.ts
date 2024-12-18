@@ -34,6 +34,13 @@ export type WorkspaceWithMembers = {
   workspaceMembers: Partial<User>[]
 }
 
+export type Channel = {
+  id: string;
+  name: string;
+  workspace_id: string;
+  ws_admin_id: string;
+}
+
 export type Database = {
   public: {
     Tables: {

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Typography from "./Typography";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { Workspace } from "@/types/supabase";
+import { cn } from "@/lib/utils";
 
 interface Props {
   workspace: Workspace;
@@ -8,9 +10,13 @@ interface Props {
 }
 
 const WorkspaceItem = ({workspace, loading}: Props) => {
+  const {currentWorkspace} = useWorkspace();
+
+  const isActive = currentWorkspace?.workspaceData.id === workspace.id;
+
   return (
     <Link
-      className="flex items-center gap-2 px-2 py-1 hover:opacity-70 cursor-pointer"
+      className={cn("flex items-center gap-2 w-full px-2 py-1 rounded-sm bg-transparent hover:bg-neutral-700 cursor-pointer transition-all", isActive && "bg-neutral-700")}
       href={`/workspace/${workspace.id}`}
       onClick={(e) => {
         if (loading) {
@@ -24,9 +30,9 @@ const WorkspaceItem = ({workspace, loading}: Props) => {
         alt={workspace.name}
       />
 
-      <div>
+      <div className="w-full overflow-hidden">
         <Typography
-          className="text-sm"
+          className="max-w-full text-sm truncate"
           variant="p"
           text={workspace.name}
         />
