@@ -23,19 +23,21 @@ export async function POST(req: Request, {params}: Context) {
     }
     
     // Crear el channel en la base de datos
-    const {error} = await supabase
+    const {data, error} = await supabase
     .from("channels")
     .insert({
       name,
       workspace_id: workspaceId,
       ws_admin_id: user.id
-    });
+    })
+    .select()
+    .single();
     
     if (error) {
       throw new Error(error.message);
     }
 
-    return NextResponse.json("Success");
+    return NextResponse.json(data);
     
   } catch (error) {
     console.log(`Error creando channel`, error);
