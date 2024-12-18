@@ -18,11 +18,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "./ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
+import { Channel } from "@/types/supabase";
 
 interface Props {
   userId: string;
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
+  setChannels: Dispatch<SetStateAction<Channel[]>>;
 }
 
 const ChannelFormSchema = z.object({
@@ -37,7 +39,7 @@ const ChannelFormSchema = z.object({
 
 type ChannelFormType = z.infer<typeof ChannelFormSchema>;
 
-const CreateChannelModal = ({userId, isOpen, setIsOpen}: Props) => {
+const CreateChannelModal = ({isOpen, setIsOpen, setChannels}: Props) => {
   const router = useRouter();
 
   const {currentWorkspace} = useWorkspace();
@@ -73,7 +75,7 @@ const CreateChannelModal = ({userId, isOpen, setIsOpen}: Props) => {
     try {
       setSubmitting(true);
 
-      await axios({
+      const res = await axios<Channel>({
         method: "POST",
         url: `/api/workspace/${currentWorkspace.workspaceData.id}/channels/create`,
         data: {
@@ -81,18 +83,20 @@ const CreateChannelModal = ({userId, isOpen, setIsOpen}: Props) => {
         }
       });
 
+      setChannels((prevChannels) => [...prevChannels, res.data]);
+
       formProps.reset();
 
       toast.success("Channel created successfully", {duration: 5000});
 
       router.refresh();
 
-    } catch (error: any) {
-      toast.error(error.message, {duration: 10000});
-      
-    } finally {
       setSubmitting(false);
       setIsOpen(false);
+
+    } catch (error: any) {
+      toast.error(error.message, {duration: 10000});
+      setSubmitting(false);
     }
   }  
 
