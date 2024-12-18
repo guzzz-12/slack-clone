@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { FaArrowDown, FaArrowUp, FaPlus } from "react-icons/fa6";
@@ -15,11 +17,18 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
 import { Channel, User } from "@/types/supabase";
 
+type Params = {
+  workspaceId: string;
+  channelId?: string;
+}
+
 interface Props {
   userData: User;
 }
 
 const InfoSection = ({userData}: Props) => {
+  const params = useParams<Params>();
+
   const [channels, setChannels] = useState<Channel[]>([]);
   const [isChannelCollapsed, setIsChannelCollapsed] = useState(true);
   const [isDmsCollapsed, setIsDmsCollapsed] = useState(true);
@@ -106,12 +115,15 @@ const InfoSection = ({userData}: Props) => {
               <TooltipProvider key={ch.id}>
                 <Tooltip delayDuration={250}>
                   <TooltipTrigger className="flex justify-start w-full overflow-hidden">
-                    <Typography
-                      key={ch.id}
-                      className={cn("w-full px-2 py-1 text-sm text-left truncate rounded-sm bg-transparent cursor-pointer hover:bg-neutral-700 transition-colors")}
-                      variant="p"
-                      text={`#${ch.name}`}
-                    />
+                    <Link href={`/workspace/${currentWorkspace?.workspaceData.id}/channel/${ch.id}`}
+                    >
+                      <Typography
+                        key={ch.id}
+                        className={cn("w-full px-2 py-1 text-sm text-left truncate rounded-sm bg-transparent cursor-pointer hover:bg-neutral-700 transition-colors", ch.id === params.channelId && "bg-neutral-700")}
+                        variant="p"
+                        text={`#${ch.name}`}
+                      />                    
+                    </Link>
                   </TooltipTrigger>
 
                   <TooltipContent side="right">
