@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import axios from "axios";
+import { useRouter } from "next/navigation";
+import axios, { AxiosError } from "axios";
 import toast from "react-hot-toast";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { Workspace, WorkspaceWithMembers } from "@/types/supabase";
@@ -14,6 +15,8 @@ interface Props {
 
 const WorkspaceDetailPage = ({params}: Props) => {
   const {workspaceId} = params;
+
+  const router = useRouter();
 
   const {setLoadingWorkspaces, setCurrentWorkspace, setUserWorkspaces} = useWorkspace();
 
@@ -34,6 +37,11 @@ const WorkspaceDetailPage = ({params}: Props) => {
         setUserWorkspaces(userWorkspaces.data);
 
       } catch (error: any) {
+        if (error instanceof AxiosError && error.response?.status === 404) {
+          toast.error("Workspace not found", {duration: 5000});
+          return router.replace("/user-workspaces");
+        }
+
         toast.error(error.message);
 
       } finally {
