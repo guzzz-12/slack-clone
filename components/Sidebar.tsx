@@ -107,7 +107,7 @@ const Sidebar = ({userData}: Props) => {
             <li className="w-10 h-10 mb-1 cursor-pointer">
               <TooltipProvider>
                 <Tooltip delayDuration={250}>
-                  <TooltipTrigger asChild>
+                  <TooltipTrigger className="w-10 h-10">
                     <img
                       className="block w-full h-full object-cover object-center rounded-full"
                       src={currentWorkspace.workspaceData.image_url}
@@ -115,9 +115,13 @@ const Sidebar = ({userData}: Props) => {
                     />
                   </TooltipTrigger>
                   
-                  <TooltipContent className="p-0" side="bottom" sideOffset={10}>
+                  <TooltipContent
+                    className="max-h-[350px] overflow-y-auto scrollbar-thin"
+                    side="bottom"
+                    sideOffset={10}
+                  >
                     <Card className="w-[350px] border-0">
-                      <CardContent className="flex flex-col p-0">
+                      <CardContent className="flex flex-col p-0 gap-2">
                         {/* Mostrar el item del workspace actual */}
                         <WorkspaceItem
                           workspace={currentWorkspace.workspaceData}
@@ -140,7 +144,7 @@ const Sidebar = ({userData}: Props) => {
                         <Separator />
 
                         <Link
-                          className="flex items-center gap-2 p-2 group"
+                          className="flex items-center gap-2 px-2 py-1 group"
                           href="/create-workspace"
                           onClick={(e) => {
                             if (loading) {
