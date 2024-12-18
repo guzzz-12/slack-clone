@@ -206,6 +206,7 @@ const CreateChannelModal = ({isOpen, setIsOpen, setChannels}: Props) => {
             <div className="flex justify-end">
               <Button
                 className="w-max text-white bg-primary-dark hover:bg-primary-light"
+                type="submit"
                 disabled={submitting}
               >
                 <Typography text="Create channel" variant="p" />
@@ -213,6 +214,7 @@ const CreateChannelModal = ({isOpen, setIsOpen, setChannels}: Props) => {
 
               <Button
                 className="w-max ml-2 text-white bg-transparent hover:bg-neutral-900"
+                type="button"
                 disabled={submitting}
                 onClick={() => setIsOpen(false)}
               >
