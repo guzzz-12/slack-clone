@@ -6,6 +6,7 @@ import axios, { AxiosError } from "axios";
 import toast from "react-hot-toast";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { Workspace, WorkspaceWithMembers } from "@/types/supabase";
+import { FaSlackHash } from "react-icons/fa";
 
 interface Props {
   params: {
@@ -56,9 +57,13 @@ const WorkspaceDetailPage = ({params}: Props) => {
   }, [workspaceId]);
 
   return (
-    <main className="flex-grow p-4 rounded-r-lg bg-neutral-900 overflow-y-auto scrollbar-thin">
-      <section className="w-full rounded-r-lg">
-        Workspace Detail Page
+    <main className="flex justify-center items-center flex-grow p-4 rounded-r-lg bg-neutral-900 overflow-y-auto scrollbar-thin">
+      <section className="flex flex-col justify-center items-center gap-3 w-full">
+        <h1 className="text-4xl text-center">
+          Select a channel <br /> or start a new conversation
+        </h1>
+
+        <FaSlackHash className="w-32 h-32 opacity-20"/>
       </section>
     </main>
   )
