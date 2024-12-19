@@ -1,9 +1,9 @@
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { supabaseServerClient } from "./supabase/supabaseServerClient";
 import { Workspace } from "@/types/supabase";
 
 
-/** Consultar la data del usuario autentcado */
+/** Consultar la data del usuario autenticado */
 export const getUserData = async () => {
   const supabase = supabaseServerClient();
 
@@ -16,17 +16,18 @@ export const getUserData = async () => {
   const {data, error} = await supabase
     .from("users")
     .select("*")
-    .eq("id", user.id);
+    .eq("id", user.id)
+    .single();
 
   if (error) {
-    throw new Error(error.message);
+    throw error;
   }
 
   if (!data) {
-    return notFound();
+    return redirect("/login");
   }
 
-  return data[0];
+  return data;
 }
 
 
