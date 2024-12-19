@@ -4,9 +4,11 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios, { AxiosError } from "axios";
 import toast from "react-hot-toast";
+import { FaSlackHash } from "react-icons/fa";
+import { PiHandWavingFill } from "react-icons/pi";
+import { CgSpinner } from "react-icons/cg";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { Workspace, WorkspaceWithMembers } from "@/types/supabase";
-import { FaSlackHash } from "react-icons/fa";
 
 interface Props {
   params: {
@@ -19,7 +21,7 @@ const WorkspaceDetailPage = ({params}: Props) => {
 
   const router = useRouter();
 
-  const {setLoadingWorkspaces, setCurrentWorkspace, setUserWorkspaces} = useWorkspace();
+  const {currentWorkspace, loadingWorkspaces, setLoadingWorkspaces, setCurrentWorkspace, setUserWorkspaces} = useWorkspace();
 
   // Consultar el workspace y sus miembros
   useEffect(() => {
@@ -56,15 +58,35 @@ const WorkspaceDetailPage = ({params}: Props) => {
     fetchWorkspace();
   }, [workspaceId]);
 
-  return (
-    <main className="flex justify-center items-center flex-grow p-4 rounded-r-lg bg-neutral-900 overflow-y-auto scrollbar-thin">
-      <section className="flex flex-col justify-center items-center gap-3 w-full">
-        <h1 className="text-4xl text-center">
-          Select a channel <br /> or start a new conversation
-        </h1>
 
-        <FaSlackHash className="w-32 h-32 opacity-20"/>
-      </section>
+  if (!currentWorkspace) {
+    return null;
+  }
+
+
+  return (
+    <main className="flex flex-col justify-center items-center flex-grow p-4 rounded-r-lg bg-neutral-900 overflow-y-auto scrollbar-thin">
+      {loadingWorkspaces && <CgSpinner className="w-16 h-16 animate-spin" />}
+
+      {!loadingWorkspaces && (
+        <>
+          <div className="flex justify-center items-center gap-1 w-full mb-3">
+            <PiHandWavingFill className="w-10 h-10" /> 
+
+            <h1 className="text-4xl text-center font-normal">
+              Welcome to <span className="font-mono">#{(currentWorkspace.workspaceData.name).replace(" ", "")}</span>
+            </h1>
+          </div>
+
+          <section className="flex flex-col justify-center items-center gap-3 w-full">
+            <h2 className="text-xl text-center">
+              Select a channel or private conversation
+            </h2>
+
+            <FaSlackHash className="w-32 h-32 opacity-20"/>
+          </section>
+        </>
+      )}
     </main>
   )
 }
