@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import WorkspaceItem from "./WorkspaceItem";
 import Typography from "./Typography";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { Card, CardContent } from "./ui/card";
@@ -105,71 +106,65 @@ const Sidebar = ({userData}: Props) => {
         {!loadingWorkspaces && currentWorkspace && (
           <ul className="flex flex-col items-center gap-3 max-h-full flex-grow">
             <li className="w-10 h-10 mb-1 cursor-pointer">
-              <TooltipProvider>
-                <Tooltip delayDuration={250}>
-                  <TooltipTrigger className="w-10 h-10">
-                    <img
-                      className="block w-full h-full object-cover object-center rounded-full"
-                      src={currentWorkspace.workspaceData.image_url}
-                      alt={currentWorkspace.workspaceData.name}
-                    />
-                  </TooltipTrigger>
-                  
-                  <TooltipContent
-                    className="max-h-[350px] overflow-y-auto scrollbar-thin"
-                    side="bottom"
-                    sideOffset={10}
-                  >
-                    <Card className="w-[350px] border-0">
-                      <CardContent className="flex flex-col p-0 gap-2">
-                        {/* Mostrar el item del workspace actual */}
-                        <WorkspaceItem
-                          workspace={currentWorkspace.workspaceData}
-                          loading={loading}
-                        />
+              <Popover>
+                <PopoverTrigger className="w-10 h-10">
+                  <img
+                    className="block w-full h-full object-cover object-center rounded-full"
+                    src={currentWorkspace.workspaceData.image_url}
+                    alt={currentWorkspace.workspaceData.name}
+                  />
+                </PopoverTrigger>
 
-                        {/* Mostrar los demás workspaces del usuario */}
-                        {userWorkspaces
-                          .filter(w => w.id !== currentWorkspace.workspaceData.id)
-                          .map(wsp => (
-                            <Fragment key={wsp.id}>
-                              <WorkspaceItem
-                                workspace={wsp}
-                                loading={loading}
-                              />
-                            </Fragment>
-                          ))
-                        }
+                <PopoverContent className="w-fit p-2 translate-x-[1rem]">
+                  <Card className="w-[350px] border-0">
+                    <CardContent className="flex flex-col p-0 gap-2">
+                      {/* Mostrar el item del workspace actual */}
+                      <WorkspaceItem
+                        workspace={currentWorkspace.workspaceData}
+                        loading={loading}
+                      />
 
-                        <Separator />
-
-                        <Link
-                          className="flex items-center gap-2 px-2 py-1 group"
-                          href="/create-workspace"
-                          onClick={(e) => {
-                            if (loading) {
-                              e.preventDefault();
-                            }
-                          }}
-                        >
-                          <div className="flex justify-center items-center w-10 h-10 rounded-full bg-white/30">
-                            <FiPlus
-                              className="group-hover:scale-125 transition-all duration-300"
-                              size={20}
+                      {/* Mostrar los demás workspaces del usuario */}
+                      {userWorkspaces
+                        .filter(w => w.id !== currentWorkspace.workspaceData.id)
+                        .map(wsp => (
+                          <Fragment key={wsp.id}>
+                            <WorkspaceItem
+                              workspace={wsp}
+                              loading={loading}
                             />
-                          </div>
-                          
-                          <Typography
-                            className="text-sm"
-                            variant="p"
-                            text="Add workspace"
+                          </Fragment>
+                        ))
+                      }
+
+                      <Separator />
+
+                      <Link
+                        className="flex items-center gap-2 px-2 py-1 group"
+                        href="/create-workspace"
+                        onClick={(e) => {
+                          if (loading) {
+                            e.preventDefault();
+                          }
+                        }}
+                      >
+                        <div className="flex justify-center items-center w-10 h-10 rounded-full bg-white/30">
+                          <FiPlus
+                            className="group-hover:scale-125 transition-all duration-300"
+                            size={20}
                           />
-                        </Link>
-                      </CardContent>
-                    </Card>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                        </div>
+                        
+                        <Typography
+                          className="text-sm"
+                          variant="p"
+                          text="Add workspace"
+                        />
+                      </Link>
+                    </CardContent>
+                  </Card>
+                </PopoverContent>
+              </Popover>
             </li>
 
             <li>
@@ -214,7 +209,7 @@ const Sidebar = ({userData}: Props) => {
       </nav>
 
       {!loadingWorkspaces && (
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-3">
           <TooltipProvider>
             <Tooltip delayDuration={250}>
               <TooltipTrigger disabled={loadingWorkspaces || loading} asChild>
@@ -237,74 +232,74 @@ const Sidebar = ({userData}: Props) => {
                 />
               </TooltipContent>
             </Tooltip>
+          </TooltipProvider>
 
-            <Tooltip delayDuration={250}>
-              <TooltipTrigger disabled={loadingWorkspaces || loading}>
-                <div className="relative flex justify-center items-center w-10 h-10">
-                  <img
-                    className="block w-full h-full object-cover object-center rounded-lg"
-                    src={userData.avatar_url!}
-                    alt={userData.name || "User avatar"}
+          <Popover>
+            <PopoverTrigger disabled={loadingWorkspaces || loading}>
+              <div className="relative flex justify-center items-center w-10 h-10">
+                <img
+                  className="block w-full h-full object-cover object-center rounded-lg"
+                  src={userData.avatar_url!}
+                  alt={userData.name || "User avatar"}
+                />
+
+                <div className={cn("absolute -bottom-0.5 -right-0.5 w-[14px] h-[14px] rounded-full border-[3px] border-white z-10", isAway ? "bg-neutral-400" : "bg-green-500")}/>
+              </div>
+            </PopoverTrigger>
+
+            <PopoverContent className="translate-x-[0.5rem] translate-y-[-0.5rem]" side="right">
+              <div className="flex justify-start items-center gap-2">
+                <img
+                  className="block w-10 h-10 object-cover object-center rounded-full" 
+                  src={userData.avatar_url!}
+                  alt={userData.name || "User avatar"}
+                  crossOrigin="anonymous"
+                />
+
+                <div className="flex flex-col gap-1">
+                  <Typography
+                    className="text-sm font-semibold"
+                    variant="p"
+                    text={userData.email}
                   />
 
-                  <div className={cn("absolute -bottom-0.5 -right-0.5 w-[14px] h-[14px] rounded-full border-[3px] border-white z-10", isAway ? "bg-neutral-400" : "bg-green-500")}/>
-                </div>
-              </TooltipTrigger>
+                  <div className="flex justify-start items-center gap-1">
+                    <div className={cn("w-3 h-3 rounded-full", isAway ? "bg-neutral-400" : "bg-green-500")}/>
 
-              <TooltipContent className="px-4 py-3" side="right">
-                <div className="flex justify-start items-center gap-2">
-                  <img
-                    className="block w-10 h-10 object-cover object-center rounded-full" 
-                    src={userData.avatar_url!}
-                    alt={userData.name || "User avatar"}
-                    crossOrigin="anonymous"
-                  />
-
-                  <div className="flex flex-col gap-1">
                     <Typography
-                      className="text-sm font-semibold"
+                      className="text-xs text-neutral-300"
                       variant="p"
-                      text={userData.email}
+                      text={isAway ? "Unavailable" : "Available"}
                     />
-
-                    <div className="flex justify-start items-center gap-1">
-                      <div className={cn("w-3 h-3 rounded-full", isAway ? "bg-neutral-400" : "bg-green-500")}/>
-
-                      <Typography
-                        className="text-xs text-neutral-300"
-                        variant="p"
-                        text={isAway ? "Unavailable" : "Available"}
-                      />
-                    </div>
                   </div>
                 </div>
+              </div>
 
-                <Separator className="my-2" />
+              <Separator className="my-2" />
 
-                <Button
-                  className="w-full border"
-                  variant="ghost"
-                  size="sm"
-                  disabled={loading}
-                  onClick={isAwayHandler}
-                >
-                  {isAway ? "Change to available" : "Change to unavailable"}
-                </Button>
+              <Button
+                className="w-full border"
+                variant="ghost"
+                size="sm"
+                disabled={loading}
+                onClick={isAwayHandler}
+              >
+                {isAway ? "Change to available" : "Change to unavailable"}
+              </Button>
 
-                <Separator className="my-2" />
+              <Separator className="my-2" />
 
-                <Button
-                  className="w-full border"
-                  variant="ghost"
-                  size="sm"
-                  disabled={loading}
-                  onClick={signoutHandler}
-                >
-                  Signout
-                </Button>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+              <Button
+                className="w-full border"
+                variant="ghost"
+                size="sm"
+                disabled={loading}
+                onClick={signoutHandler}
+              >
+                Signout
+              </Button>
+            </PopoverContent>
+          </Popover>
         </div>
       )}
     </div>
