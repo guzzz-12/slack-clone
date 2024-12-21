@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { FaArrowDown, FaArrowUp, FaPlus } from "react-icons/fa6";
+import { GoHash } from "react-icons/go";
 import Typography from "./Typography";
 import CreateChannelModal from "./CreateChannelModal";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
@@ -61,7 +62,7 @@ const InfoSection = ({userData}: Props) => {
   }, [currentWorkspace, loadingWorkspaces]);
 
   return (
-    <aside className="flex flex-col justify-start items-center gap-2 w-full max-w-[270px] flex-grow flex-shrink-0 p-4 bg-neutral-800 border-r rounded-l-lg">
+    <aside className="flex flex-col justify-start items-center gap-2 w-full max-w-[270px] flex-grow flex-shrink-0 p-4 bg-neutral-800 rounded-l-lg border-r border-neutral-900">
       {loadingChannels && (
         <>
           <div className="flex justify-between items-center w-full mb-4">
@@ -119,12 +120,15 @@ const InfoSection = ({userData}: Props) => {
                       className="w-full overflow-hidden"
                       href={`/workspace/${currentWorkspace?.workspaceData.id}/channel/${ch.id}`}
                     >
-                      <Typography
-                        key={ch.id}
-                        className={cn("w-full px-2 py-1 text-sm text-left truncate rounded-sm bg-transparent cursor-pointer hover:bg-neutral-700 transition-colors", ch.id === params.channelId && "bg-neutral-700")}
-                        variant="p"
-                        text={`#${ch.name}`}
-                      />                    
+                      <div className={cn("flex justify-start items-center gap-1 px-2 py-1 rounded-sm bg-transparent cursor-pointer hover:bg-neutral-700 transition-colors", ch.id === params.channelId && "bg-neutral-700")}>
+                        <GoHash className="flex-shrink-0" />
+                        <Typography
+                          key={ch.id}
+                          className="w-full flex-grow text-sm text-left truncate"
+                          variant="p"
+                          text={ch.name}
+                        />
+                      </div>
                     </Link>
                   </TooltipTrigger>
 
