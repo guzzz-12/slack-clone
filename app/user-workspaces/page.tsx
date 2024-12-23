@@ -79,7 +79,12 @@ const UserWorkspaces = async () => {
                     </p>
                   </div>
 
-                  <FaArrowRight className="block ml-auto group-hover:translate-x-2 transition-transform duration-350" size={22} />
+                  <div className="flex justify-between items-center gap-2 w-fit ml-auto">
+                    <p className="text-sm text-neutral-400 font-semibold group-hover:text-neutral-100 transition-colors duration-350">
+                      Open
+                    </p>
+                    <FaArrowRight className="block group-hover:translate-x-2  transition-transform duration-350" size={22} />
+                  </div>
                 </Link>
               ))}
             </div>
