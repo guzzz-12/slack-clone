@@ -41,6 +41,18 @@ export type Channel = {
   ws_admin_id: string;
 }
 
+export type Message = {
+  id: string;
+  text_content: string | null;
+  attachment_url: string | null;
+  sender_id: string;
+  workspace_id: string;
+  channel_id: string;
+  is_deleted: boolean;
+  created_at: string;
+  updated_at: string | null;
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -115,6 +127,64 @@ export type Database = {
           },
           {
             foreignKeyName: "members_workspaces_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          attachment_url: string | null
+          channel_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean
+          sender_id: string
+          text_content: string | null
+          updated_at: string | null
+          workspace_id: string
+        }
+        Insert: {
+          attachment_url?: string | null
+          channel_id?: string
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          sender_id?: string
+          text_content?: string | null
+          updated_at?: string | null
+          workspace_id?: string
+        }
+        Update: {
+          attachment_url?: string | null
+          channel_id?: string
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          sender_id?: string
+          text_content?: string | null
+          updated_at?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
