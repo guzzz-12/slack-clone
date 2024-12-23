@@ -14,7 +14,6 @@ import { useTheme } from "next-themes";
 import MenuBar from "@/components/ChatInput/MenuBar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MessageWithSender } from "@/types/supabase";
 
 interface Props {
@@ -27,6 +26,7 @@ const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
   const {theme} = useTheme();
 
   const [sending, setSending] = useState(false);
+  const [isEmpty, setIsEmpty] = useState(true);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -43,6 +43,11 @@ const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
     ]
   });
 
+  // Detectar si el mensaje esta vacio al escribir
+  editor?.on("update", (e) => {
+    setIsEmpty(e.editor.isEmpty);
+  });
+
   const onSubmitHandler = async () => {
     try {
       if (!editor) {
@@ -53,9 +58,10 @@ const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
 
       const message = editor.getHTML();
 
-      // if (message.length === 0 || message.trim() === "") {
-      //   return;
-      // }
+      // No permitir enviar mensajes vacios
+      if (message.length === 0 || message.trim() === "") {
+        return;
+      }
       
       const messageData = {
         textContent: message,
@@ -86,7 +92,7 @@ const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
   }
 
   return (
-    <div className="relative flex flex-col justify-start w-full max-h-[270px] border-t overflow-y-auto scrollbar-thin">
+    <div className="relative flex flex-col justify-start w-full min-h-[150px] max-h-[270px] border-t overflow-y-auto scrollbar-thin">
       {/* Header del input del chat */}
       <div className="sticky top-0 flex justify-between items-center gap-2 w-full flex-shrink-0 px-4 py-2 bg-neutral-950 z-50">
         {isLoading &&
@@ -119,11 +125,19 @@ const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
                   </button>
                 </PopoverTrigger>
 
-                <PopoverContent className="w-fit p-0" side="top" sideOffset={10}>
+                <PopoverContent
+                  className="w-fit p-0 translate-x-[-16px]"
+                  side="top"
+                  sideOffset={16}
+                >
                   <Picker
                     data={data}
                     theme={theme}
-                    onEmojiSelect={(emoji: any) => editor?.chain().focus().insertContent(emoji.native).run()}
+                    previewPosition="none"
+                    maxFrequentRows={0}
+                    onEmojiSelect={(emoji: any, _e: PointerEvent) => {
+                      editor?.chain().insertContent(emoji.native).run();
+                    }}
                   />
                 </PopoverContent>
               </Popover>
@@ -131,7 +145,6 @@ const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
               <button className="w-6 h-6 rounded-full bg-neutral-300">
                 <FiPlus className="block w-full h-full text-neutral-900" />
               </button>
-            
             </div>
           </>
         }
@@ -144,28 +157,18 @@ const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
       {!isLoading && (
         <>
           <EditorContent
-            className="flex-col w-full h-full flex-grow px-4 pr-16 text-white prose"
+            className="flex flex-col w-full h-full flex-grow text-white prose"
             disabled={isLoading || sending}
             editor={editor}
           />
 
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  className="sticky left-full bottom-2 w-12 h-8 p-1.5 rounded-full border border-transparent bg-neutral-300 -translate-x-2 z-10 hover:bg-neutral-400 transition-colors"
-                  disabled={sending}
-                  onClick={onSubmitHandler}
-                >
-                  <BsSendFill className="block w-full h-full text-neutral-900" />
-                </button>
-              </TooltipTrigger>
-
-              <TooltipContent>
-                Send
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <button
+            className="absolute right-1.5 bottom-2 w-12 h-8 p-1.5 rounded-full border border-transparent bg-neutral-300 -translate-x-2 z-10 hover:bg-neutral-400 transition-colors disabled:cursor-not-allowed disabled:bg-neutral-400"
+            disabled={sending || isEmpty}
+            onClick={onSubmitHandler}
+          >
+            <BsSendFill className="block w-full h-full text-neutral-900" />
+          </button>
         </>
       )}
     </div>

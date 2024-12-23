@@ -82,12 +82,26 @@ body {
 
 .prose {
   max-width: none;
+  padding-bottom: 8px;
+}
+
+.prose p[data-placeholder] {
+  height: 100%;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 .tiptap.ProseMirror * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.tiptap.ProseMirror *:not(ol, ul) {
+  padding-top: 8px;
+  padding-right: 4rem;
+  padding-left: 8px;
   outline: none;
   color: white !important;
-  ;
 }
 
 .tiptap .data-placeholder {
