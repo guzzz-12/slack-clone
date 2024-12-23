@@ -79,3 +79,27 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.prose {
+  max-width: none;
+}
+
+.tiptap.ProseMirror * {
+  outline: none;
+  color: white !important;
+  ;
+}
+
+.tiptap .data-placeholder {
+  margin-top: 0;
+  margin-bottom: 0;
+  color: #adb5bd;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  height: 0;
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+}

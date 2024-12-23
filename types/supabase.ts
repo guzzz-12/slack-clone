@@ -53,6 +53,10 @@ export type Message = {
   updated_at: string | null;
 }
 
+export type MessageWithSender = Message & {
+  sender: User
+}
+
 export type Database = {
   public: {
     Tables: {
