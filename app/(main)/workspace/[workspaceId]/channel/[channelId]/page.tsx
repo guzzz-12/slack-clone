@@ -8,6 +8,7 @@ import ChatHeader from "@/components/ChatHeader";
 import ChatInput from "@/components/ChatInput";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { Channel, Workspace, WorkspaceWithMembers } from "@/types/supabase";
+import { pageBaseTitle } from "@/utils/constants";
 
 interface Props {
   params: {
@@ -30,6 +31,15 @@ const ChannelPage = ({params}: Props) => {
     setCurrentWorkspace,
     setUserWorkspaces
   } = useWorkspace();
+
+  // Actualizar el title de la página al cambiar de channel
+    useEffect(() => {
+      if (channelData) {
+        document.title = `${pageBaseTitle} | #${channelData.name}`;
+      } else {
+        document.title = pageBaseTitle;
+      }
+    }, [channelData]);
 
   /** Consultar el workspace y sus miembros */
   const fetchWorkspace = async () => {

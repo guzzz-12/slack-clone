@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,8 +9,10 @@ import Step1 from "@/components/createWorkspace/Step1";
 import Step2 from "@/components/createWorkspace/Step2";
 import Typography from "@/components/Typography";
 import { WorkspaceFormSchema } from "@/utils/formSchemas";
+import { pageBaseTitle } from "@/utils/constants";
 
 export type FormType = z.infer<typeof WorkspaceFormSchema>
+
 
 const CreateWorkspacePage = () => {
   const [step, setStep] = useState<1|2>(1);
@@ -22,6 +24,11 @@ const CreateWorkspacePage = () => {
       image: ""
     }
   });
+
+  // Actualizar el title de la página
+  useEffect(() => {
+    document.title = `${pageBaseTitle} | Create workspace`;
+  }, []);
 
   return (
     <main className="grid place-content-center w-screen h-screen bg-neutral-800 text-white">

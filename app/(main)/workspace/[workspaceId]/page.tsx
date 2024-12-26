@@ -8,6 +8,7 @@ import { FaSlackHash } from "react-icons/fa";
 import { CgSpinner } from "react-icons/cg";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { Workspace, WorkspaceWithMembers } from "@/types/supabase";
+import { pageBaseTitle } from "@/utils/constants";
 
 interface Props {
   params: {
@@ -56,6 +57,16 @@ const WorkspaceDetailPage = ({params}: Props) => {
 
     fetchWorkspace();
   }, [workspaceId]);
+
+
+  // Actualizar el title de la página al cambiar de workspace
+  useEffect(() => {
+    if (currentWorkspace && !loadingWorkspaces) {
+      document.title = `${pageBaseTitle} | ${currentWorkspace.workspaceData.name}`;
+    } else {
+      document.title = pageBaseTitle;
+    }
+  }, [currentWorkspace, loadingWorkspaces]);
 
 
   if (!currentWorkspace) {

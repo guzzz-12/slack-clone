@@ -18,6 +18,7 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { supabaseBrowserClient } from "@/utils/supabase/supabaseBrowserClient";
 import { cn } from "@/lib/utils";
+import { pageBaseTitle } from "@/utils/constants";
 
 const AuthFormSchema = z.object({
   email: z
@@ -45,6 +46,8 @@ const AuthPage = () => {
 
   // Verificar si el usuario está autenticado y redirigirlo si lo está
   useEffect(() => {
+    document.title = `${pageBaseTitle} | Sign in`;
+    
     const getUser = async () => {
       try {
         const {data, error} = await supabaseBrowserClient.auth.getUser();

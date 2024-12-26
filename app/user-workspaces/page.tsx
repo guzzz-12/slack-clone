@@ -1,9 +1,14 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { FaArrowRight } from "react-icons/fa6";
 import { FiPlus } from "react-icons/fi";
 import { Separator } from "@/components/ui/separator";
 import { getUserData } from "@/utils/getUserData";
 import { getUserWorkspaces } from "@/utils/getUserWorkspaces";
+
+export const metadata: Metadata = {
+  title: "Your Workspaces",
+};
 
 const UserWorkspaces = async () => {
   const {email} = await getUserData();
@@ -22,7 +27,7 @@ const UserWorkspaces = async () => {
 
         <Link
           className="flex justify-center items-center gap-1 w-full max-w-[450px] px-4 py-2 text-sm text-neutral-900 uppercase bg-neutral-300 rounded-md hover:bg-neutral-100 transition-colors group"
-          href="/workspace/create"
+          href="/create-workspace"
         >
           <FiPlus className="group-hover:scale-125 transition-transform" size={24} /> Create workspace
         </Link>
