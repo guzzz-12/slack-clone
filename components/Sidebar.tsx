@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { RiHome2Fill } from "react-icons/ri";
@@ -19,6 +19,7 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 import { supabaseBrowserClient } from "@/utils/supabase/supabaseBrowserClient";
 import { cn } from "@/lib/utils";
 import { User } from "@/types/supabase";
+import { useUser } from "@/hooks/useUser";
 
 interface Props {
   userData: User;
@@ -32,6 +33,32 @@ const Sidebar = ({userData}: Props) => {
 
   const {currentWorkspace, userWorkspaces, loadingWorkspaces} = useWorkspace();
 
+  const {setUser, setLoadingUser} = useUser();
+
+  // Consultar la data del usuario y actualizar el state global del user
+  useEffect(() => {
+    setLoadingUser(true);
+
+    supabaseBrowserClient.auth.getSession()
+    .then((res) => {
+      if (res.data.session) {
+        const userId = res.data.session.user.id;
+        return supabaseBrowserClient.from("users").select("*").eq("id", userId).single();
+      }
+    })
+    .then((res) => {
+      if (res) {
+        setUser(res.data);
+      }
+    })
+    .catch((error) => {
+      toast.error(error.message);
+    })
+    .finally(() => {
+      setLoadingUser(false);
+    });
+  }, []);
+
   // Cerrar sesión
   const signoutHandler = async () => {
     try {
@@ -42,6 +69,8 @@ const Sidebar = ({userData}: Props) => {
       if (error) {
         throw new Error(error.message);
       }
+
+      setUser(null);
 
       router.refresh();
 
