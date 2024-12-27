@@ -15,10 +15,11 @@ import MenuBar from "@/components/ChatInput/MenuBar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MessageWithSender } from "@/types/supabase";
+import AttachmentModal from "./AttachmentModal";
 
 interface Props {
   workspaceId: string;
-  channelId: string | undefined;
+  channelId: string;
   isLoading: boolean;
 }
 
@@ -27,6 +28,7 @@ const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
 
   const [sending, setSending] = useState(false);
   const [isEmpty, setIsEmpty] = useState(true);
+  const [openFileModal, setOpenFileModal] = useState(false);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -76,6 +78,9 @@ const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
       });
 
       console.log(res.data);
+
+      // Limpiar el editor al enviar el mensaje
+      editor.commands.clearContent(true);
       
     } catch (error: any) {
       let message = error.message;
@@ -93,6 +98,14 @@ const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
 
   return (
     <div className="relative flex flex-col justify-start w-full min-h-[150px] max-h-[270px] border-t overflow-y-auto scrollbar-thin">
+      {/* Modal de archivos a enviar como attachments */}
+      <AttachmentModal
+        workspaceId={workspaceId}
+        channelId={channelId}
+        isOpen={openFileModal}
+        setIsOpen={setOpenFileModal}
+      />
+
       {/* Header del input del chat */}
       <div className="sticky top-0 flex justify-between items-center gap-2 w-full flex-shrink-0 px-4 py-2 bg-neutral-950 z-50">
         {isLoading &&
@@ -142,7 +155,10 @@ const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
                 </PopoverContent>
               </Popover>
 
-              <button className="w-6 h-6 rounded-full bg-neutral-300">
+              <button
+                className="w-6 h-6 rounded-full bg-neutral-300"
+                onClick={() => setOpenFileModal(true)}
+              >
                 <FiPlus className="block w-full h-full text-neutral-900" />
               </button>
             </div>
