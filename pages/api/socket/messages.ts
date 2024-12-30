@@ -1,11 +1,12 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest } from "next";
 import { isPostgresError, uuidRegex } from "@/utils/constants";
 import { getUserData } from "@/utils/supabasePagesRouter/getUserData";
 import { supabaseServerClientPages } from "@/utils/supabasePagesRouter/supabaseServerClientPages";
+import { SocketApiResponse } from "@/types/socket";
 
 // Endpoint para crear un mensaje utilizando pages-router
 // para que sea compatible con socket.io
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: SocketApiResponse) {
   try {
     if (req.method !== "POST") {
       return res.status(405).json({message: "Method not allowed"});
@@ -47,6 +48,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (error) {
       throw error;
     }
+
+    // Emitir evento de nuevo mensaje a los miembros del channel
+    res.socket.server.io.emit(`channel:${channelId}:message`, message);
 
     return res.json(message);
     
