@@ -1,22 +1,22 @@
 import { NextApiRequest } from "next";
-import { Server as NetServer } from "http";
+import { Server as HttpServer } from "http";
 import { Server as SocketSever } from "socket.io";
 import { SocketApiResponse, SocketClientServerSideType, SocketServerType } from "@/types/socket";
 
-const initializeSocketServer = (httpServer: NetServer): SocketServerType => {;
+const initializeSocketServer = (httpServer: HttpServer): SocketServerType => {;
   return new SocketSever(httpServer, {
     path: "/api/socket/io",
     addTrailingSlash: false,
     cors: {
-      origin: process.env.NEXT_PUBLIC_PROJECT_URL,
+      origin: process.env.NEXT_PUBLIC_PROJECT_URL!,
     }
   });
 };
 
 // Route handler para inicializar el servidor de Socket.io
-export default async function (_req: NextApiRequest, res: SocketApiResponse) {
+async function handler(_req: NextApiRequest, res: SocketApiResponse) {
   if (!res.socket.server.io) {
-    const io = initializeSocketServer(res.socket.server.io);
+    const io = initializeSocketServer(res.socket.server);
 
     res.socket.server.io = io;
 
@@ -30,3 +30,5 @@ export default async function (_req: NextApiRequest, res: SocketApiResponse) {
 
   res.end();
 };
+
+export default handler;

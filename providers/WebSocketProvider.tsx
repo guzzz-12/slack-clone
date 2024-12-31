@@ -33,8 +33,6 @@ const WebSocketProvider = ({ children }: { children: ReactNode }) => {
       addTrailingSlash: false,
     });
 
-    setSocket(socketInstance);
-
     socketInstance.on("connect", () => {
       socketInstance.emit("testClientToServerEvent", "Test server to client connection event");
       setIsConnected(true);
@@ -47,6 +45,8 @@ const WebSocketProvider = ({ children }: { children: ReactNode }) => {
     socketInstance.on("testServerToClientEvent", (data) => {
       console.log(data);
     });
+
+    setSocket(socketInstance);
 
     return () => {
       socketInstance.disconnect();

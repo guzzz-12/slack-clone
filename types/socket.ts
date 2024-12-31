@@ -1,12 +1,14 @@
 import { NextApiResponse } from "next";
-import { Server as NetServer, Socket as NetSocket } from "net";
+import { Server as HttpServer } from "http";
+import { Socket as NetSocket } from "net";
 import { Socket as SocketClientServerSide, Server as SocketServer } from "socket.io";
 import { Socket as SocketClientClientSide } from "socket.io-client";
+import { MessageWithSender } from "./supabase";
 
 /** Eventos del servidor de Socket.io */
 export interface ServerToClientEvents {
   testServerToClientEvent: (data: string) => void;
-  [channelKey: `channel:${string}:message`]: (message: any) => void;
+  [channelKey: `channel:${string}:message`]: (message: MessageWithSender) => void;
   [userKey: `private:${string}:message`]: (message: any) => void;
   deletedChannelMessage: (message: any) => void;
   deletedPrivateMessage: (message: any) => void;
@@ -15,7 +17,7 @@ export interface ServerToClientEvents {
 /** Eventos del cliente de Socket.io */
 export interface ClientToServerEvents {
   testClientToServerEvent: (data: string) => void;
-  [channelKey: `channel:${string}:message`]: (message: any) => void;
+  [channelKey: `channel:${string}:message`]: (message: MessageWithSender) => void;
   [userKey: `private:${string}:message`]: (message: any) => void;
   deletedChannelMessage: (message: any) => void;
   deletedPrivateMessage: (message: any) => void;
@@ -32,7 +34,7 @@ export type SocketClientServerSideType = SocketClientServerSide<ClientToServerEv
 
 export type SocketApiResponse = NextApiResponse & {
   socket: NetSocket & {
-    server: NetServer & {
+    server: HttpServer & {
       io: SocketServerType;
     };
   }
