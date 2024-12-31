@@ -145,6 +145,7 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean
+          seen_at: string | null
           sender_id: string
           text_content: string | null
           updated_at: string | null
@@ -156,6 +157,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean
+          seen_at?: string | null
           sender_id?: string
           text_content?: string | null
           updated_at?: string | null
@@ -167,6 +169,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean
+          seen_at?: string | null
           sender_id?: string
           text_content?: string | null
           updated_at?: string | null
