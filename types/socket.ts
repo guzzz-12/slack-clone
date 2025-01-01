@@ -10,7 +10,7 @@ export interface ServerToClientEvents {
   testServerToClientEvent: (data: string) => void;
   [channelKey: `channel:${string}:message`]: (message: MessageWithSender) => void;
   [userKey: `private:${string}:message`]: (message: any) => void;
-  deletedChannelMessage: (message: any) => void;
+  [deletedMsgChannelKey: `channel:${string}:message-deleted`]: (message: MessageWithSender) => void;
   deletedPrivateMessage: (message: any) => void;
 }
 
@@ -19,7 +19,7 @@ export interface ClientToServerEvents {
   testClientToServerEvent: (data: string) => void;
   [channelKey: `channel:${string}:message`]: (message: MessageWithSender) => void;
   [userKey: `private:${string}:message`]: (message: any) => void;
-  deletedChannelMessage: (message: any) => void;
+  [deletedMsgChannelKey: `channel:${string}:message-deleted`]: (message: MessageWithSender) => void;
   deletedPrivateMessage: (message: any) => void;
 }
 
