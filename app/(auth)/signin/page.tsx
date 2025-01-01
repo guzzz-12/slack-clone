@@ -153,6 +153,23 @@ const AuthPage = () => {
             text="We suggest using the email address that you use at work"
           />
 
+          {success &&
+            <Alert
+              className="mt-4"
+              type="success"
+              title="A sign in link has been sent. Check your inbox."
+            />
+          }
+
+          {error &&
+            <Alert
+              className="mt-4"
+              type="error"
+              title="Error sending the sign in link."
+              subtitle="Refresh the page and try again after a couple of minutes."
+            />
+          }
+
           <div className="flex flex-col gap-2 mt-4">
             <Button
               className="relative flex justify-start items-center gap-3 py-6"
@@ -217,21 +234,6 @@ const AuthPage = () => {
                   </FormItem>
                 )}
               />
-
-              {success &&
-                <Alert
-                  type="success"
-                  title="A sign in link has been sent. Check your inbox."
-                />
-              }
-
-              {error &&
-                <Alert
-                  type="error"
-                  title="Error sending the sign in link."
-                  subtitle="Refresh the page and try again after a couple of minutes."
-                />
-              }
 
               <Button
                 className="text-white bg-primary-dark hover:bg-primary-light"
