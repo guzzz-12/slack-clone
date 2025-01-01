@@ -49,6 +49,9 @@ export type Message = {
   workspace_id: string;
   channel_id: string;
   is_deleted: boolean;
+  deleted_for_ids: string[] | null;
+  deleted_for_all: boolean | null;
+  seen_at: string | null;
   created_at: string;
   updated_at: string | null;
 }
@@ -143,6 +146,8 @@ export type Database = {
           attachment_url: string | null
           channel_id: string
           created_at: string
+          deleted_for_all: boolean | null
+          deleted_for_ids: string[] | null
           id: string
           is_deleted: boolean
           seen_at: string | null
@@ -155,6 +160,8 @@ export type Database = {
           attachment_url?: string | null
           channel_id?: string
           created_at?: string
+          deleted_for_all?: boolean | null
+          deleted_for_ids?: string[] | null
           id?: string
           is_deleted?: boolean
           seen_at?: string | null
@@ -167,6 +174,8 @@ export type Database = {
           attachment_url?: string | null
           channel_id?: string
           created_at?: string
+          deleted_for_all?: boolean | null
+          deleted_for_ids?: string[] | null
           id?: string
           is_deleted?: boolean
           seen_at?: string | null
