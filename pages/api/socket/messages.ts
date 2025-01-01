@@ -42,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: SocketApiRespons
         text_content: textContent,
         workspace_id: workspaceId
       })
-      .select("*, sender: users(id, name, avatar_url)")
+      .select("*, sender: users(*)")
       .single();
     
     if (error) {
@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: SocketApiRespons
     }
 
     // Emitir evento de nuevo mensaje a los miembros del channel
-    res.socket.server.io.emit(`channel:${channelId}:message`, message);
+    res.socket.server.io.emit(`channel:${channelId}:message`, {...message, sender: message.sender!});
 
     return res.json(message);
     
