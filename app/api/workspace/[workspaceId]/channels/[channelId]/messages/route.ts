@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { redirect } from "next/navigation";
 import { isPostgresError, uuidRegex } from "@/utils/constants";
 import { supabaseServerClient } from "@/utils/supabase/supabaseServerClient";
 
@@ -34,6 +35,12 @@ export async function GET(req: Request, {params}: Context) {
 
     const supabase = supabaseServerClient();
 
+    const {data} = await supabase.auth.getUser();
+
+    if (!data.user) {
+      return redirect("/login");
+    }
+
     // Calcular la paginación de los mensajes
     const from = +perPage * (+page - 1);
     const to = from + (perPage - 1);
@@ -57,7 +64,20 @@ export async function GET(req: Request, {params}: Context) {
       hasMore = false;
     }
 
-    return NextResponse.json({messages: messagesData.reverse(), hasMore});
+    // Verificar si el mensaje fue borrado por el usuario actual
+    const filterDeletedMessages = messagesData.map((m) => {
+      if (m.deleted_for_ids?.includes(data.user.id)) {
+        return {
+          ...m,
+          text_content: "<p class= 'deleted-message'>Message deleted</p>",
+          attachment_url: null
+        }
+      }
+
+      return m
+    });
+
+    return NextResponse.json({messages: filterDeletedMessages.reverse(), hasMore});
     
   } catch (error: any) {
     if (isPostgresError(error)) {
