@@ -79,16 +79,20 @@ body {
     @apply bg-background text-foreground;
   }
 
-  .message-item pre {
+  .message-text-content pre {
     @apply block p-2;
   }
 
-  .message-item:has(pre) {
+  .message-text-content:has(pre) {
     @apply bg-slate-900;
   }
 
   .deleted-message {
     @apply text-neutral-400 italic;
+  }
+
+  .message-text-content:has(.deleted-message) {
+    @apply bg-neutral-800
   }
 }
 

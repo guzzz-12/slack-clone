@@ -21,13 +21,13 @@ const MessageItem = ({message, currentUserId, setMessages}: Props) => {
 
   const [deleting, setDeleting] = useState(false);
 
-  const deleteMessagehandler = async(mode: "all" | "me") => {
+  const deleteMessageHandler = async(mode: "all" | "me") => {
     try {
       setDeleting(true);
 
       const {data} = await axios<MessageWithSender>({
         method: "GET",
-        url: `/api/workspace/${message.workspace_id}/channels/${message.channel_id}/messages/delete`,
+        url: `/api/socket/${message.workspace_id}/${message.channel_id}/delete-message`,
         params: {messageId: message.id, mode}
       });
 
@@ -78,7 +78,7 @@ const MessageItem = ({message, currentUserId, setMessages}: Props) => {
       <div className="flex flex-col gap-1 min-w-[80px] max-w-[80%]">
         {message.text_content &&
           <div
-            className="px-4 py-2 text-sm border rounded-lg bg-neutral-950 overflow-x-auto scrollbar-thin message-item"
+            className="px-4 py-2 text-sm border rounded-lg bg-neutral-950 overflow-x-auto scrollbar-thin message-text-content"
             dangerouslySetInnerHTML={{
               __html: message.text_content
             }}
@@ -103,56 +103,58 @@ const MessageItem = ({message, currentUserId, setMessages}: Props) => {
         </span>
       </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            className={cn("flex justify-center items-center w-6 h-6 rounded-full hover:bg-neutral-800 transition-colors", isSender ? "-order-1" : "order-none")}
-            disabled={deleting}
-          >
-            <BsThreeDotsVertical />
-          </button>
-        </DropdownMenuTrigger>
+      {!message.deleted_for_all && !message.deleted_for_ids?.includes(currentUserId) && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className={cn("flex justify-center items-center w-6 h-6 rounded-full hover:bg-neutral-800 transition-colors", isSender ? "-order-1" : "order-none")}
+              disabled={deleting}
+            >
+              <BsThreeDotsVertical />
+            </button>
+          </DropdownMenuTrigger>
 
-        <DropdownMenuContent>
-          {isSender &&
-            <>
-              <DropdownMenuItem
-                className="flex justify-start items-center gap-2 cursor-pointer"
-                disabled={deleting}
-              >
-                <FaPencil />
-                <span>Edit</span>
-              </DropdownMenuItem>
+          <DropdownMenuContent>
+            {isSender &&
+              <>
+                <DropdownMenuItem
+                  className="flex justify-start items-center gap-2 cursor-pointer"
+                  disabled={deleting}
+                >
+                  <FaPencil />
+                  <span>Edit</span>
+                </DropdownMenuItem>
 
-              <DropdownMenuSeparator />
-            </>
-          }
-          
-          <DropdownMenuItem
-            className="flex justify-start items-center gap-2 cursor-pointer"
-            disabled={deleting}
-            onClick={() => deleteMessagehandler("me")}
-          >
-            <FaTimes className="text-red-500" />
-            <span>Delete for you</span>
-          </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            }
+            
+            <DropdownMenuItem
+              className="flex justify-start items-center gap-2 cursor-pointer"
+              disabled={deleting}
+              onClick={() => deleteMessageHandler("me")}
+            >
+              <FaTimes className="text-red-500" />
+              <span>Delete for you</span>
+            </DropdownMenuItem>
 
-          {isSender &&
-            <>
-              <DropdownMenuSeparator />
+            {isSender &&
+              <>
+                <DropdownMenuSeparator />
 
-              <DropdownMenuItem
-                className="flex justify-start items-center gap-2 cursor-pointer"
-                disabled={deleting}
-                onClick={() => deleteMessagehandler("all")}
-              >
-                <FaRegTrashCan className="text-red-500" />
-                <span>Delete for all</span>
-              </DropdownMenuItem>
-            </>
-          }
-        </DropdownMenuContent>
-      </DropdownMenu>
+                <DropdownMenuItem
+                  className="flex justify-start items-center gap-2 cursor-pointer"
+                  disabled={deleting}
+                  onClick={() => deleteMessageHandler("all")}
+                >
+                  <FaRegTrashCan className="text-red-500" />
+                  <span>Delete for all</span>
+                </DropdownMenuItem>
+              </>
+            }
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </div>
   )
 }
