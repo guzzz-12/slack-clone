@@ -1,22 +1,21 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { FaArrowDown, FaArrowUp, FaPlus } from "react-icons/fa6";
-import { GoHash } from "react-icons/go";
 import Typography from "./Typography";
+import ChannelItem from "./ChannelItem";
 import CreateChannelModal from "./CreateChannelModal";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { Skeleton } from "./ui/skeleton";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { useWorkspace } from "@/hooks/useWorkspace";
+import { useSocket } from "@/providers/WebSocketProvider";
+import { Channel, MessageWithSender, User } from "@/types/supabase";
 import { cn } from "@/lib/utils";
-import { Channel, User } from "@/types/supabase";
 
 type Params = {
   workspaceId: string;
@@ -28,15 +27,22 @@ interface Props {
 }
 
 const InfoSection = ({userData}: Props) => {
-  const params = useParams<Params>();
+  const params = useParams<Params>()!;
 
   const [channels, setChannels] = useState<Channel[]>([]);
-  const [isChannelCollapsed, setIsChannelCollapsed] = useState(true);
-  const [isDmsCollapsed, setIsDmsCollapsed] = useState(true);
-  const [isChannelModalOpen, setIsChannelModalOpen] = useState(false);
   const [loadingChannels, setLoadingChannels] = useState(true);
 
+  const [isChannelCollapsed, setIsChannelCollapsed] = useState(true);
+  const [isDmsCollapsed, setIsDmsCollapsed] = useState(true);
+  
+  const [isChannelModalOpen, setIsChannelModalOpen] = useState(false);
+
+  const [unreadMessages, setUnreadMessages] = useState<MessageWithSender[]>([]);
+
   const {currentWorkspace, loadingWorkspaces} = useWorkspace();
+
+  const {socket} = useSocket();
+
 
   // Limpiar el state de los channels cuando se cambie el workspace
   useEffect(() => {
@@ -45,6 +51,7 @@ const InfoSection = ({userData}: Props) => {
       setLoadingChannels(true);
     }
   }, [loadingWorkspaces]);
+
 
   // Consultar los channels del workspace cuando el workspace haya cargado
   useEffect(() => {
@@ -61,8 +68,45 @@ const InfoSection = ({userData}: Props) => {
     }
   }, [currentWorkspace, loadingWorkspaces]);
 
+
+  // Consultar los mensajes sin leer de todos los channels
+  useEffect(() => {
+    axios<MessageWithSender[]>({
+      method: "GET",
+      url: `/api/workspace/${params.workspaceId}/unread-messages`,
+    })
+    .then((res) => {
+      setUnreadMessages(res.data);
+    })
+    .catch((error: any) => {
+      toast.error(error.message);
+    });
+  }, [params]);
+
+
+  // Escuchar los eventos de mensajes de los channels
+  // y actualizar el state local de los mensajes sin leer
+  useEffect(() => {
+    if (socket) {
+      channels.forEach((channel) => {
+        socket.on(`channel:${channel.id}:message`, (data) => {
+          setUnreadMessages((prev) => [...prev, data]);
+        });
+      })
+    }
+
+    return () => {
+      if (socket) {
+        channels.forEach((channel) => {
+          socket.off(`channel:${channel.id}:message`);
+        })
+      }
+    }
+  }, [socket, channels]);
+
+
   return (
-    <aside className="flex flex-col justify-start items-center gap-2 w-full max-w-[270px] flex-grow flex-shrink-0 p-4 bg-neutral-800 rounded-l-lg border-r border-neutral-900">
+    <aside className="flex flex-col justify-start items-center gap-2 w-[270px] flex-shrink-0 p-4 bg-neutral-800 rounded-l-lg border-r border-neutral-900">
       {loadingChannels && (
         <>
           <div className="flex justify-between items-center w-full mb-4">
@@ -113,30 +157,12 @@ const InfoSection = ({userData}: Props) => {
           {/* Renderizar los channels del workspace */}
           <CollapsibleContent className="flex flex-col gap-1 w-full">
             {channels.map((ch) => (
-              <TooltipProvider key={ch.id}>
-                <Tooltip delayDuration={250}>
-                  <TooltipTrigger className="flex justify-start w-full">
-                    <Link
-                      className="w-full overflow-hidden"
-                      href={`/workspace/${currentWorkspace?.workspaceData.id}/channel/${ch.id}`}
-                    >
-                      <div className={cn("flex justify-start items-center gap-1 px-2 py-1 rounded-sm bg-transparent cursor-pointer hover:bg-neutral-700 transition-colors", ch.id === params.channelId && "bg-neutral-700")}>
-                        <GoHash className="flex-shrink-0" />
-                        <Typography
-                          key={ch.id}
-                          className="w-full flex-grow text-sm text-left truncate"
-                          variant="p"
-                          text={ch.name}
-                        />
-                      </div>
-                    </Link>
-                  </TooltipTrigger>
-
-                  <TooltipContent side="right">
-                    {ch.name}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <ChannelItem
+                key={ch.id}
+                channel={ch}
+                currentChannelId={params.channelId!}
+                unreadMessages={unreadMessages}
+              />
             ))}
           </CollapsibleContent>
         </Collapsible>
