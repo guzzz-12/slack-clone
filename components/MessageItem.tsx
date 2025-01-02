@@ -32,16 +32,18 @@ const MessageItem = ({message, currentUserId, setMessages}: Props) => {
       });
 
       // Actualizar el state local de los mensajes
-      setMessages((prev) => {
-        const updatedMessages = [...prev.messages];
-        const messageIndex = updatedMessages.findIndex(m => m.id === message.id);
-
-        if (messageIndex !== -1) {
-          updatedMessages.splice(messageIndex, 1, data);
-        }
-
-        return {...prev, messages: updatedMessages};
-      });
+      if (mode === "me") {
+        setMessages((prev) => {
+          const updatedMessages = [...prev.messages];
+          const messageIndex = updatedMessages.findIndex(m => m.id === message.id);
+  
+          if (messageIndex !== -1) {
+            updatedMessages.splice(messageIndex, 1, data);
+          }
+  
+          return {...prev, messages: updatedMessages};
+        });
+      }
       
     } catch (error: any) {
       let message = error.message;

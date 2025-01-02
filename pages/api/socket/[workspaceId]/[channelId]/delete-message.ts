@@ -70,7 +70,8 @@ export default async function handler(req: NextApiRequest, res: SocketApiRespons
         .update({
           text_content: "<p class= 'deleted-message'>Message deleted</p>",
           attachment_url: null,
-          deleted_for_all: true
+          deleted_for_all: true,
+          deleted_for_ids: []
         })
         .eq("id", messageId)
         .eq("channel_id", channelId)
@@ -92,13 +93,13 @@ export default async function handler(req: NextApiRequest, res: SocketApiRespons
         }
       }
 
-      // Emitir evento de mensaje eliminado
+      // Emitir evento de mensaje eliminado a todos los miembros del channel
       res.socket.server.io.emit(`channel:${channelId}:message-deleted`, {
         ...updatedMessage,
         sender: updatedMessage.sender!
       });
 
-      return res.json(updatedMessage);
+      return res.json("success");
     }
 
     // Eliminar el mensaje para el usuario actual
@@ -121,12 +122,6 @@ export default async function handler(req: NextApiRequest, res: SocketApiRespons
 
       updatedMessage.text_content = "<p class= 'deleted-message'>Message deleted</p>";
       updatedMessage.attachment_url = null;
-
-      // Emitir evento de mensaje eliminado
-      res.socket.server.io.emit(`channel:${channelId}:message-deleted`, {
-        ...updatedMessage,
-        sender: updatedMessage.sender!
-      });
 
       return res.json(updatedMessage);
     }
