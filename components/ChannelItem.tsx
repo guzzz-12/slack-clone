@@ -17,12 +17,12 @@ const ChannelItem = ({currentChannelId, channel, unreadMessages}: Props) => {
   return (
     <TooltipProvider>
       <Tooltip delayDuration={250}>
-        <TooltipTrigger className="flex justify-start w-full">
+        <TooltipTrigger className="flex justify-start w-full" asChild>
           <Link
-            className="w-full overflow-hidden"
+            className="block w-full overflow-hidden"
             href={`/workspace/${channel.workspace_id}/channel/${channel.id}`}
           >
-            <div className={cn("flex justify-start items-center gap-1 px-2 py-1 rounded-sm bg-transparent cursor-pointer hover:bg-neutral-700 transition-colors", channel.id === currentChannelId && "bg-neutral-700")}>
+            <div className={cn("flex justify-start items-center gap-1 w-full px-2 py-1 rounded-sm bg-transparent cursor-pointer hover:bg-neutral-700 transition-colors", channel.id === currentChannelId && "bg-neutral-700")}>
               <GoHash className="flex-shrink-0" />
               <Typography
                 className="w-full flex-grow text-sm text-left truncate"

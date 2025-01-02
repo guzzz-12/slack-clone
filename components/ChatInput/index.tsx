@@ -12,10 +12,10 @@ import { BsEmojiSmile, BsSendFill } from "react-icons/bs";
 import { FiPlus } from "react-icons/fi";
 import { useTheme } from "next-themes";
 import MenuBar from "@/components/ChatInput/MenuBar";
+import AttachmentModal from "./AttachmentModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MessageWithSender } from "@/types/supabase";
-import AttachmentModal from "./AttachmentModal";
 
 interface Props {
   workspaceId: string;
@@ -71,13 +71,11 @@ const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
         channelId,
       }
 
-      const res = await axios<MessageWithSender>({
+      await axios<MessageWithSender>({
         method: "POST",
         url: "/api/socket/messages",
         data: messageData
       });
-
-      console.log(res.data);
 
       // Limpiar el editor al enviar el mensaje
       editor.commands.clearContent(true);

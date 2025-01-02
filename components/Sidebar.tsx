@@ -108,7 +108,7 @@ const Sidebar = ({userData}: Props) => {
   }
 
   return (
-    <div className="flex flex-col justify-start items-stretch h-full min-w-16 p-4 pt-0 bg-black">
+    <div className="flex flex-col justify-start items-stretch h-full w-16 flex-shrink-0 p-4 pt-0 bg-black">
       <nav className="flex flex-col justify-between items-center flex-grow gap-4 max-h-full">
         {loadingWorkspaces && (
           <ul className="flex flex-col items-center gap-3 max-h-full flex-grow">
