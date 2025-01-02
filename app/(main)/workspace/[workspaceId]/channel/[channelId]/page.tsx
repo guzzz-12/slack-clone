@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios, { AxiosError } from "axios";
 import toast from "react-hot-toast";
+import { LuLoader2 } from "react-icons/lu";
+import { GoHash } from "react-icons/go";
 import ChatHeader from "@/components/ChatHeader";
 import ChatInput from "@/components/ChatInput";
+import MessageItem from "@/components/MessageItem";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { Channel, Workspace, WorkspaceWithMembers } from "@/types/supabase";
+import { useUser } from "@/hooks/useUser";
+import { useSocket } from "@/providers/WebSocketProvider";
+import { Channel, MessageWithSender, Workspace, WorkspaceWithMembers } from "@/types/supabase";
+import { PaginatedMessages } from "@/types/paginatedMessages";
 import { pageBaseTitle } from "@/utils/constants";
 
 interface Props {
@@ -18,12 +24,27 @@ interface Props {
 }
 
 const ChannelPage = ({params}: Props) => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
+  const previousPageLastMessageIdRef = useRef<string>("");
+
   const {workspaceId, channelId} = params;
   
   const router = useRouter();
 
   const [channelData, setChannelData] = useState<Channel | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const [messages, setMessages] = useState<PaginatedMessages>({
+    messages: [],
+    hasMore: true
+  });
+  const [page, setPage] = useState(1);
+  const [loadingMessages, setLoadingMessages] = useState(true);
+
+  const {socket} = useSocket();
+
+  const {user} = useUser();
 
   const {
     currentWorkspace,
@@ -32,14 +53,47 @@ const ChannelPage = ({params}: Props) => {
     setUserWorkspaces
   } = useWorkspace();
 
+
   // Actualizar el title de la página al cambiar de channel
-    useEffect(() => {
-      if (channelData) {
-        document.title = `${pageBaseTitle} | #${channelData.name}`;
-      } else {
-        document.title = pageBaseTitle;
+  useEffect(() => {
+    if (channelData) {
+      document.title = `${pageBaseTitle} | #${channelData.name}`;
+    } else {
+      document.title = pageBaseTitle;
+    }
+  }, [channelData]);
+
+
+  // Escuchar el eventos de mensaje entrante y mensaje eliminado
+  useEffect(() => {
+    if (socket) {
+      socket.on(`channel:${channelId}:message`, (data) => {
+        setMessages((prev) => ({
+          ...prev,
+          messages: [...prev.messages, data],
+        }))
+      });
+
+      socket.on(`channel:${channelId}:message-deleted`, (deletedMsg) => {
+        setMessages((prev) => {
+          const messageIndex = prev.messages.findIndex(m => m.id === deletedMsg.id);
+
+          if (messageIndex !== -1) {
+            prev.messages.splice(messageIndex, 1, deletedMsg);
+          }
+
+          return {...prev, messages: [...prev.messages]};
+        })
+      })
+    }
+
+    return () => {
+      if (socket) {
+        socket.off(`channel:${channelId}:message`);
       }
-    }, [channelData]);
+    }
+  }, [socket, channelId]);
+
 
   /** Consultar el workspace y sus miembros */
   const fetchWorkspace = async () => {
@@ -69,10 +123,11 @@ const ChannelPage = ({params}: Props) => {
     }
   }
 
-  /** Consultar el channel y sus mensajes asociados */
+  /** Consultar el channel */
   const getChannel = async () => {
     try {
       setLoading(true);
+      setChannelData(null);
 
       const {data} = await axios.get<Channel>(`/api/workspace/${workspaceId}/channels/${channelId}`);
 
@@ -96,7 +151,69 @@ const ChannelPage = ({params}: Props) => {
     }
   }
 
-  // Consultar el channel con sus mensajes el workspace con sus miembros
+  /** Consultar y paginar los mensajes asociados al channel */
+  const getMessages = async (currentPage: number) => {
+    try {
+      setLoadingMessages(true);
+
+      const {data} = await axios.get<PaginatedMessages>(`/api/workspace/${workspaceId}/channels/${channelId}/messages?page=${currentPage}`);
+
+      // Actualizar el state local de los mensajes
+      setMessages((prev) => {
+        const currentMessages = [...data.messages, ...prev.messages];
+        
+        // Filtrar los mensajes duplicados
+        const uniqueMessages = currentMessages.reduce((acc, message) => {
+          const existingMessage = acc.find(m => m.id === message.id);
+
+          if (!existingMessage) {
+            acc.push(message);
+          }
+
+          return acc;
+        }, [] as MessageWithSender[]);
+
+        // Scrollear al bottom del chat si es la primera página de mensajes
+        if (currentPage === 1) {
+          chatBottomRef.current!.scrollIntoView({behavior: "smooth"});
+        }
+
+        // Scrollear a la posición del último mensaje de la página anterior
+        // si no es la primera página de mensajes
+        if (currentPage > 1 && previousPageLastMessageIdRef.current) {
+          const previousPageLastMessageElement = document.getElementById(previousPageLastMessageIdRef.current);
+
+          if (previousPageLastMessageElement) {
+            previousPageLastMessageElement.scrollIntoView();
+          }
+        }
+
+        // ID del mensaje más antiguo de la página anterior
+        if (currentMessages.length > 0) {
+          previousPageLastMessageIdRef.current = data.messages[0].id;
+        }
+
+        return {
+          messages: uniqueMessages,
+          hasMore: data.hasMore
+        };
+      });
+      
+    } catch (error: any) {
+      let message = error.message;
+
+      if (error instanceof AxiosError) {
+        message = error.response?.data.message;
+      }
+
+      toast.error(message);
+
+    } finally {
+      setLoadingMessages(false);
+    }
+  }
+
+  // Consultar el channel y workspace con sus miembros
   useEffect(() => {
     // Consultar el workspace si no se ha hecho ya
     // Esto es en caso de que se recargue la página
@@ -112,17 +229,72 @@ const ChannelPage = ({params}: Props) => {
   }, [workspaceId, channelId, currentWorkspace]);
 
 
+  // Consultar la primera página de mensajes si ya cargó el channel
+  useEffect(() => {
+    if (channelData && page === 1) {
+      getMessages(1);      
+    }
+  }, [channelData, page]);
+  
+
+  /** Consultar la siguiente página de mensajes al scrollear al top */
+  const onScrollHandler = () => {
+    if (sectionRef.current && messages.hasMore) {
+      const {scrollTop} = sectionRef.current;
+
+      // Detectar si scrolleo al top del section
+      if (scrollTop === 0) {
+        getMessages(page + 1);
+        setPage(prev => prev + 1);
+      }
+    }
+  }
+
   return (
     <main className="flex flex-col flex-grow rounded-r-lg bg-neutral-900 overflow-hidden">
       <ChatHeader
         title={`#${channelData?.name}`}
         loading={loading}
       />
+      <section 
+        ref={sectionRef}
+        className="w-full flex-grow p-4 overflow-x-hidden overflow-y-auto scrollbar-thin"
+        onScroll={onScrollHandler}
+      >
+        <div className="flex flex-col justify-start gap-3 w-full h-full">
+          {!loadingMessages && !messages.hasMore && messages.messages.length > 0 &&
+            <div className="flex justify-center items-center w-full">
+              <p className="text-sm text-center text-neutral-400 italic">
+                End of conversation...
+              </p>
+            </div>
+          }
 
-      <section className="w-full flex-grow p-4 overflow-y-auto scrollbar-thin">
-        <div className="flex flex-col justify-start gap-3 w-full">
-          <p className="text-xl">Chat content</p>
+          {!loadingMessages && !messages.hasMore && messages.messages.length === 0 &&
+            <div className="flex justify-center items-center w-full h-full">
+              <p className="max-w-full text-xl text-center text-neutral-400">
+                This channel is empty
+              </p>
+            </div>
+          }
+
+          {loadingMessages && (
+            <div className="flex justify-center items-center w-full">
+              <LuLoader2 className="animate-spin" size={20} />
+            </div>
+          )}
+
+          {messages.messages.map((message) => (
+            <MessageItem
+              key={message.id}
+              message={message}
+              setMessages={setMessages}
+              currentUserId={user?.id || ""}
+            />
+          ))}
         </div>
+
+        <div ref={chatBottomRef} />
       </section>
 
       <section className="w-full flex-shrink-0 bg-neutral-800 overflow-hidden">
