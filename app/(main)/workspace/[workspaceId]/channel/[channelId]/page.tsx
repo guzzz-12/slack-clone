@@ -259,11 +259,11 @@ const ChannelPage = ({params}: Props) => {
 
   /** Consultar la siguiente página de mensajes al scrollear al top */
   const onScrollHandler = () => {
-    if (sectionRef.current && messages.hasMore) {
+    if (sectionRef.current) {
       const {scrollTop, clientHeight, scrollHeight} = sectionRef.current;
 
       // Detectar si scrolleo al top del section
-      if (scrollTop === 0) {
+      if (messages.hasMore && scrollTop === 0) {
         getMessages(page + 1);
         setPage(prev => prev + 1);
       }
