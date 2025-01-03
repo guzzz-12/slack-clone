@@ -27,7 +27,7 @@ interface Props {
 }
 
 const InfoSection = ({userData}: Props) => {
-  const params = useParams<Params>()!;
+  const {workspaceId, channelId} = useParams<Params>()!;
 
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loadingChannels, setLoadingChannels] = useState(true);
@@ -73,7 +73,7 @@ const InfoSection = ({userData}: Props) => {
   useEffect(() => {
     axios<MessageWithSender[]>({
       method: "GET",
-      url: `/api/workspace/${params.workspaceId}/unread-messages`,
+      url: `/api/workspace/${workspaceId}/unread-messages`,
     })
     .then((res) => {
       setUnreadMessages(res.data);
@@ -81,13 +81,13 @@ const InfoSection = ({userData}: Props) => {
     .catch((error: any) => {
       toast.error(error.message);
     });
-  }, [params]);
+  }, [workspaceId]);
 
 
   // Escuchar los eventos de mensajes de los channels
   // y actualizar el state local de los mensajes sin leer
   useEffect(() => {
-    if (socket) {
+    if (socket && channels.length > 0) {
       channels.forEach((channel) => {
         socket.on(`channel:${channel.id}:message`, (data) => {
           setUnreadMessages((prev) => [...prev, data]);
@@ -96,13 +96,13 @@ const InfoSection = ({userData}: Props) => {
     }
 
     return () => {
-      if (socket) {
+      if (socket && channels.length > 0) {
         channels.forEach((channel) => {
           socket.off(`channel:${channel.id}:message`);
         })
       }
     }
-  }, [socket, channels]);
+  }, [socket, channels, workspaceId, channelId]);
 
 
   return (
@@ -160,7 +160,7 @@ const InfoSection = ({userData}: Props) => {
               <ChannelItem
                 key={ch.id}
                 channel={ch}
-                currentChannelId={params.channelId!}
+                currentChannelId={channelId!}
                 unreadMessages={unreadMessages}
               />
             ))}
