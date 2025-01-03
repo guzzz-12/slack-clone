@@ -4,9 +4,7 @@ import { Server as SocketSever } from "socket.io";
 import { SocketApiResponse, SocketClientServerSideType, SocketServerType } from "@/types/socket";
 
 const initializeSocketServer = (httpServer: HttpServer): SocketServerType => {
-  const origin = process.env.NEXT_PUBLIC_PROJECT_URL!
-
-  console.log({socketIO_Origin: origin});
+  const origin = process.env.NEXT_PUBLIC_PROJECT_URL!;
 
   return new SocketSever(httpServer, {
     path: "/api/socket/io",
@@ -21,8 +19,6 @@ async function handler(_req: NextApiRequest, res: SocketApiResponse) {
     const io = initializeSocketServer(res.socket.server);
 
     res.socket.server.io = io;
-
-    io.emit("testServerToClientEvent", "testServerToClientEvent");
 
     // Eventos del servidor de Socket.io
     io.on("connection", (socket: SocketClientServerSideType) => {
