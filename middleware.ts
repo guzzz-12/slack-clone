@@ -7,6 +7,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // 
+  if (request.nextUrl.pathname.includes("/api/socket/io")) {
+    return NextResponse.next();
+  }
+
   return await updateSession(request);
 }
 

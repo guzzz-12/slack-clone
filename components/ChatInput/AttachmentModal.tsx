@@ -16,6 +16,9 @@ import { useUser } from "@/hooks/useUser";
 import { imageCompressor } from "@/utils/imageCompression";
 import { supabaseBrowserClient } from "@/utils/supabase/supabaseBrowserClient";
 import { cn } from "@/lib/utils";
+import { useSocket } from "@/providers/WebSocketProvider";
+import { MessageWithSender } from "@/types/supabase";
+import axios from "axios";
 
 const ACCEPTED_FILES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"];
 
@@ -47,6 +50,8 @@ const AttachmentModal: FC<Props> = ({ workspaceId, channelId, isOpen, setIsOpen 
   const [isUploading, setIsUploading] = useState(false);
 
   const {user} = useUser();
+
+  const {socket} = useSocket();
 
   const formProps = useForm<FormType>({
     resolver: zodResolver(FormSchema),
@@ -130,7 +135,7 @@ const AttachmentModal: FC<Props> = ({ workspaceId, channelId, isOpen, setIsOpen 
    * Enviar el archivo al bucket de supabase
    */
   const onSubmitHandler = async (values: FormType) => {
-    if (!user) {
+    if (!user || !socket) {
       return;
     }
 
@@ -145,6 +150,7 @@ const AttachmentModal: FC<Props> = ({ workspaceId, channelId, isOpen, setIsOpen 
       // Generar un nombre unico para el archivo
       const fileUniqueName = `${v4()}_${Date.now()}.${extension}`;
 
+      // Subir el archivo al bucket
       const {data: fileUploadData, error} = await supabase.storage
       .from("messages-attachments")
       .upload(`chat/channel_${channelId}/attachments/${fileUniqueName}`, values.file, {
@@ -156,21 +162,18 @@ const AttachmentModal: FC<Props> = ({ workspaceId, channelId, isOpen, setIsOpen 
         throw error;
       }
 
-      console.log(fileUploadData);
-
-      // Crear el mensaje en la base de datos con el path del archivo
-      const {data: messageData, error: messageError} = await supabase
-      .from("messages")
-      .insert({
-        workspace_id: workspaceId,
-        channel_id: channelId,
-        sender_id: user.id,
-        attachment_url: fileUploadData.fullPath,
-      });
-
-      if (messageError) {
-        throw messageError;
+      const messageData = {
+        attachmentUrl: fileUploadData.fullPath,
+        workspaceId,
+        channelId,
       }
+
+      // Enviar el mensaje
+      await axios({
+        method: "POST",
+        url: "/api/socket/messages",
+        data: messageData
+      });
     
     } catch (error: any) {
       toast.error(error.message);

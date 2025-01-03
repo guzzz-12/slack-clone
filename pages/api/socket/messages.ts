@@ -16,10 +16,10 @@ export default async function handler(req: NextApiRequest, res: SocketApiRespons
 
     const supabase = supabaseServerClientPages(req, res);
 
-    const {textContent, channelId, workspaceId} = req.body;
+    const {textContent, channelId, workspaceId, attachmentUrl} = req.body;
 
-    // Validar el textContent
-    if (!textContent || textContent.trim() === "") {
+    // Validar el textContent y el attachmentUrl
+    if (!textContent?.trim() && !attachmentUrl.trim()) {
       return res.status(400).json({message: "The message cannot be empty"});
     }
 
@@ -40,12 +40,20 @@ export default async function handler(req: NextApiRequest, res: SocketApiRespons
         sender_id: userData.id,
         channel_id: channelId,
         text_content: textContent,
+        attachment_url: attachmentUrl,
         workspace_id: workspaceId
       })
       .select("*, sender: users(*)")
       .single();
     
     if (error) {
+      // Eliminar el attachment si hay error al enviar el mensaje
+      if (attachmentUrl) {
+        await supabase.storage
+        .from("messages-attachments")
+        .remove([attachmentUrl.replace("messages-attachments/", "")]);
+      }
+
       throw error;
     }
 
