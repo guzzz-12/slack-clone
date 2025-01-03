@@ -172,6 +172,12 @@ const ChannelPage = ({params}: Props) => {
       setLoadingMessages(true);
 
       const {data} = await axios.get<PaginatedMessages>(`/api/workspace/${workspaceId}/channels/${channelId}/messages?page=${currentPage}`);
+      
+      // Scrollear a la posición del último mensaje de la página anterior
+      if (currentPage > 1) {
+        const previousPageLastMessageElement = document.getElementById(messages.messages[0].id)!;
+        previousPageLastMessageElement.scrollIntoView();
+      }
 
       // Actualizar el state local de los mensajes
       setMessages((prev) => {
@@ -187,26 +193,6 @@ const ChannelPage = ({params}: Props) => {
 
           return acc;
         }, [] as MessageWithSender[]);
-
-        // Scrollear al bottom del chat si es la primera página de mensajes
-        if (currentPage === 1) {
-          scrollToBottomHandler();
-        }
-
-        // Scrollear a la posición del último mensaje de la página anterior
-        // si no es la primera página de mensajes
-        if (currentPage > 1 && previousPageLastMessageIdRef.current) {
-          const previousPageLastMessageElement = document.getElementById(previousPageLastMessageIdRef.current);
-
-          if (previousPageLastMessageElement) {
-            previousPageLastMessageElement.scrollIntoView();
-          }
-        }
-
-        // ID del mensaje más antiguo de la página anterior
-        if (data.messages.length > 0) {
-          previousPageLastMessageIdRef.current = data.messages[0].id;
-        }
 
         return {
           messages: uniqueMessages,
@@ -248,7 +234,11 @@ const ChannelPage = ({params}: Props) => {
   // y calcular el height del main
   useEffect(() => {
     if (channelData && page === 1) {
-      getMessages(1);      
+      getMessages(1)
+      .then(() => {
+        // Scrollear al bottom del chat
+        scrollToBottomHandler();
+      })
     }
 
     if (chatInputRef.current) {
