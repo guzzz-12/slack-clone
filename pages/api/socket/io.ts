@@ -3,13 +3,15 @@ import { Server as HttpServer } from "http";
 import { Server as SocketSever } from "socket.io";
 import { SocketApiResponse, SocketClientServerSideType, SocketServerType } from "@/types/socket";
 
-const initializeSocketServer = (httpServer: HttpServer): SocketServerType => {;
+const initializeSocketServer = (httpServer: HttpServer): SocketServerType => {
+  const origin = process.env.NEXT_PUBLIC_PROJECT_URL!
+
+  console.log({socketIO_Origin: origin});
+
   return new SocketSever(httpServer, {
     path: "/api/socket/io",
     addTrailingSlash: false,
-    cors: {
-      origin: process.env.NEXT_PUBLIC_PROJECT_URL!,
-    }
+    cors: {origin}
   });
 };
 
