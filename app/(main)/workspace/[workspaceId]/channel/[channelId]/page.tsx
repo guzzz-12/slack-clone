@@ -189,7 +189,7 @@ const ChannelPage = ({params}: Props) => {
         }, [] as MessageWithSender[]);
 
         // Scrollear al bottom del chat si es la primera página de mensajes
-        if (currentPage === 1 && sectionRef.current) {
+        if (currentPage === 1) {
           scrollToBottomHandler();
         }
 
