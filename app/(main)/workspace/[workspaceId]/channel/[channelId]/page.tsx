@@ -14,6 +14,7 @@ import { useSocket } from "@/providers/WebSocketProvider";
 import { pageBaseTitle } from "@/utils/constants";
 import { Channel, MessageWithSender, Workspace, WorkspaceWithMembers } from "@/types/supabase";
 import { PaginatedMessages } from "@/types/paginatedMessages";
+import { FaArrowDown } from "react-icons/fa6";
 
 interface Props {
   params: {
@@ -23,8 +24,8 @@ interface Props {
 }
 
 const ChannelPage = ({params}: Props) => {
+  const chatInputRef = useRef<HTMLElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
-  const chatBottomRef = useRef<HTMLDivElement>(null);
   const previousPageLastMessageIdRef = useRef<string>("");
 
   const {workspaceId, channelId} = params;
@@ -39,7 +40,11 @@ const ChannelPage = ({params}: Props) => {
     hasMore: true
   });
   const [page, setPage] = useState(1);
+  const [newIncomingMessage, setNewIncomingMessage] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(true);
+
+  const [chatInputHeight, setChatInputHeight] = useState(0);
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
 
   const {socket} = useSocket();
 
@@ -70,7 +75,18 @@ const ChannelPage = ({params}: Props) => {
         setMessages((prev) => ({
           ...prev,
           messages: [...prev.messages, data],
-        }))
+        }));
+
+        // Scrollear al bottom del chat al recibir un nuevo mensaje
+        // si la bandeja está scrolleada al bottom
+        if (isScrolledToBottom) {
+          setTimeout(() => {
+            scrollToBottomHandler();
+          }, 300);
+
+        } else {
+          setNewIncomingMessage(true);
+        }
       });
 
       socket.on(`channel:${channelData.id}:message-deleted`, (deletedMsg) => {
@@ -91,7 +107,7 @@ const ChannelPage = ({params}: Props) => {
         socket.off(`channel:${channelData.id}:message`);
       }
     }
-  }, [socket, channelData]);
+  }, [socket, channelData, isScrolledToBottom]);
 
 
   /** Consultar el workspace y sus miembros */
@@ -173,8 +189,8 @@ const ChannelPage = ({params}: Props) => {
         }, [] as MessageWithSender[]);
 
         // Scrollear al bottom del chat si es la primera página de mensajes
-        if (currentPage === 1) {
-          chatBottomRef.current!.scrollIntoView({behavior: "smooth"});
+        if (currentPage === 1 && sectionRef.current) {
+          scrollToBottomHandler();
         }
 
         // Scrollear a la posición del último mensaje de la página anterior
@@ -229,32 +245,74 @@ const ChannelPage = ({params}: Props) => {
 
 
   // Consultar la primera página de mensajes si ya cargó el channel
+  // y calcular el height del main
   useEffect(() => {
     if (channelData && page === 1) {
       getMessages(1);      
     }
-  }, [channelData, page]);
+
+    if (chatInputRef.current) {
+      setChatInputHeight(chatInputRef.current.clientHeight);
+    }
+  }, [channelData, page, chatInputRef]);
   
 
   /** Consultar la siguiente página de mensajes al scrollear al top */
   const onScrollHandler = () => {
     if (sectionRef.current && messages.hasMore) {
-      const {scrollTop} = sectionRef.current;
+      const {scrollTop, clientHeight, scrollHeight} = sectionRef.current;
 
       // Detectar si scrolleo al top del section
       if (scrollTop === 0) {
         getMessages(page + 1);
         setPage(prev => prev + 1);
       }
+
+      // Detectar si el usuario ha scrolleado al bottom del section
+      if (scrollTop + clientHeight >= (scrollHeight - 100)) {
+        setIsScrolledToBottom(true);
+        setNewIncomingMessage(false);
+      } else {
+        setIsScrolledToBottom(false);
+      }
     }
   }
 
+
+  // Scrollear al bottom del chat al clickear el botón de "You have new messages"
+  const scrollToBottomHandler = () => {
+    if (sectionRef.current) {
+      sectionRef.current.scrollTo({
+        top: sectionRef.current.scrollHeight,
+        behavior: "smooth"
+      });
+    }
+  }
+
+
   return (
-    <main className="flex flex-col flex-grow rounded-r-lg bg-neutral-900 overflow-hidden">
+    <main
+      style={{contain: "layout"}}
+      className="relative flex flex-col flex-grow rounded-r-lg bg-neutral-900 overflow-hidden"
+    >
       <ChatHeader
         title={`#${channelData?.name}`}
         loading={loading}
       />
+
+      {!isScrolledToBottom && newIncomingMessage &&
+        <button
+          style={{bottom: `calc(${chatInputHeight}px + 1rem)`}}
+          className="fixed left-[50%] flex justify-center items-center gap-2 translate-x-[-50%] px-3 py-2 rounded-s-md border bg-primary-dark hover:bg-primary-light transition-colors z-30"
+          onClick={scrollToBottomHandler}
+        >
+          <FaArrowDown />
+          <p className="text-sm text-white">
+            You have new messages
+          </p>
+        </button>
+      }
+
       <section 
         ref={sectionRef}
         className="w-full flex-grow p-4 overflow-x-hidden overflow-y-auto scrollbar-thin"
@@ -292,11 +350,12 @@ const ChannelPage = ({params}: Props) => {
             />
           ))}
         </div>
-
-        <div ref={chatBottomRef} />
       </section>
 
-      <section className="w-full flex-shrink-0 bg-neutral-800 overflow-hidden">
+      <section
+        ref={chatInputRef}
+        className="w-full flex-shrink-0 bg-neutral-800 overflow-hidden"
+      >
         <ChatInput
           workspaceId={workspaceId}
           channelId={channelId}
