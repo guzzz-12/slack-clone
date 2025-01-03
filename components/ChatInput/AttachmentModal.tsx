@@ -1,6 +1,6 @@
 "use client"
 
-import { ChangeEvent, FC, useEffect, useRef, useState } from "react";
+import { ChangeEvent, DragEvent, FC, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,7 +17,6 @@ import { imageCompressor } from "@/utils/imageCompression";
 import { supabaseBrowserClient } from "@/utils/supabase/supabaseBrowserClient";
 import { cn } from "@/lib/utils";
 import { useSocket } from "@/providers/WebSocketProvider";
-import { MessageWithSender } from "@/types/supabase";
 import axios from "axios";
 
 const ACCEPTED_FILES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"];
@@ -48,6 +47,8 @@ const AttachmentModal: FC<Props> = ({ workspaceId, channelId, isOpen, setIsOpen 
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [selectedImagePreview, setSelectedImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const {user} = useUser();
 
@@ -130,6 +131,58 @@ const AttachmentModal: FC<Props> = ({ workspaceId, channelId, isOpen, setIsOpen 
     };
   };
 
+
+  /** Manejar el evento drop al soltar el archivo */
+  const onDropFileHandler = async (e: DragEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      const fileType = file.type;
+
+      // Validar el tipo de archivo
+      if (!ACCEPTED_FILES.includes(fileType)) {
+        formProps.setError("file", {message: "File type must be jpeg, jpg, png, webp or pdf"});
+        setIsDragOver(false);
+        return false;
+      }
+
+      // Limpiar el state del archivo
+      setSelectedFile(null);
+      setSelectedImagePreview(null);
+      formProps.reset();
+      formProps.clearErrors("file");
+
+      // Validar el tamaño del archivo
+      if(file.size > 5 * 1024 * 1024) {
+        formProps.setError("file", {message: "File size must be less than 5MB"});
+
+        return false;
+      }
+
+      if (fileType.startsWith("image")) {
+        setIsProcessingImage(true);
+
+        const imageBase64 = await imageCompressor(file, "base64") as string;
+        setSelectedImagePreview(imageBase64);
+        setIsProcessingImage(false);
+
+        setSelectedFile(file);
+        setSelectedFileType("image");
+
+      } else if (fileType === "application/pdf") {
+        setSelectedFile(file);
+        setSelectedFileType("pdf");
+      }
+
+      formProps.setValue("file", file);
+      formProps.trigger("file");
+
+      setIsDragOver(false);
+    }
+  }
+
   
   /**
    * Enviar el archivo al bucket de supabase
@@ -210,10 +263,30 @@ const AttachmentModal: FC<Props> = ({ workspaceId, channelId, isOpen, setIsOpen 
 
         <div className="relative flex flex-col justify-center items-center h-[50vh] p-0 overflow-hidden">
           <button
-            className={cn("flex flex-col justify-center items-center gap-3 w-full h-full p-4 border border-dashed border-blue-700 rounded-md hover:border-blue-500 transition-colors overflow-hidden", formProps.formState.errors.file && "border-red-500")}
+            className={cn("flex flex-col justify-center items-center gap-3 w-full h-full p-4 border border-dashed border-blue-700 rounded-md hover:border-blue-500 transition-colors overflow-hidden", formProps.formState.errors.file && "border-red-500", isDragOver && "border-blue-500 border-2 border-spacing-1")}
             type="button"
             disabled={isUploading}
             onClick={() => fileInputRef.current?.click()}
+            onDrop={(e) => {
+              if (selectedFile) {
+                e.preventDefault();
+                return false;
+              }
+
+              onDropFileHandler(e);
+            }}
+            onDragOver={(e) => {
+              if (selectedFile) return false;
+
+              e.preventDefault();
+              setIsDragOver(true);
+            }}
+            onDragLeave={(e) => {
+              if (selectedFile) return false;
+
+              e.preventDefault();
+              setIsDragOver(false);
+            }}
           >
             {selectedFile && selectedFileType === "pdf" &&
             <>
@@ -239,7 +312,7 @@ const AttachmentModal: FC<Props> = ({ workspaceId, channelId, isOpen, setIsOpen 
               />
             }
 
-            {!selectedFile && !isProcessingImage &&
+            {!selectedFile && !isProcessingImage && !isDragOver &&
               <>
                 <FileIcon className="w-14 h-14" />
                 <Typography

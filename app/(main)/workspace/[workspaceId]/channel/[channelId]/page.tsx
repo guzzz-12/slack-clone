@@ -5,16 +5,15 @@ import { useRouter } from "next/navigation";
 import axios, { AxiosError } from "axios";
 import toast from "react-hot-toast";
 import { LuLoader2 } from "react-icons/lu";
-import { GoHash } from "react-icons/go";
 import ChatHeader from "@/components/ChatHeader";
 import ChatInput from "@/components/ChatInput";
 import MessageItem from "@/components/MessageItem";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useUser } from "@/hooks/useUser";
 import { useSocket } from "@/providers/WebSocketProvider";
+import { pageBaseTitle } from "@/utils/constants";
 import { Channel, MessageWithSender, Workspace, WorkspaceWithMembers } from "@/types/supabase";
 import { PaginatedMessages } from "@/types/paginatedMessages";
-import { pageBaseTitle } from "@/utils/constants";
 
 interface Props {
   params: {
@@ -66,15 +65,15 @@ const ChannelPage = ({params}: Props) => {
 
   // Escuchar el eventos de mensaje entrante y mensaje eliminado
   useEffect(() => {
-    if (socket) {
-      socket.on(`channel:${channelId}:message`, (data) => {
+    if (socket && channelData) {
+      socket.on(`channel:${channelData.id}:message`, (data) => {
         setMessages((prev) => ({
           ...prev,
           messages: [...prev.messages, data],
         }))
       });
 
-      socket.on(`channel:${channelId}:message-deleted`, (deletedMsg) => {
+      socket.on(`channel:${channelData.id}:message-deleted`, (deletedMsg) => {
         setMessages((prev) => {
           const messageIndex = prev.messages.findIndex(m => m.id === deletedMsg.id);
 
@@ -88,11 +87,11 @@ const ChannelPage = ({params}: Props) => {
     }
 
     return () => {
-      if (socket) {
-        socket.off(`channel:${channelId}:message`);
+      if (socket && channelData) {
+        socket.off(`channel:${channelData.id}:message`);
       }
     }
-  }, [socket, channelId]);
+  }, [socket, channelData]);
 
 
   /** Consultar el workspace y sus miembros */
@@ -189,7 +188,7 @@ const ChannelPage = ({params}: Props) => {
         }
 
         // ID del mensaje más antiguo de la página anterior
-        if (currentMessages.length > 0) {
+        if (data.messages.length > 0) {
           previousPageLastMessageIdRef.current = data.messages[0].id;
         }
 
