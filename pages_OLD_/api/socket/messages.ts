@@ -2,6 +2,7 @@ import { NextApiRequest } from "next";
 import { isPostgresError, uuidRegex } from "@/utils/constants";
 import { getUserData } from "@/utils/supabasePagesRouter/getUserData";
 import { supabaseServerClientPages } from "@/utils/supabasePagesRouter/supabaseServerClientPages";
+import { pusher } from "@/utils/pusher";
 import { SocketApiResponse } from "@/types/socket";
 
 // Endpoint para crear un mensaje utilizando pages-router
@@ -58,7 +59,14 @@ export default async function handler(req: NextApiRequest, res: SocketApiRespons
     }
 
     // Emitir evento de nuevo mensaje a los miembros del channel
-    res.socket.server.io.emit(`channel:${channelId}:message`, {...message, sender: message.sender!});
+    await pusher.trigger(
+      `channel-${channelId}`,
+      "new-message",
+      {
+        ...message, 
+        sender: message.sender!
+      }
+    );
 
     return res.json(message);
     

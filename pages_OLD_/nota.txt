@@ -1,0 +1,2 @@
+Ruta deprecada, se usó con la implementación anterior que usaba socket.io.
+La implementación actual utiliza pusher y no es necesario usar el pages router.

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { isPostgresError, uuidRegex } from "@/utils/constants";
 import { supabaseServerClientPages } from "@/utils/supabasePagesRouter/supabaseServerClientPages";
 import { SocketApiResponse } from "@/types/socket";
+import { pusher } from "@/utils/pusher";
 
 type QueryParams = {
   workspaceId: string;
@@ -94,10 +95,11 @@ export default async function handler(req: NextApiRequest, res: SocketApiRespons
       }
 
       // Emitir evento de mensaje eliminado a todos los miembros del channel
-      res.socket.server.io.emit(`channel:${channelId}:message-deleted`, {
-        ...updatedMessage,
-        sender: updatedMessage.sender!
-      });
+      await pusher.trigger(
+        `channel-${channelId}`, 
+        "message-deleted", 
+        updatedMessage
+      );
 
       return res.json("success");
     }
