@@ -3,18 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios, { AxiosError } from "axios";
+import Pusher from "pusher-js";
 import toast from "react-hot-toast";
 import { LuLoader2 } from "react-icons/lu";
+import { FaArrowDown } from "react-icons/fa6";
 import ChatHeader from "@/components/ChatHeader";
 import ChatInput from "@/components/ChatInput";
 import MessageItem from "@/components/MessageItem";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useUser } from "@/hooks/useUser";
-import { useSocket } from "@/providers/WebSocketProvider";
 import { pageBaseTitle } from "@/utils/constants";
 import { Channel, MessageWithSender, Workspace, WorkspaceWithMembers } from "@/types/supabase";
 import { PaginatedMessages } from "@/types/paginatedMessages";
-import { FaArrowDown } from "react-icons/fa6";
 
 interface Props {
   params: {
@@ -26,7 +26,6 @@ interface Props {
 const ChannelPage = ({params}: Props) => {
   const chatInputRef = useRef<HTMLElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
-  const previousPageLastMessageIdRef = useRef<string>("");
 
   const {workspaceId, channelId} = params;
   
@@ -45,8 +44,6 @@ const ChannelPage = ({params}: Props) => {
 
   const [chatInputHeight, setChatInputHeight] = useState(0);
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
-
-  const {socket} = useSocket();
 
   const {user} = useUser();
 
@@ -70,44 +67,49 @@ const ChannelPage = ({params}: Props) => {
 
   // Escuchar el eventos de mensaje entrante y mensaje eliminado
   useEffect(() => {
-    if (socket && channelData) {
-      socket.on(`channel:${channelData.id}:message`, (data) => {
-        setMessages((prev) => ({
-          ...prev,
-          messages: [...prev.messages, data],
-        }));
+    if (!channelData) return;
 
-        // Scrollear al bottom del chat al recibir un nuevo mensaje
-        // si la bandeja está scrolleada al bottom
-        if (isScrolledToBottom) {
-          setTimeout(() => {
-            scrollToBottomHandler();
-          }, 300);
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+    });
 
-        } else {
-          setNewIncomingMessage(true);
+    const channel = pusher.subscribe(`channel-${channelData.id}`);
+
+    channel.bind("new-message", (data: MessageWithSender) => {
+      setMessages((prev) => ({
+        ...prev,
+        messages: [...prev.messages, data],
+      }));
+
+      // Scrollear al bottom del chat al recibir un nuevo mensaje
+      // si la bandeja está scrolleada al bottom
+      if (isScrolledToBottom) {
+        setTimeout(() => {
+          scrollToBottomHandler();
+        }, 300);
+
+      } else {
+        setNewIncomingMessage(true);
+      }
+    });
+
+    channel.bind("message-deleted", (deletedMsg: MessageWithSender) => {
+      setMessages((prev) => {
+        const messageIndex = prev.messages.findIndex(m => m.id === deletedMsg.id);
+
+        if (messageIndex !== -1) {
+          prev.messages.splice(messageIndex, 1, deletedMsg);
         }
-      });
 
-      socket.on(`channel:${channelData.id}:message-deleted`, (deletedMsg) => {
-        setMessages((prev) => {
-          const messageIndex = prev.messages.findIndex(m => m.id === deletedMsg.id);
-
-          if (messageIndex !== -1) {
-            prev.messages.splice(messageIndex, 1, deletedMsg);
-          }
-
-          return {...prev, messages: [...prev.messages]};
-        })
+        return {...prev, messages: [...prev.messages]};
       })
-    }
+    })
 
     return () => {
-      if (socket && channelData) {
-        socket.off(`channel:${channelData.id}:message`);
-      }
-    }
-  }, [socket, channelData, isScrolledToBottom]);
+      channel.unbind_all();
+      channel.unsubscribe();
+    };
+  }, [channelData, isScrolledToBottom]);
 
 
   /** Consultar el workspace y sus miembros */

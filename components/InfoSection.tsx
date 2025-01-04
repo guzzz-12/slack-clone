@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
+import Pusher, {Channel as PusherChannel} from "pusher-js";
 import toast from "react-hot-toast";
 import { FaArrowDown, FaArrowUp, FaPlus } from "react-icons/fa6";
 import Typography from "./Typography";
@@ -13,7 +14,6 @@ import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { Skeleton } from "./ui/skeleton";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { useSocket } from "@/providers/WebSocketProvider";
 import { Channel, MessageWithSender, User } from "@/types/supabase";
 import { cn } from "@/lib/utils";
 
@@ -40,8 +40,6 @@ const InfoSection = ({userData}: Props) => {
   const [unreadMessages, setUnreadMessages] = useState<MessageWithSender[]>([]);
 
   const {currentWorkspace, loadingWorkspaces} = useWorkspace();
-
-  const {socket} = useSocket();
 
 
   // Limpiar el state de los channels cuando se cambie el workspace
@@ -87,22 +85,35 @@ const InfoSection = ({userData}: Props) => {
   // Escuchar los eventos de mensajes de los channels
   // y actualizar el state local de los mensajes sin leer
   useEffect(() => {
-    if (socket && channels.length > 0) {
-      channels.forEach((channel) => {
-        socket.on(`channel:${channel.id}:message`, (data) => {
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+    });
+
+    const pusherChannels: PusherChannel[] = [];
+
+    if (channels.length > 0) {
+      channels.forEach((ch) => {
+        const channelName = `channel-${ch.id}`;
+
+        const channel = pusher.subscribe(channelName);
+
+        channel.bind("new-message", (data: MessageWithSender) => {
           setUnreadMessages((prev) => [...prev, data]);
         });
-      })
+
+        pusherChannels.push(channel);
+      });
     }
 
     return () => {
-      if (socket && channels.length > 0) {
-        channels.forEach((channel) => {
-          socket.off(`channel:${channel.id}:message`);
-        })
+      if (pusherChannels.length > 0) {
+        pusherChannels.forEach((channel) => {
+          channel.unbind_all();
+          channel.unsubscribe();
+        });
       }
     }
-  }, [socket, channels, workspaceId, channelId]);
+  }, [channels, workspaceId, channelId]);
 
 
   return (

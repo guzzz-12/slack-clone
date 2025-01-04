@@ -26,8 +26,8 @@ const MessageItem = ({message, currentUserId, setMessages}: Props) => {
       setDeleting(true);
 
       const {data} = await axios<MessageWithSender>({
-        method: "GET",
-        url: `/api/socket/${message.workspace_id}/${message.channel_id}/delete-message`,
+        method: "DELETE",
+        url: `/api/workspace/${message.workspace_id}/channels/${message.channel_id}/messages/`,
         params: {messageId: message.id, mode}
       });
 

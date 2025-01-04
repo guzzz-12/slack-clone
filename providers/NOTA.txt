@@ -1,0 +1,2 @@
+Deprecado. Se usó con la implementación anterior que usaba socket.io.
+La implementación actual utiliza pusher y ya no es necesario este provider.

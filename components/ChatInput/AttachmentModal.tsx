@@ -4,20 +4,19 @@ import { ChangeEvent, DragEvent, FC, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
+import axios from "axios";
 import { File as FileIcon, Loader2 } from "lucide-react";
 import { FaFilePdf, FaRegTrashCan } from "react-icons/fa6";
 import { v4 } from "uuid";
 import toast from "react-hot-toast";
 import Typography from "../Typography";
 import { Form } from "../ui/form";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { useUser } from "@/hooks/useUser";
 import { imageCompressor } from "@/utils/imageCompression";
 import { supabaseBrowserClient } from "@/utils/supabase/supabaseBrowserClient";
 import { cn } from "@/lib/utils";
-import { useSocket } from "@/providers/WebSocketProvider";
-import axios from "axios";
 
 const ACCEPTED_FILES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"];
 
@@ -51,8 +50,6 @@ const AttachmentModal: FC<Props> = ({ workspaceId, channelId, isOpen, setIsOpen 
   const [isDragOver, setIsDragOver] = useState(false);
 
   const {user} = useUser();
-
-  const {socket} = useSocket();
 
   const formProps = useForm<FormType>({
     resolver: zodResolver(FormSchema),
@@ -188,7 +185,7 @@ const AttachmentModal: FC<Props> = ({ workspaceId, channelId, isOpen, setIsOpen 
    * Enviar el archivo al bucket de supabase
    */
   const onSubmitHandler = async (values: FormType) => {
-    if (!user || !socket) {
+    if (!user) {
       return;
     }
 
@@ -215,17 +212,13 @@ const AttachmentModal: FC<Props> = ({ workspaceId, channelId, isOpen, setIsOpen 
         throw error;
       }
 
-      const messageData = {
-        attachmentUrl: fileUploadData.fullPath,
-        workspaceId,
-        channelId,
-      }
-
       // Enviar el mensaje
       await axios({
         method: "POST",
-        url: "/api/socket/messages",
-        data: messageData
+        url: `/api/workspace/${workspaceId}/channels/${channelId}/messages`,
+        data: {
+          attachmentUrl: fileUploadData.fullPath
+        }
       });
     
     } catch (error: any) {

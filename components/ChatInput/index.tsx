@@ -58,23 +58,19 @@ const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
 
       setSending(true);
 
-      const message = editor.getHTML();
+      const textContent = editor.getHTML();
 
       // No permitir enviar mensajes vacios
-      if (message.length === 0 || message.trim() === "") {
+      if (textContent.length === 0 || textContent.trim() === "") {
         return;
-      }
-      
-      const messageData = {
-        textContent: message,
-        workspaceId,
-        channelId,
       }
 
       await axios<MessageWithSender>({
         method: "POST",
-        url: "/api/socket/messages",
-        data: messageData
+        url: `/api/workspace/${workspaceId}/channels/${channelId}/messages`,
+        data: {
+          textContent
+        }
       });
 
       // Limpiar el editor al enviar el mensaje

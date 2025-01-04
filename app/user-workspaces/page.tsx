@@ -66,7 +66,7 @@ const UserWorkspaces = async () => {
                   href={`/workspace/${workspace.workspace_id}`}
                   className="flex justify-start items-center gap-2 w-full pr-4 rounded-lg bg-neutral-800 cursor-pointer hover:bg-neutral-700 transition-colors duration-350 group"
                 >
-                  <div className="w-12 h-12 rounded-lg overflow-hidden">
+                  <div className="w-12 h-12 rounded-l-lg overflow-hidden">
                     <img
                       src={workspace.workspace_image}
                       alt={workspace.workspace_name}

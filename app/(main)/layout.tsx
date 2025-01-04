@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import Sidebar from "@/components/Sidebar";
 import InfoSection from "@/components/InfoSection";
-import WebSocketProvider from "@/providers/WebSocketProvider";
 import { getUserData } from "@/utils/getUserData";
 
 interface Props {
@@ -14,13 +13,11 @@ const MainLayout = async ({children}: Props) => {
   const user = await getUserData();
 
   return (
-    <WebSocketProvider>
-      <section className="flex justify-start items-stretch h-screen pt-8 pr-2 pb-2 bg-black">
-        <Sidebar userData={user} />
-        <InfoSection userData={user} />
-        {children}
-      </section>
-    </WebSocketProvider>
+    <section className="flex justify-start items-stretch h-screen pt-8 pr-2 pb-2 bg-black">
+      <Sidebar userData={user} />
+      <InfoSection userData={user} />
+      {children}
+    </section>
   );
 }
 
