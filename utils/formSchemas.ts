@@ -47,3 +47,11 @@ export const WorkspaceImageSchema = z.object({
       "Only .jpg, .jpeg, .png and .webp formats are supported."
     )
 });
+
+export const MessageAttachmentSchema = z.object({
+  file: z
+    .any()
+    .refine((file) => !!file && file instanceof File, { message: "Please select an image or pdf file" })
+    .refine((file: File) => file?.size < 5 * 1024 * 1024, { message: "File size must be less than 5MB" })
+    .refine((file: File) => [...ACCEPTED_IMAGE_TYPES, "application/pdf"].includes(file?.type), { message: "File type must be jpeg, jpg, png, webp or pdf" })
+});

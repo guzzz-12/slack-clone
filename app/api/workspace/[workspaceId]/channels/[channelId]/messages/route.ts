@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { redirect } from "next/navigation";
+import { v4 } from "uuid";
 import { isPostgresError, uuidRegex } from "@/utils/constants";
 import { supabaseServerClient } from "@/utils/supabase/supabaseServerClient";
+import { MessageAttachmentSchema } from "@/utils/formSchemas";
+import { b2Client } from "@/utils/backblaze";
 import { pusher } from "@/utils/pusher";
+import { UploadResponseData, UploadUrlData } from "@/types/backblaze";
 
 interface Context {
   params: Promise<{workspaceId: string, channelId: string}>
@@ -100,15 +104,13 @@ export async function GET(req: Request, {params}: Context) {
 
 // Route handler para crear un mensaje en un channel
 export async function POST(req: Request, {params}: Context) {
+  // ID de la imagen en el bucket para eliminarla en caso de que haya error creando el workspace
+  let fileId = "";
+  let fileName = "";
+
   try {
     const workspaceId = (await params).workspaceId;
     const channelId = (await params).channelId;
-
-    // Extraer la data del mensaje del body del request
-    const {textContent, attachmentUrl} = await req.json() as {
-      textContent: string | null;
-      attachmentUrl: string | null;
-    };
 
     // Validar la ID del workspace
     if (!uuidRegex.test(workspaceId)) {
@@ -120,9 +122,60 @@ export async function POST(req: Request, {params}: Context) {
       return NextResponse.json({message: "Channel not found"}, {status: 404});
     }
 
-    // Validar el textContent y el attachmentUrl
-    if (!textContent?.trim() && !attachmentUrl?.trim()) {
+    // Extraer la data del body del request
+    const formData = await req.formData();
+    const textContent = formData.get("textContent") as string;
+    const file = formData.get("file") as File;
+
+    let attachmentUrl: string | null = null;
+    const msgId = v4();
+
+    // Verificar que el mensaje no este vacio
+    if (!file && (!textContent || textContent.trim() === "")) {
       return NextResponse.json({message: "The message cannot be empty"}, {status: 400});
+    }
+
+    // Validar el archivo si lo hay
+    // Y subirlo al bucket
+    if (file) {
+      const {error: fileValidationError} = MessageAttachmentSchema.safeParse({file});
+
+      // Verificar si hay errores de validación
+      if (fileValidationError) {
+        const errors = fileValidationError.errors.map(err => err.message).join(". ");
+        return NextResponse.json({message: errors}, {status: 400});
+      }
+
+      // Convertir la imagen en buffer para que sea compatible con backblaze
+      const buffer = Buffer.from(await file.arrayBuffer());
+  
+      // Autorizar backblaze
+      await b2Client.authorize();
+  
+      // Generar la url de subida del archivo en backblaze
+      const uploadUrl = await b2Client.getUploadUrl({
+        bucketId: process.env.BACKBLAZE_BUCKET_ID as string,
+      });
+  
+      // Data de la url de subida del archivo al bucket
+      const urlData = uploadUrl.data as UploadUrlData;
+
+      // Generar nombre del archivo
+      const attachmentName = `msg_id_${msgId}.webp`;
+  
+      // Subir el archivo al bucket
+      const uploadRes = await b2Client.uploadFile({
+        uploadAuthToken: urlData.authorizationToken,
+        uploadUrl: urlData.uploadUrl,
+        data: buffer,
+        fileName: `messages/${msgId}/${attachmentName}`,
+      });
+      
+      // Data de la imagen subida al bucket
+      const uploadData = uploadRes.data as UploadResponseData;
+      fileId = uploadData.fileId;
+      fileName = uploadData.fileName;
+      attachmentUrl = `${process.env.BACKBLAZE_BUCKET_URL}/${fileName}`;
     }
 
     const supabase = supabaseServerClient();
@@ -137,10 +190,13 @@ export async function POST(req: Request, {params}: Context) {
     const {data: message, error} = await supabase
       .from("messages")
       .insert({
+        id: msgId,
         sender_id: userData.user.id,
         channel_id: channelId,
         text_content: textContent,
         attachment_url: attachmentUrl,
+        attachment_key: fileId,
+        attachment_name: fileName,
         workspace_id: workspaceId
       })
       .select("*, sender: users(*)")
@@ -149,9 +205,10 @@ export async function POST(req: Request, {params}: Context) {
     if (error) {
       // Eliminar el attachment si hay error al enviar el mensaje
       if (attachmentUrl) {
-        await supabase.storage
-        .from("messages-attachments")
-        .remove([attachmentUrl.replace("messages-attachments/", "")]);
+        await b2Client.deleteFileVersion({
+          fileId,
+          fileName
+        });
       }
 
       throw error;
@@ -245,6 +302,8 @@ export async function DELETE(req: NextRequest, {params}: Context) {
         .update({
           text_content: "<p class= 'deleted-message'>Message deleted</p>",
           attachment_url: null,
+          attachment_key: null,
+          attachment_name: null,
           deleted_for_all: true,
           deleted_for_ids: []
         })
@@ -259,13 +318,10 @@ export async function DELETE(req: NextRequest, {params}: Context) {
 
       // Eliminar el attachment del storage si existe
       if (message.attachment_url) {
-        const {error: deleteAttachmentError} = await supabase.storage
-        .from("messages-attachments")
-        .remove([message.attachment_url.replace("messages-attachments/", "")]);
-
-        if (deleteAttachmentError) {
-          throw deleteAttachmentError;
-        }
+        await b2Client.deleteFileVersion({
+          fileId: message.attachment_key as string,
+          fileName: message.attachment_name as string
+        })
       }
 
       // Emitir evento de mensaje eliminado a todos los miembros del channel
