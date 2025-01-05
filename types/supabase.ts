@@ -143,6 +143,8 @@ export type Database = {
       }
       messages: {
         Row: {
+          attachment_key: string | null
+          attachment_name: string | null
           attachment_url: string | null
           channel_id: string
           created_at: string
@@ -157,6 +159,8 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          attachment_key?: string | null
+          attachment_name?: string | null
           attachment_url?: string | null
           channel_id?: string
           created_at?: string
@@ -171,6 +175,8 @@ export type Database = {
           workspace_id?: string
         }
         Update: {
+          attachment_key?: string | null
+          attachment_name?: string | null
           attachment_url?: string | null
           channel_id?: string
           created_at?: string
@@ -256,6 +262,7 @@ export type Database = {
           created_at: string
           id: string
           image_key: string
+          image_name: string | null
           image_url: string
           invite_code: string
           name: string
@@ -266,6 +273,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_key: string
+          image_name?: string | null
           image_url: string
           invite_code: string
           name: string
@@ -276,6 +284,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_key?: string
+          image_name?: string | null
           image_url?: string
           invite_code?: string
           name?: string
