@@ -7,7 +7,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { File as FileIcon, Loader2 } from "lucide-react";
 import { FaFilePdf, FaRegTrashCan } from "react-icons/fa6";
-import { v4 } from "uuid";
 import toast from "react-hot-toast";
 import Typography from "../Typography";
 import { Form } from "../ui/form";
@@ -15,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "../ui/button";
 import { useUser } from "@/hooks/useUser";
 import { imageCompressor } from "@/utils/imageCompression";
-import { supabaseBrowserClient } from "@/utils/supabase/supabaseBrowserClient";
+import { MessageAttachmentSchema } from "@/utils/formSchemas";
 import { cn } from "@/lib/utils";
 
 const ACCEPTED_FILES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"];
@@ -27,15 +26,7 @@ interface Props {
   setIsOpen: (isOpen: boolean) => void;
 }
 
-const FormSchema = z.object({
-  file: z
-    .any()
-    .refine((file) => !!file && file instanceof File, { message: "Please select an image or pdf file" })
-    .refine((file: File) => file?.size < 5 * 1024 * 1024, { message: "File size must be less than 5MB" })
-    .refine((file: File) => ACCEPTED_FILES.includes(file?.type), { message: "File type must be jpeg, jpg, png, webp or pdf" })
-});
-
-type FormType = z.infer<typeof FormSchema>;
+type FormType = z.infer<typeof MessageAttachmentSchema>;
 
 const AttachmentModal: FC<Props> = ({ workspaceId, channelId, isOpen, setIsOpen }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -52,7 +43,7 @@ const AttachmentModal: FC<Props> = ({ workspaceId, channelId, isOpen, setIsOpen 
   const {user} = useUser();
 
   const formProps = useForm<FormType>({
-    resolver: zodResolver(FormSchema),
+    resolver: zodResolver(MessageAttachmentSchema),
     defaultValues: {
       file: undefined
     }
@@ -192,32 +183,16 @@ const AttachmentModal: FC<Props> = ({ workspaceId, channelId, isOpen, setIsOpen 
     try {
       setIsUploading(true);
 
-      const supabase = supabaseBrowserClient;
+      const formData = new FormData();
+      formData.append("file", values.file);
 
-      // Extraer la extensión del archivo
-      const extension = values.file.name.split(".")[values.file.name.split(".").length - 1]; 
-
-      // Generar un nombre unico para el archivo
-      const fileUniqueName = `${v4()}_${Date.now()}.${extension}`;
-
-      // Subir el archivo al bucket
-      const {data: fileUploadData, error} = await supabase.storage
-      .from("messages-attachments")
-      .upload(`chat/channel_${channelId}/attachments/${fileUniqueName}`, values.file, {
-        cacheControl: "3600",
-        upsert: false
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      // Enviar el mensaje
+      // Enviar el attachment al backend
       await axios({
         method: "POST",
         url: `/api/workspace/${workspaceId}/channels/${channelId}/messages`,
-        data: {
-          attachmentUrl: fileUploadData.fullPath
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data"
         }
       });
     

@@ -91,7 +91,7 @@ const MessageItem = ({message, currentUserId, setMessages}: Props) => {
           <div className="min-w-[80px] px-4 py-2 text-sm border rounded-lg bg-neutral-950 overflow-hidden">
             <img
               className="w-full max-w-[200px] h-auto object-contain object-center"
-              src={`${process.env.NEXT_PUBLIC_SUPABASE_ATTACHMENTS_BASE_URL}/${message.attachment_url}`}
+              src={message.attachment_url}
               alt="Imagen de mensaje"
             />
           </div>

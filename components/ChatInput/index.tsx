@@ -65,11 +65,15 @@ const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
         return;
       }
 
+      const formData = new FormData();
+      formData.append("textContent", textContent);
+
       await axios<MessageWithSender>({
         method: "POST",
         url: `/api/workspace/${workspaceId}/channels/${channelId}/messages`,
-        data: {
-          textContent
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data"
         }
       });
 
