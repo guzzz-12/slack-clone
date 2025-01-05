@@ -21,7 +21,7 @@ const CreateWorkspacePage = () => {
     resolver: zodResolver(WorkspaceFormSchema),
     defaultValues: {
       name: "",
-      image: ""
+      image: undefined
     }
   });
 

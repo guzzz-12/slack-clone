@@ -47,7 +47,7 @@ const Step2 = ({setStep}: Props) => {
 
     setProcessingImage(false);
 
-    setImageFile(img);
+    setImageFile(compressedImg);
     setImagePreview(imgPreview);
 
     // Actualizar el campo image en el formulario
@@ -150,8 +150,7 @@ const Step2 = ({setStep}: Props) => {
                 setImageFile(null);
                 setImagePreview("");
                 setIsDrag(false);
-                formProps.setValue("image", "");
-                formProps.clearErrors("image");
+                formProps.reset();
                 inputRef.current!.value = "";
               }}
             >

@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { redirect } from "next/navigation";
-import B2 from "backblaze-b2";
 import slugify from "slugify";
 import { v4 } from "uuid";
+import crypto from "crypto";
 import { supabaseServerClient } from "@/utils/supabase/supabaseServerClient";
 import { WorkspaceFormSchema } from "@/utils/formSchemas";
 import { UploadResponseData, UploadUrlData } from "@/types/backblaze";
+import { b2Client } from "@/utils/backblaze";
 
-// Inicializar Backblaze
-const b2Client = new B2({
-  applicationKeyId: process.env.BACKBLAZE_KEY_ID as string,
-  applicationKey: process.env.BACKBLAZE_BUCKET_APPLICATION_KEY as string
-});
 
 export async function POST(req: NextRequest) {
   // ID de la imagen en el bucket para eliminarla en caso de que haya error creando el workspace
@@ -55,18 +51,18 @@ export async function POST(req: NextRequest) {
     // Data de la respuesta de la subida al bucket
     const urlData = uploadUrl.data as UploadUrlData;
 
-    // Nombre de la imagen
-    const imageName = `${slug.substring(0, 40)}_${v4()}`
+    // Generar ID del workspace
+    const wsId = v4();
 
-    // Extensión de la imagen
-    const ext = image.type.split("/")[1];
+    // Nombre de la imagen
+    const imageName = `ws_id_${wsId}.webp`;
 
     // Subir la imagen al bucket
     const uploadRes = await b2Client.uploadFile({
       uploadAuthToken: urlData.authorizationToken,
       uploadUrl: urlData.uploadUrl,
       data: buffer,
-      fileName: `${imageName}.${ext}`
+      fileName: imageName
     });
 
     // Data de la imagen subida al bucket
@@ -76,14 +72,20 @@ export async function POST(req: NextRequest) {
     fileId = uploadData.fileId;
     fileName = uploadData.fileName;
 
+    // Generar el invite code del workspace
+    const inviteCode = crypto.randomBytes(16).toString("hex");
+
     // Crear el workspace en la base de datos
     const {data: wsData, error: wsInsertError} = await supabase
       .from("workspaces")
       .insert({
+        id: wsId,
         name,
         slug,
         image_url: uploadedImageUrl,
-        admin_id: user.id
+        image_key: fileId,
+        admin_id: user.id,
+        invite_code: inviteCode
       })
       .select("*")
       .limit(1)

@@ -255,17 +255,19 @@ export type Database = {
           admin_id: string
           created_at: string
           id: string
+          image_key: string
           image_url: string
-          invite_code: string | null
+          invite_code: string
           name: string
           slug: string
         }
         Insert: {
-          admin_id: string
+          admin_id?: string
           created_at?: string
           id?: string
+          image_key: string
           image_url: string
-          invite_code?: string | null
+          invite_code: string
           name: string
           slug: string
         }
@@ -273,8 +275,9 @@ export type Database = {
           admin_id?: string
           created_at?: string
           id?: string
+          image_key?: string
           image_url?: string
-          invite_code?: string | null
+          invite_code?: string
           name?: string
           slug?: string
         }

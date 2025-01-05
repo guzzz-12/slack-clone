@@ -37,7 +37,12 @@ export const imageCompressor = async (file: File, type: "file" | "base64"): Prom
       return imageBase64;
     };
 
-    return compressedImage;
+    // Convert the Blob to a File
+    const compressedImageFile: File = new File([compressedImage], file.name, {
+      type: "image/webp"
+    });
+
+    return compressedImageFile;
     
   } catch (error: any) {
     console.log(error.message);
