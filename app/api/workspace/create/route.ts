@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       bucketId: process.env.BACKBLAZE_BUCKET_ID as string,
     });
 
-    // Data de la respuesta de la subida al bucket
+    // Data de la url de subida del archivo al bucket
     const urlData = uploadUrl.data as UploadUrlData;
 
     // Generar ID del workspace
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
       uploadAuthToken: urlData.authorizationToken,
       uploadUrl: urlData.uploadUrl,
       data: buffer,
-      fileName: imageName
+      fileName: `workspaces/${wsId}/${imageName}`,
     });
 
     // Data de la imagen subida al bucket
@@ -84,6 +84,7 @@ export async function POST(req: NextRequest) {
         slug,
         image_url: uploadedImageUrl,
         image_key: fileId,
+        image_name: imageName,
         admin_id: user.id,
         invite_code: inviteCode
       })
