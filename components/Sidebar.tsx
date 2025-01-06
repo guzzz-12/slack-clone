@@ -20,6 +20,8 @@ import { supabaseBrowserClient } from "@/utils/supabase/supabaseBrowserClient";
 import { cn } from "@/lib/utils";
 import { User } from "@/types/supabase";
 import { useUser } from "@/hooks/useUser";
+import { MdAlternateEmail } from "react-icons/md";
+import InviteModal from "./InviteModal";
 
 interface Props {
   userData: User;
@@ -29,6 +31,7 @@ const Sidebar = ({userData}: Props) => {
   const router = useRouter();
 
   const [isAway, setIsAway] = useState(() => userData.is_away);
+  const [openInviteModal, setOpenInviteModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const {currentWorkspace, userWorkspaces, loadingWorkspaces} = useWorkspace();
@@ -109,6 +112,13 @@ const Sidebar = ({userData}: Props) => {
 
   return (
     <div className="flex flex-col justify-start items-stretch h-full w-16 flex-shrink-0 p-4 pt-0 bg-black">
+      <InviteModal
+        isOpen={openInviteModal}
+        setIsOpen={setOpenInviteModal}
+        workspaceId={currentWorkspace?.workspaceData.id}
+        workspaceName={currentWorkspace?.workspaceData.name}
+      />
+
       <nav className="flex flex-col justify-between items-center flex-grow gap-4 max-h-full">
         {loadingWorkspaces && (
           <ul className="flex flex-col items-center gap-3 max-h-full flex-grow">
@@ -232,6 +242,44 @@ const Sidebar = ({userData}: Props) => {
                   text="DMs"
                 />
               </button>
+            </li>
+
+            <li>
+              <TooltipProvider>
+                <Tooltip delayDuration={250}>
+                  <TooltipTrigger disabled={loading} asChild>
+                    <button
+                      className="flex flex-col items-center gap-1 text-white cursor-pointer"
+                      disabled={loading}
+                      onClick={() => setOpenInviteModal(true)}
+                    >
+                      <div className="p-2 rounded-lg bg-white/30 group">
+                        <MdAlternateEmail
+                          className="group-hover:scale-125 transition-all duration-300"
+                          size={20}
+                        />
+                      </div>
+                      <Typography
+                        className="text-xs"
+                        variant="p"
+                        text="Invite"
+                      />
+                    </button>
+                  </TooltipTrigger>
+
+                  <TooltipContent
+                    className="max-w-[150px]"
+                    side="right"
+                    sideOffset={12}
+                  >
+                    <Typography
+                      variant="p"
+                      text="Invite your friends to join this workspace"
+                      className="text-sm"
+                    />
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </li>
           </ul>
         )}

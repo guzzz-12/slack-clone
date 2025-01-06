@@ -36,13 +36,11 @@ const WorkspaceItem = ({workspace, loading}: Props) => {
           variant="p"
           text={workspace.name}
         />
-        {workspace.invite_code && (
-          <Typography
-            className="text-xs text-neutral-500"
-            variant="p"
-            text={workspace.invite_code}
-          />
-        )}
+        <Typography
+          className="text-xs text-neutral-500"
+          variant="p"
+          text={workspace.invite_code}
+        />
       </div>
     </Link>
   )

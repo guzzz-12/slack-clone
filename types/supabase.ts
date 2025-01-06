@@ -23,8 +23,10 @@ export type Workspace = {
   admin_id: string
   created_at: string
   id: string
+  image_key: string
+  image_name: string
   image_url: string
-  invite_code: string | null
+  invite_code: string
   name: string
   slug: string
 }
@@ -262,7 +264,7 @@ export type Database = {
           created_at: string
           id: string
           image_key: string
-          image_name: string | null
+          image_name: string
           image_url: string
           invite_code: string
           name: string
@@ -273,7 +275,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_key: string
-          image_name?: string | null
+          image_name: string
           image_url: string
           invite_code: string
           name: string
@@ -284,7 +286,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_key?: string
-          image_name?: string | null
+          image_name?: string
           image_url?: string
           invite_code?: string
           name?: string
