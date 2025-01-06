@@ -29,13 +29,17 @@ export const invitationEmailTemplate = (email: string, workspaceName: string, to
           }
     
           .template {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
             width: 100%;
             padding: 2.5rem 1rem;
-            background-color: #e7e7e7;
+            background-color: #c7c7c7 !important;
           }
     
           .template__logo {
-            margin-bottom: 0;
             text-align: center;
             font-size: 35px;
           }
@@ -45,8 +49,9 @@ export const invitationEmailTemplate = (email: string, workspaceName: string, to
             max-width: 600px;
             margin: 0 auto;
             padding: 2rem;
-            box-shadow: 0 0 5px rgba(0,0,0,0.1);
             background-color: white;
+            border-radius: 5px;
+            border: 1px solid rgba(0,0,0,0.3);
           }
     
           .template__title {
@@ -110,6 +115,7 @@ export const invitationEmailTemplate = (email: string, workspaceName: string, to
       <body>
         <main class="template">
           <h1 class="template__logo">Workspace invitation</h1>
+
           <section class="template__inner-wrapper">
             <h2 class="template__title">Hello ${email}</h2>
 
