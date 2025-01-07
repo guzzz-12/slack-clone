@@ -1,7 +1,7 @@
 "use client"
 
 import { Dispatch, SetStateAction, useState } from "react";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios, { isAxiosError } from "axios";
@@ -9,17 +9,18 @@ import toast from "react-hot-toast";
 import { useTheme } from "next-themes";
 import Typography from "./Typography";
 import FormErrorMessage from "./FormErrorMessage";
+import Alert from "./Alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel } from "./ui/form";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { cn } from "@/lib/utils";
-import Alert from "./Alert";
 
 interface Props {
   workspaceId: string | undefined;
   workspaceName: string | undefined;
+  inviteCode: string | undefined;
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
@@ -33,7 +34,7 @@ const FormSchema = z.object({
 
 type FormType = z.infer<typeof FormSchema>;
 
-const InviteModal = ({workspaceId, workspaceName, isOpen, setIsOpen}: Props) => {
+const InviteModal = ({workspaceId, workspaceName, inviteCode, isOpen, setIsOpen}: Props) => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -59,6 +60,7 @@ const InviteModal = ({workspaceId, workspaceName, isOpen, setIsOpen}: Props) => 
         data: {
           workspaceName,
           workspaceId,
+          inviteCode,
           email: values.email
         }
       });
@@ -81,7 +83,7 @@ const InviteModal = ({workspaceId, workspaceName, isOpen, setIsOpen}: Props) => 
     }
   }
 
-  if ( !workspaceId || !workspaceName) {
+  if (!workspaceId || !workspaceName || !inviteCode) {
     return null;
   }
 
@@ -90,6 +92,9 @@ const InviteModal = ({workspaceId, workspaceName, isOpen, setIsOpen}: Props) => 
       open={isOpen}
       onOpenChange={(open) => {
         if (loading) return;
+        setSuccess(false);
+        setError(false);
+        formProps.reset();
         setIsOpen(open);
       }}
     >
