@@ -43,7 +43,7 @@ export async function GET(req: Request, {params}: Context) {
     const {data} = await supabase.auth.getUser();
 
     if (!data.user) {
-      return redirect("/login");
+      return redirect("/signin");
     }
 
     // Calcular la paginación de los mensajes
@@ -183,7 +183,7 @@ export async function POST(req: Request, {params}: Context) {
     const {data: userData} = await supabase.auth.getUser();
 
     if (!userData.user) {
-      return redirect("/login");
+      return redirect("/signin");
     }
 
     // Crear el mensaje en la base de datos
@@ -273,7 +273,7 @@ export async function DELETE(req: NextRequest, {params}: Context) {
     const {data: {user}} = await supabase.auth.getUser();
     
     if (!user) {
-      return redirect("/login");
+      return redirect("/signin");
     }
 
     // Buscar el mensaje en la base de datos

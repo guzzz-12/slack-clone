@@ -10,7 +10,7 @@ export const getUserData = async () => {
   const {data: {user}} = await supabase.auth.getUser();
 
   if (!user) {
-    return redirect("/login");
+    return redirect("/signin");
   }
 
   const {data, error} = await supabase
@@ -24,7 +24,7 @@ export const getUserData = async () => {
   }
 
   if (!data) {
-    return redirect("/login");
+    return redirect("/signin");
   }
 
   return data;
@@ -38,7 +38,7 @@ export const getAllUserWorkspaces = async (latest: boolean = false) => {
   const {data: {user}} = await supabase.auth.getUser();
 
   if (!user) {
-    return redirect("/login");
+    return redirect("/signin");
   }
 
   const query = supabase

@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     const {data: {user}} = await supabase.auth.getUser();
 
     if (!user) {
-      return redirect("/login");
+      return redirect("/signin");
     }
 
     const formData = await req.formData();

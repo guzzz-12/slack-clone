@@ -117,6 +117,7 @@ const Sidebar = ({userData}: Props) => {
         setIsOpen={setOpenInviteModal}
         workspaceId={currentWorkspace?.workspaceData.id}
         workspaceName={currentWorkspace?.workspaceData.name}
+        inviteCode={currentWorkspace?.workspaceData.invite_code}
       />
 
       <nav className="flex flex-col justify-between items-center flex-grow gap-4 max-h-full">

@@ -109,7 +109,6 @@ const AuthPage = () => {
         email: values.email,
         options: {
           shouldCreateUser: true,
-          // Redirigir a este endpoint para verificar el hash de autenticación del magic link
           emailRedirectTo: process.env.NEXT_PUBLIC_PROJECT_URL!
         }
       });

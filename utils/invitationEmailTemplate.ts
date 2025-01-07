@@ -76,7 +76,7 @@ export const invitationEmailTemplate = (email: string, workspaceName: string, to
             margin-bottom: 2rem;
             font-size: 16px;
             text-align: center;
-            color: #5e5e5e;
+            color: #1f1f1f;
           }
 
           .template__secondary-text {
@@ -89,7 +89,7 @@ export const invitationEmailTemplate = (email: string, workspaceName: string, to
             display: inline-block;
             margin-top: 1rem;
             text-align: center;
-            color: #c9c8c8
+            color: #a1a1a1
           }
 
           .template__link {
@@ -120,12 +120,16 @@ export const invitationEmailTemplate = (email: string, workspaceName: string, to
             <h2 class="template__title">Hello ${email}</h2>
 
             <p class="template__main-text">
-              You have been invited to join ${workspaceName}. <br> Follow the link below to join the workspace.
+              You have been invited to join ${workspaceName}. <br> Signin to Slack Clone with this email address <br> and follow the link below to join the workspace.
             </p>
             
             <a href=${href} class="template__link" target="__blank">
               Join Workspace
             </a>
+
+            <p class="template__main-text">
+              This link will expire in 24 hours.
+            </p>
 
             <div class="template__secondary-text">
               <small>Developed by Jesús Guzmán | ${new Date().getFullYear()} - All rights reserved</small>

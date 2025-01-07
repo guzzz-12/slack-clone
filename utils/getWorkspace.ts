@@ -16,7 +16,7 @@ export const getWorkspace = async (workspaceId: string): Promise<WorkspaceWithMe
   const {data: {user}} = await supabase.auth.getUser();
 
   if (!user) {
-    return redirect("/login");
+    return redirect("/signin");
   }
 
   // Consultar el workspace

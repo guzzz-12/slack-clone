@@ -10,7 +10,7 @@ export async function GET(_req: NextRequest) {
     const {data: {user}} = await supabase.auth.getUser();
 
     if (!user) {
-      return redirect("/login");
+      return redirect("/signin");
     }
 
     // Consultar los workspaces del usuario

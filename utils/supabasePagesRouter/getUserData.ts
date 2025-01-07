@@ -13,7 +13,7 @@ export const getUserData = async (req: NextApiRequest, res: NextApiResponse) => 
   }
 
   if (!data.user) {
-    return redirect("/login");
+    return redirect("/signin");
   }
 
   const {data: userData, error: userDataError} = await supabase
@@ -28,7 +28,7 @@ export const getUserData = async (req: NextApiRequest, res: NextApiResponse) => 
 
   if (!userData) {
     await supabase.auth.signOut();
-    return redirect("/login");
+    return redirect("/signin");
   }
 
   return userData;

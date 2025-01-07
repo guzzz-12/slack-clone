@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.log({magic_link_error: error.message});
-      return redirect("/login");
+      return redirect("/signin");
     }
 
     console.log("MAGIC_LINK_LOGIN_SUCCESS", data.user);

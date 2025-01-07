@@ -23,7 +23,7 @@ export async function POST(req: Request, {params}: Context) {
     const {data: {user}} = await supabase.auth.getUser();
     
     if (!user) {
-      return redirect("/login");
+      return redirect("/signin");
     }
     
     // Crear el channel en la base de datos
