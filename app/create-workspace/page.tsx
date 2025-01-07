@@ -10,6 +10,7 @@ import Step2 from "@/components/createWorkspace/Step2";
 import Typography from "@/components/Typography";
 import { WorkspaceFormSchema } from "@/utils/formSchemas";
 import { pageBaseTitle } from "@/utils/constants";
+import { BsSlack } from "react-icons/bs";
 
 export type FormType = z.infer<typeof WorkspaceFormSchema>
 
@@ -32,6 +33,19 @@ const CreateWorkspacePage = () => {
 
   return (
     <main className="grid place-content-center w-screen h-screen bg-neutral-800 text-white">
+      <section className="flex flex-col justify-center items-center w-[550px] mb-4">
+        <div className="flex justify-center items-center gap-3 mb-2">
+          <BsSlack size={30} />
+          <Typography variant="h1" text="Slack Clone" />
+        </div>
+
+        <Typography
+          className="mb-1"
+          variant="p"
+          text="Create a workspace or join an existing workspace if you have an invitation link."
+        />
+      </section>
+
       <section className="w-[550px] px-6 py-4 border rounded-md border-neutral-400">
         <FormProvider {...formProps}>
           <AnimatePresence initial={true} mode="wait">
