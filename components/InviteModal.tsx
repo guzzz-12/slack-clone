@@ -72,6 +72,8 @@ const InviteModal = ({workspaceId, workspaceName, inviteCode, isOpen, setIsOpen}
 
       if (isAxiosError(error)) {
         message = error.response?.data.message;
+        setIsOpen(false);
+        return  toast.error(message);
       }
 
       setError(true);
