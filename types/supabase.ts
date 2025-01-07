@@ -107,6 +107,38 @@ export type Database = {
           },
         ]
       }
+      invitation_tokens: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          token: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          token: string
+          workspace_id?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          token?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitation_tokens_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       members_workspaces: {
         Row: {
           created_at: string

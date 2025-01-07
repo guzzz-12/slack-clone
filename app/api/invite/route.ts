@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { redirect } from "next/navigation";
 import sendgrid from "@sendgrid/mail";
 import { z } from "zod";
 import jwt from "jsonwebtoken";
 import { invitationEmailTemplate } from "@/utils/invitationEmailTemplate";
+import { supabaseServerClient } from "@/utils/supabase/supabaseServerClient";
+import { isPostgresError } from "@/utils/constants";
 
 sendgrid.setApiKey(process.env.SENDGRID_API_KEY!);
 
@@ -13,6 +16,9 @@ const emailSchema = z.object({
   workspaceName: z
     .string()
     .min(1, {message: "The workspace name is required"}),
+  inviteCode: z
+    .string()
+    .min(1, {message: "The invite code is required"}),
   email: z
     .string()
     .min(1, {message: "The email is required"})
@@ -23,18 +29,48 @@ const emailSchema = z.object({
 // Route handler para enviar invitación a un usuario
 export async function POST(req: NextRequest) {
   try {
-    const { workspaceId, workspaceName, email } = await req.json();
+    const { workspaceId, workspaceName, inviteCode, email } = await req.json();
 
     // Validar el email
-    const {error} = emailSchema.safeParse({ workspaceId, workspaceName, email});
+    const {error} = emailSchema.safeParse({ workspaceId, workspaceName, inviteCode, email});
 
     if (error) {
       const errors = error.errors.map(err => err.message).join(". ");
       return NextResponse.json({message: errors}, {status: 400});
     }
 
+    const {data: {user}} = await supabaseServerClient().auth.getUser();
+
+    if (!user) {
+      return redirect("/signin");
+    } 
+
     // Generar el token de invitación
-    const token = jwt.sign({ workspaceId, email }, process.env.INVITATION_TOKEN_SECRET!, {expiresIn: "1d"});
+    const token = jwt.sign({ workspaceId, inviteCode, email }, process.env.INVITATION_TOKEN_SECRET!, {expiresIn: "24h"});
+
+    // Eliminar el token de invitación anterior si existe
+    const {error: deleteError} = await supabaseServerClient()
+    .from("invitation_tokens")
+    .delete()
+    .eq("email", email)
+    .eq("workspace_id", workspaceId);
+
+    if (deleteError) {
+      throw deleteError;
+    }
+
+    // Insertar el token en la base de datos
+    const {error: insertError} = await supabaseServerClient()
+    .from("invitation_tokens")
+    .insert({
+      workspace_id: workspaceId,
+      email,
+      token
+    });
+
+    if (insertError) {
+      throw insertError;
+    }
 
     // Opciones del correo a enviar
     const mailContent = {
@@ -47,6 +83,22 @@ export async function POST(req: NextRequest) {
       html: invitationEmailTemplate(email, workspaceName, token)
     };
 
+    // Verificar si el usuario es admin del workspace
+    const {data: workspaceMembers, error: workspaceMembersError} = await supabaseServerClient()
+      .from("workspaces")
+      .select("id")
+      .eq("id", workspaceId)
+      .eq("admin_id", user.id)
+      .limit(1);
+    
+    if (workspaceMembersError) {
+      throw workspaceMembersError;
+    }
+
+    if (workspaceMembers.length === 0) {
+      return NextResponse.json({message: "You are not allowed to perform this action"}, {status: 403});
+    }
+
     // Enviar el mensaje
     await sendgrid.send(mailContent);
 
@@ -54,6 +106,132 @@ export async function POST(req: NextRequest) {
     
   } catch (error: any) {
     console.log(`Error enviando invitación`, error.message);
+    return NextResponse.json({message: "Internal server error"}, {status: 500});
+  }
+}
+
+
+// Route handler para procesar la invitación
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const token = searchParams.get("token");
+
+    if (!token) {
+      return NextResponse.json({message: "Invalid token"}, {status: 400});
+    }
+
+    const decodedToken = jwt.verify(token, process.env.INVITATION_TOKEN_SECRET!) as {workspaceId: string, inviteCode: string, email: string};
+
+    const supabase = supabaseServerClient();
+
+    const {data: {user}} = await supabase.auth.getUser();
+
+    if (!user) {
+      return redirect("/signin");
+    }
+
+    // Verificar si el workspace existe en la base de datos    
+    const { data: workspace, error: workspaceError } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("id", decodedToken.workspaceId)
+      .limit(1);
+    
+    if (workspaceError) {
+      throw workspaceError;
+    }
+
+    if (!workspace[0]) {
+      return NextResponse.json({message: "Workspace not found"}, {status: 404});
+    }
+
+    // Verificar si ya es miembro del workspace
+    const {data: isMember, error: memberError} = await supabase
+      .from("members_workspaces")
+      .select("*")
+      .eq("workspace_id", workspace[0].id)
+      .eq("user_id", user.id)
+      .limit(1);
+    
+    if (memberError) {
+      throw memberError;
+    }
+
+    if (isMember[0]) {
+      return NextResponse.json({message: "You are already a member of this workspace"}, {status: 400});
+    }
+
+    // Verificar si el token coincide con el token almacenado en la base de datos
+    const {data: invitationToken, error: invitationTokenError} = await supabase
+      .from("invitation_tokens")
+      .select("token")
+      .eq("email", decodedToken.email)
+      .limit(1);
+    
+    if (invitationTokenError) {
+      throw invitationTokenError;
+    }
+
+    if (!invitationToken[0]) {
+      return NextResponse.json({message: "You are not invited to this workspace"}, {status: 403});
+    }
+
+    if (invitationToken[0].token !== token) {
+      return NextResponse.json({message: "Invalid token"}, {status: 400});
+    }
+
+    const inviteCode = workspace[0].invite_code;
+
+    // Verificar si el inviteCode es válido
+    if (inviteCode !== decodedToken.inviteCode) {
+      return NextResponse.json({message: "Invalid invite code"}, {status: 400});
+    }
+
+    // Agregar el usuario a los miembros del workspace
+    const {error: workspaceMemberError} = await supabase
+      .from("members_workspaces")
+      .insert({
+        workspace_id: workspace[0].id,
+        user_id: user.id
+      });
+
+    if (workspaceMemberError) {
+      throw workspaceMemberError;
+    }
+    
+    // Eliminar el token de invitación
+    const {error: deleteInvitationTokenError} = await supabase
+      .from("invitation_tokens")
+      .delete()
+      .eq("email", decodedToken.email)
+      .eq("workspace_id", workspace[0].id);
+    
+    if (deleteInvitationTokenError) {
+      throw deleteInvitationTokenError;
+    }
+
+    return NextResponse.json(workspace[0]);
+
+  } catch (error: any) {
+    if (isPostgresError(error)) {
+      const {message, code} = error;
+
+      console.log(`Error PostgreSQL confirmando invitación al workspace: ${message}, code: ${code}`);
+
+      // Verificar si el error es de channel no encontrado
+      if (code === "PGRST116") {
+        return NextResponse.json({message: "Workspace not found"}, {status: 404});
+      }
+    }
+
+    console.log(`Error procesando invitación`, error);
+
+    // Chequear si es error de jwt expirado
+    if (error.name === "TokenExpiredError") {
+      return NextResponse.json({message: "Invitation link expired"}, {status: 400});
+    }
+
     return NextResponse.json({message: "Internal server error"}, {status: 500});
   }
 }
