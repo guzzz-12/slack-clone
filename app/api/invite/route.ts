@@ -59,6 +59,22 @@ export async function POST(req: NextRequest) {
       throw deleteError;
     }
 
+    // Verificar si el usuario ya forma parte del workspace
+    const {data: isMember, error: isMemberError} = await supabaseServerClient()
+    .from("members_workspaces")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", user.id)
+    .limit(1);
+
+    if (isMemberError) {
+      throw isMemberError;
+    }
+
+    if (isMember.length > 0) {
+      return NextResponse.json({message: "There's already a member with this email"}, {status: 400});
+    }
+
     // Insertar el token en la base de datos
     const {error: insertError} = await supabaseServerClient()
     .from("invitation_tokens")
