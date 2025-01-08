@@ -145,7 +145,7 @@ const Step2 = ({setStep}: Props) => {
             <button
               className="absolute top-2 right-2 block p-1 rounded-full bg-neutral-800/60"
               title="Discard image"
-              disabled={submitting}
+              disabled={submitting || processingImage}
               onClick={() => {
                 setImageFile(null);
                 setImagePreview("");
@@ -166,8 +166,10 @@ const Step2 = ({setStep}: Props) => {
         }
 
         {!imageFile && !processingImage &&
-          <div
-            className={cn("flex justify-center items-center w-full h-[350px] p-3 border border-dashed rounded-md bg-neutral-700", isDrag ? "border-blue-500 border-2" : "border-neutral-300")}
+          <button
+            className={cn("flex justify-center items-center w-full h-[350px] p-3 border border-blue-700 border-dashed rounded-md bg-neutral-950", isDrag ? "border-blue-500 border-2" : "border-blue-700")}
+            type="button"
+            disabled={processingImage || submitting}
             onClick={() => inputRef.current?.click()}
             onDragOver={(e) => {
               e.preventDefault();
@@ -205,7 +207,7 @@ const Step2 = ({setStep}: Props) => {
 
               <FaRegImage className="text-neutral-400/45" size={80} />
             </div>
-          </div>
+          </button>
         }
 
         {formProps.formState.errors.image &&
