@@ -43,7 +43,7 @@ const ChannelPage = ({params}: Props) => {
   const [loadingMessages, setLoadingMessages] = useState(true);
 
   const [chatInputHeight, setChatInputHeight] = useState(0);
-  const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
 
   const {user} = useUser();
 

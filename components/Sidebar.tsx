@@ -208,9 +208,9 @@ const Sidebar = ({userData}: Props) => {
             </li>
 
             <li>
-              <button
+              <Link
+                href={`/workspace/${currentWorkspace.workspaceData.id}`}
                 className="flex flex-col items-center gap-1 text-white cursor-pointer"
-                disabled={loading}
               >
                 <div className="p-2 rounded-lg bg-white/30 group">
                   <RiHome2Fill
@@ -223,7 +223,7 @@ const Sidebar = ({userData}: Props) => {
                   variant="p"
                   text="Home"
                 />
-              </button>
+              </Link>
             </li>
 
             <li>

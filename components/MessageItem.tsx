@@ -62,14 +62,14 @@ const MessageItem = ({message, currentUserId, setMessages}: Props) => {
   return (
     <div
       id={message.id}
-      className={cn("flex gap-1 w-full p-2", isSender ? "justify-end ml-auto" : "justify-start mr-auto")}
+      className={cn("flex w-full p-2", isSender ? "justify-end gap-1 ml-auto" : "justify-start gap-2 mr-auto")}
     >
       {/* Mostrar el avatar del otro usuario (no del usuario actual) */}
       {!isSender && (
         <div className="flex justify-center items-start"
         >
           <img
-            className="w-6 h-6 object-cover object-center rounded-full border"
+            className="w-8 h-8 object-cover object-center rounded-full border"
             src={message.sender.avatar_url || ""}
             alt={`${message.sender.name} avatar`}
           />
@@ -77,7 +77,13 @@ const MessageItem = ({message, currentUserId, setMessages}: Props) => {
       )}
 
       {/* Mostrar el contenido del mensage y la fecha debajo */}
-      <div className="flex flex-col gap-1 min-w-[80px] max-w-[80%]">
+      <div className="flex flex-col gap-1 min-w-[80px] max-w-[80%] overflow-hidden">
+        {!isSender &&
+          <p className="text-sm text-neutral-400 truncate">
+            {message.sender.name ?? message.sender.email}
+          </p>
+        }
+
         {message.text_content &&
           <div
             className="px-4 py-2 text-sm border rounded-lg bg-neutral-950 overflow-x-auto scrollbar-thin message-text-content"

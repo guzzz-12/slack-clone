@@ -54,7 +54,7 @@ export async function GET(req: Request, {params}: Context) {
     // incluyendo el sender y paginados de a 10 por página
     const {data: messagesData, error: messagesError} = await supabase
       .from("messages")
-      .select("*, sender:users(id, name, avatar_url)")
+      .select("*, sender:users(id, name, email, avatar_url)")
       .eq("workspace_id", workspaceId)
       .eq("channel_id", channelId)
       .order("created_at", {ascending: false})
