@@ -186,6 +186,8 @@ export async function POST(req: Request, {params}: Context) {
       return redirect("/signin");
     }
 
+    const messageType = file ? file.type.startsWith("image") ? "image" : "pdf" : "text";
+
     // Crear el mensaje en la base de datos
     const {data: message, error} = await supabase
       .from("messages")
@@ -197,7 +199,8 @@ export async function POST(req: Request, {params}: Context) {
         attachment_url: attachmentUrl,
         attachment_key: fileId,
         attachment_name: fileName,
-        workspace_id: workspaceId
+        workspace_id: workspaceId,
+        message_type: messageType
       })
       .select("*, sender: users(*)")
       .single();

@@ -16,6 +16,7 @@ import { Skeleton } from "./ui/skeleton";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { Channel, MessageWithSender, User } from "@/types/supabase";
 import { cn } from "@/lib/utils";
+import IncomingMsgToastContent from "./IncomingMsgToastContent";
 
 type Params = {
   workspaceId: string;
@@ -99,6 +100,17 @@ const InfoSection = ({userData}: Props) => {
 
         channel.bind("new-message", (data: MessageWithSender) => {
           setUnreadMessages((prev) => [...prev, data]);
+
+          // Mostrar notificación toast cuando se reciba un nuevo mensaje en el channel
+          if (channelId !== ch.id) {
+            toast.dismiss();
+            toast.custom(
+              <IncomingMsgToastContent message={data} />,
+              {
+                duration: 15000
+              }
+            );
+          }
         });
 
         pusherChannels.push(channel);

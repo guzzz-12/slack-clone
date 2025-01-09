@@ -48,6 +48,7 @@ export type Message = {
   text_content: string | null;
   attachment_url: string | null;
   sender_id: string;
+  message_type: Database["public"]["Enums"]["message_type"];
   workspace_id: string;
   channel_id: string;
   is_deleted: boolean;
@@ -186,6 +187,7 @@ export type Database = {
           deleted_for_ids: string[] | null
           id: string
           is_deleted: boolean
+          message_type: Database["public"]["Enums"]["message_type"]
           seen_at: string | null
           sender_id: string
           text_content: string | null
@@ -202,6 +204,7 @@ export type Database = {
           deleted_for_ids?: string[] | null
           id?: string
           is_deleted?: boolean
+          message_type: Database["public"]["Enums"]["message_type"]
           seen_at?: string | null
           sender_id?: string
           text_content?: string | null
@@ -218,6 +221,7 @@ export type Database = {
           deleted_for_ids?: string[] | null
           id?: string
           is_deleted?: boolean
+          message_type?: Database["public"]["Enums"]["message_type"]
           seen_at?: string | null
           sender_id?: string
           text_content?: string | null
@@ -352,7 +356,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      message_type: "text" | "image" | "pdf"
     }
     CompositeTypes: {
       [_ in never]: never

@@ -2,7 +2,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import axios, { isAxiosError } from "axios";
 import dayjs from "dayjs";
 import toast from "react-hot-toast";
-import { FaPencil, FaRegTrashCan } from "react-icons/fa6";
+import { FaPencil, FaRegFilePdf, FaRegTrashCan } from "react-icons/fa6";
 import { FaTimes } from "react-icons/fa";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
@@ -93,13 +93,19 @@ const MessageItem = ({message, currentUserId, setMessages}: Props) => {
           />
         }
 
-        {message.attachment_url &&
+        {message.message_type === "image" &&
           <div className="min-w-[80px] px-4 py-2 text-sm border rounded-lg bg-neutral-950 overflow-hidden">
             <img
               className="w-full max-w-[200px] h-auto object-contain object-center"
-              src={message.attachment_url}
+              src={message.attachment_url!}
               alt="Imagen de mensaje"
             />
+          </div>
+        }
+
+        {message.message_type === "pdf" &&
+          <div className="flex justify-center items-center w-[150px] aspect-video border rounded-md">
+            <FaRegFilePdf className="text-neutral-400" size={30} />
           </div>
         }
 
