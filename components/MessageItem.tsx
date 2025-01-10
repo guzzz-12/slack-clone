@@ -7,10 +7,10 @@ import { FaPencil, FaRegFilePdf, FaRegTrashCan } from "react-icons/fa6";
 import { FaTimes } from "react-icons/fa";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { FiDownload, FiZoomIn } from "react-icons/fi";
-import ImageLightbox from "./ImageLightbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { MessageWithSender } from "@/types/supabase";
 import { PaginatedMessages } from "@/types/paginatedMessages";
+import { useImageLightbox } from "@/hooks/useImageLightbox";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -21,9 +21,10 @@ interface Props {
 
 const MessageItem = ({message, currentUserId, setMessages}: Props) => {
   const isSender = message.sender_id === currentUserId;
-
-  const [isLighboxOpen, setIsLightboxOpen] = useState(false);
+  
   const [deleting, setDeleting] = useState(false);
+
+  const {setMessage, setOpen} = useImageLightbox();
 
   const deleteMessageHandler = async(mode: "all" | "me") => {
     try {
@@ -68,12 +69,6 @@ const MessageItem = ({message, currentUserId, setMessages}: Props) => {
       id={message.id}
       className={cn("flex w-full p-2", isSender ? "justify-end gap-1 ml-auto" : "justify-start gap-2 mr-auto")}
     >
-      <ImageLightbox
-        isOpen={isLighboxOpen}
-        setIsOpen={setIsLightboxOpen}
-        message={message}
-      />
-
       {/* Mostrar el avatar del otro usuario (no del usuario actual) */}
       {!isSender && (
         <div className="flex justify-center items-start"
@@ -107,7 +102,10 @@ const MessageItem = ({message, currentUserId, setMessages}: Props) => {
           <div className="relative min-w-[80px] px-4 py-2 text-sm border rounded-lg bg-neutral-950 overflow-hidden group">
             <button
               className="absolute top-0 left-0 w-full h-full flex justify-center items-center bg-neutral-900/0 group-hover:bg-neutral-900/80 transition-colors cursor-pointer"
-              onClick={() => setIsLightboxOpen(true)}
+              onClick={() => {
+                setOpen(true);
+                setMessage(message);
+              }}
             >
               <FiZoomIn className="text-neutral-300 opacity-0 group-hover:opacity-100 transition-opacity" size={30} />
             </button>
