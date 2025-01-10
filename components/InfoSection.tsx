@@ -168,13 +168,15 @@ const InfoSection = ({userData}: Props) => {
               />
             </CollapsibleTrigger>
 
-            <Button
-              className="w-8 h-8 p-1 flex-shrink-0 rounded-full hover:bg-neutral-900 group"
-              variant="outline"
-              onClick={() => setIsChannelModalOpen(true)}
-            >
-              <FaPlus className="group-hover:scale-125 transition-transform" />
-            </Button>
+            {currentWorkspace?.workspaceData.admin_id === userData.id && (
+              <Button
+                className="w-8 h-8 p-1 flex-shrink-0 rounded-full hover:bg-neutral-900 group"
+                variant="outline"
+                onClick={() => setIsChannelModalOpen(true)}
+              >
+                <FaPlus className="group-hover:scale-125 transition-transform" />
+              </Button>
+            )}
           </div>
 
           {/* Renderizar los channels del workspace */}

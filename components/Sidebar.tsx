@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 import { RiHome2Fill } from "react-icons/ri";
 import { PiChatsTeardrop } from "react-icons/pi";
 import { FiPlus } from "react-icons/fi";
+import { MdAlternateEmail } from "react-icons/md";
 import toast from "react-hot-toast";
 import WorkspaceItem from "./WorkspaceItem";
 import Typography from "./Typography";
+import InviteModal from "./InviteModal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Button } from "./ui/button";
@@ -16,12 +18,10 @@ import { Separator } from "./ui/separator";
 import { Card, CardContent } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
 import { useWorkspace } from "@/hooks/useWorkspace";
+import { useUser } from "@/hooks/useUser";
 import { supabaseBrowserClient } from "@/utils/supabase/supabaseBrowserClient";
 import { cn } from "@/lib/utils";
 import { User } from "@/types/supabase";
-import { useUser } from "@/hooks/useUser";
-import { MdAlternateEmail } from "react-icons/md";
-import InviteModal from "./InviteModal";
 
 interface Props {
   userData: User;
@@ -36,7 +36,7 @@ const Sidebar = ({userData}: Props) => {
 
   const {currentWorkspace, userWorkspaces, loadingWorkspaces} = useWorkspace();
 
-  const {setUser, setLoadingUser} = useUser();
+  const {user, setUser, setLoadingUser} = useUser();
 
   // Consultar la data del usuario y actualizar el state global del user
   useEffect(() => {
@@ -160,6 +160,7 @@ const Sidebar = ({userData}: Props) => {
                     <CardContent className="flex flex-col p-0 gap-2">
                       {/* Mostrar el item del workspace actual */}
                       <WorkspaceItem
+                        user={user}
                         workspace={currentWorkspace.workspaceData}
                         loading={loading}
                       />
@@ -170,6 +171,7 @@ const Sidebar = ({userData}: Props) => {
                         .map(wsp => (
                           <Fragment key={wsp.id}>
                             <WorkspaceItem
+                              user={user}
                               workspace={wsp}
                               loading={loading}
                             />
@@ -177,30 +179,34 @@ const Sidebar = ({userData}: Props) => {
                         ))
                       }
 
-                      <Separator />
+                      {currentWorkspace?.workspaceData.admin_id === user?.id && (
+                        <>
+                          <Separator />
 
-                      <Link
-                        className="flex items-center gap-2 px-2 py-1 group"
-                        href="/create-workspace"
-                        onClick={(e) => {
-                          if (loading) {
-                            e.preventDefault();
-                          }
-                        }}
-                      >
-                        <div className="flex justify-center items-center w-10 h-10 rounded-full bg-white/30">
-                          <FiPlus
-                            className="group-hover:scale-125 transition-all duration-300"
-                            size={20}
-                          />
-                        </div>
-                        
-                        <Typography
-                          className="text-sm"
-                          variant="p"
-                          text="Add workspace"
-                        />
-                      </Link>
+                          <Link
+                            className="flex items-center gap-2 px-2 py-1 group"
+                            href="/create-workspace"
+                            onClick={(e) => {
+                              if (loading) {
+                                e.preventDefault();
+                              }
+                            }}
+                          >
+                            <div className="flex justify-center items-center w-10 h-10 rounded-full bg-white/30">
+                              <FiPlus
+                                className="group-hover:scale-125 transition-all duration-300"
+                                size={20}
+                              />
+                            </div>
+                            
+                            <Typography
+                              className="text-sm"
+                              variant="p"
+                              text="Add workspace"
+                            />
+                          </Link>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
                 </PopoverContent>
@@ -245,72 +251,76 @@ const Sidebar = ({userData}: Props) => {
               </button>
             </li>
 
-            <li>
-              <TooltipProvider>
-                <Tooltip delayDuration={250}>
-                  <TooltipTrigger disabled={loading} asChild>
-                    <button
-                      className="flex flex-col items-center gap-1 text-white cursor-pointer"
-                      disabled={loading}
-                      onClick={() => setOpenInviteModal(true)}
-                    >
-                      <div className="p-2 rounded-lg bg-white/30 group">
-                        <MdAlternateEmail
-                          className="group-hover:scale-125 transition-all duration-300"
-                          size={20}
+            {currentWorkspace.workspaceData.admin_id === user?.id && (
+              <li>
+                <TooltipProvider>
+                  <Tooltip delayDuration={250}>
+                    <TooltipTrigger disabled={loading} asChild>
+                      <button
+                        className="flex flex-col items-center gap-1 text-white cursor-pointer"
+                        disabled={loading}
+                        onClick={() => setOpenInviteModal(true)}
+                      >
+                        <div className="p-2 rounded-lg bg-white/30 group">
+                          <MdAlternateEmail
+                            className="group-hover:scale-125 transition-all duration-300"
+                            size={20}
+                          />
+                        </div>
+                        <Typography
+                          className="text-xs"
+                          variant="p"
+                          text="Invite"
                         />
-                      </div>
-                      <Typography
-                        className="text-xs"
-                        variant="p"
-                        text="Invite"
-                      />
-                    </button>
-                  </TooltipTrigger>
+                      </button>
+                    </TooltipTrigger>
 
-                  <TooltipContent
-                    className="max-w-[150px]"
-                    side="right"
-                    sideOffset={12}
-                  >
-                    <Typography
-                      variant="p"
-                      text="Invite your friends to join this workspace"
-                      className="text-sm"
-                    />
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </li>
+                    <TooltipContent
+                      className="max-w-[150px]"
+                      side="right"
+                      sideOffset={12}
+                    >
+                      <Typography
+                        variant="p"
+                        text="Invite your friends to join this workspace"
+                        className="text-sm"
+                      />
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </li>
+            )}
           </ul>
         )}
       </nav>
 
       {!loadingWorkspaces && (
         <div className="flex flex-col items-center gap-3">
-          <TooltipProvider>
-            <Tooltip delayDuration={250}>
-              <TooltipTrigger disabled={loadingWorkspaces || loading} asChild>
-                <Link
-                  href="/create-workspace"
-                  className="flex justify-center items-center w-10 h-10 p-2 rounded-full bg-white/30 group"
-                >
-                  <FiPlus
-                    className="group-hover:scale-125 transition-all duration-300"
-                    size={20}
+          {currentWorkspace?.workspaceData.admin_id === user?.id && 
+            <TooltipProvider>
+              <Tooltip delayDuration={250}>
+                <TooltipTrigger disabled={loadingWorkspaces || loading} asChild>
+                  <Link
+                    href="/create-workspace"
+                    className="flex justify-center items-center w-10 h-10 p-2 rounded-full bg-white/30 group"
+                  >
+                    <FiPlus
+                      className="group-hover:scale-125 transition-all duration-300"
+                      size={20}
+                    />
+                  </Link>
+                </TooltipTrigger>
+  
+                <TooltipContent side="right">
+                  <Typography
+                    variant="p"
+                    text="Create new"
+                    className="text-sm"
                   />
-                </Link>
-              </TooltipTrigger>
-
-              <TooltipContent side="right">
-                <Typography
-                  variant="p"
-                  text="Create new"
-                  className="text-sm"
-                />
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          }
 
           <Popover>
             <PopoverTrigger disabled={loadingWorkspaces || loading}>

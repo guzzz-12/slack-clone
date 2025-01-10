@@ -1,15 +1,16 @@
 import Link from "next/link";
 import Typography from "./Typography";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { Workspace } from "@/types/supabase";
+import { User, Workspace } from "@/types/supabase";
 import { cn } from "@/lib/utils";
 
 interface Props {
+  user: User | null;
   workspace: Workspace;
   loading: boolean;
 }
 
-const WorkspaceItem = ({workspace, loading}: Props) => {
+const WorkspaceItem = ({user, workspace, loading}: Props) => {
   const {currentWorkspace} = useWorkspace();
 
   const isActive = currentWorkspace?.workspaceData.id === workspace.id;
@@ -36,11 +37,14 @@ const WorkspaceItem = ({workspace, loading}: Props) => {
           variant="p"
           text={workspace.name}
         />
-        <Typography
-          className="text-xs text-neutral-500"
-          variant="p"
-          text={workspace.invite_code}
-        />
+
+        {currentWorkspace?.workspaceData.admin_id === user?.id &&
+          <Typography
+            className="text-xs text-neutral-500"
+            variant="p"
+            text={workspace.invite_code}
+          />
+        }
       </div>
     </Link>
   )
