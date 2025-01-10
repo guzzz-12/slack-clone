@@ -160,8 +160,10 @@ export async function POST(req: Request, {params}: Context) {
       // Data de la url de subida del archivo al bucket
       const urlData = uploadUrl.data as UploadUrlData;
 
+      const extension = file.type.startsWith("image") ? "webp" : "pdf";
+
       // Generar nombre del archivo
-      const attachmentName = `msg_id_${msgId}.webp`;
+      const attachmentName = `msg_id_${msgId}.${extension}`;
   
       // Subir el archivo al bucket
       const uploadRes = await b2Client.uploadFile({
@@ -186,8 +188,6 @@ export async function POST(req: Request, {params}: Context) {
       return redirect("/signin");
     }
 
-    const messageType = file ? file.type.startsWith("image") ? "image" : "pdf" : "text";
-
     // Crear el mensaje en la base de datos
     const {data: message, error} = await supabase
       .from("messages")
@@ -200,7 +200,7 @@ export async function POST(req: Request, {params}: Context) {
         attachment_key: fileId,
         attachment_name: fileName,
         workspace_id: workspaceId,
-        message_type: messageType
+        message_type: file ? (file.type.startsWith("image") ? "image" : "pdf") : "text"
       })
       .select("*, sender: users(*)")
       .single();
@@ -308,6 +308,7 @@ export async function DELETE(req: NextRequest, {params}: Context) {
           attachment_key: null,
           attachment_name: null,
           deleted_for_all: true,
+          message_type: "text",
           deleted_for_ids: []
         })
         .eq("id", messageId)

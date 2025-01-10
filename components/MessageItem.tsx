@@ -1,16 +1,17 @@
 import { Dispatch, SetStateAction, useState } from "react";
+import Link from "next/link";
 import axios, { isAxiosError } from "axios";
 import dayjs from "dayjs";
 import toast from "react-hot-toast";
 import { FaPencil, FaRegFilePdf, FaRegTrashCan } from "react-icons/fa6";
 import { FaTimes } from "react-icons/fa";
 import { BsThreeDotsVertical } from "react-icons/bs";
+import { FiDownload, FiZoomIn } from "react-icons/fi";
+import ImageLightbox from "./ImageLightbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { MessageWithSender } from "@/types/supabase";
 import { PaginatedMessages } from "@/types/paginatedMessages";
 import { cn } from "@/lib/utils";
-import ImageLightbox from "./ImageLightbox";
-import { FiZoomIn } from "react-icons/fi";
 
 interface Props {
   currentUserId: string;
@@ -119,7 +120,19 @@ const MessageItem = ({message, currentUserId, setMessages}: Props) => {
         }
 
         {message.message_type === "pdf" &&
-          <div className="flex justify-center items-center w-[150px] aspect-video border rounded-md">
+          <div className="relative flex justify-center items-center w-[150px] aspect-video border rounded-md group">
+            <Link
+              className="absolute top-0 left-0 w-full h-full flex justify-center items-center bg-neutral-900/0 group-hover:bg-neutral-900/100 transition-colors cursor-pointer z-10"
+              href={message.attachment_url!}
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+            >
+              <FiDownload
+                className="text-neutral-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                size={30}
+              />
+            </Link>
             <FaRegFilePdf className="text-neutral-400" size={30} />
           </div>
         }

@@ -9,6 +9,7 @@ import { FaArrowDown, FaArrowUp, FaPlus } from "react-icons/fa6";
 import Typography from "./Typography";
 import ChannelItem from "./ChannelItem";
 import CreateChannelModal from "./CreateChannelModal";
+import IncomingMsgToastContent from "./IncomingMsgToastContent";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
@@ -16,7 +17,6 @@ import { Skeleton } from "./ui/skeleton";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { Channel, MessageWithSender, User } from "@/types/supabase";
 import { cn } from "@/lib/utils";
-import IncomingMsgToastContent from "./IncomingMsgToastContent";
 
 type Params = {
   workspaceId: string;
