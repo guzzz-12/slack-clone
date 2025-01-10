@@ -322,6 +322,8 @@ export async function DELETE(req: NextRequest, {params}: Context) {
 
       // Eliminar el attachment del storage si existe
       if (message.attachment_url) {
+        await b2Client.authorize();
+
         await b2Client.deleteFileVersion({
           fileId: message.attachment_key as string,
           fileName: message.attachment_name as string
@@ -358,6 +360,9 @@ export async function DELETE(req: NextRequest, {params}: Context) {
 
       updatedMessage.text_content = "<p class= 'deleted-message'>Message deleted</p>";
       updatedMessage.attachment_url = null;
+      updatedMessage.attachment_key = null;
+      updatedMessage.attachment_name = null;
+      updatedMessage.message_type = "text";
 
       return NextResponse.json(updatedMessage);
     }
