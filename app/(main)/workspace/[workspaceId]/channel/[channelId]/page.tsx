@@ -201,6 +201,13 @@ const ChannelPage = ({params}: Props) => {
           hasMore: data.hasMore
         };
       });
+
+      // Scrollear al fondo del chat al cargar la primera página de mensajes
+      if (currentPage === 1) {
+        setTimeout(() => {
+          scrollToBottomHandler();
+        }, 500);
+      }
       
     } catch (error: any) {
       let message = error.message;
