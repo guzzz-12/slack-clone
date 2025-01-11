@@ -25,6 +25,22 @@ export async function POST(req: Request, {params}: Context) {
     if (!user) {
       return redirect("/signin");
     }
+
+    // Verificar si el usuario es admin del workspace
+    const {data: workspaceAdminData, error: workspaceAdminError} = await supabase
+    .from("workspaces")
+    .select("id, admin_id")
+    .eq("id", workspaceId)
+    .limit(1)
+    .single();
+
+    if (workspaceAdminError) {
+      throw workspaceAdminError;
+    }
+
+    if (workspaceAdminData.admin_id !== user.id) {
+      return NextResponse.json({message: "You are not an admin of this workspace"}, {status: 403});
+    }
     
     // Crear el channel en la base de datos
     const {data, error} = await supabase

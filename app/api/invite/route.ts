@@ -25,6 +25,8 @@ const emailSchema = z.object({
     .email({message: "Invalid email address"})
 });
 
+const supabase = supabaseServerClient();
+
 
 // Route handler para enviar invitación a un usuario
 export async function POST(req: NextRequest) {
@@ -39,7 +41,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({message: errors}, {status: 400});
     }
 
-    const {data: {user}} = await supabaseServerClient().auth.getUser();
+    const {data: {user}} = await supabase.auth.getUser();
 
     if (!user) {
       return redirect("/signin");
@@ -49,7 +51,7 @@ export async function POST(req: NextRequest) {
     const token = jwt.sign({ workspaceId, inviteCode, email }, process.env.INVITATION_TOKEN_SECRET!, {expiresIn: "24h"});
 
     // Eliminar el token de invitación anterior si existe
-    const {error: deleteError} = await supabaseServerClient()
+    const {error: deleteError} = await supabase
     .from("invitation_tokens")
     .delete()
     .eq("email", email)
@@ -60,7 +62,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Verificar si el usuario ya forma parte del workspace
-    const {data: isMember, error: isMemberError} = await supabaseServerClient()
+    const {data: isMember, error: isMemberError} = await supabase
     .from("members_workspaces")
     .select("id")
     .eq("workspace_id", workspaceId)
@@ -75,8 +77,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({message: "There's already a member with this email"}, {status: 400});
     }
 
+    // Verificar si el usuario es admin del workspace
+    const {data: workspaceAdminData, error: workspaceAdminError} = await supabase
+      .from("workspaces")
+      .select("id")
+      .eq("id", workspaceId)
+      .eq("admin_id", user.id)
+      .limit(1);
+    
+    if (workspaceAdminError) {
+      throw workspaceAdminError;
+    }
+
+    if (workspaceAdminData.length > 0) {
+      return NextResponse.json({message: "You are not allowed to perform this action"}, {status: 403});
+    }
+
     // Insertar el token en la base de datos
-    const {error: insertError} = await supabaseServerClient()
+    const {error: insertError} = await supabase
     .from("invitation_tokens")
     .insert({
       workspace_id: workspaceId,
@@ -100,7 +118,7 @@ export async function POST(req: NextRequest) {
     };
 
     // Verificar si el usuario es admin del workspace
-    const {data: workspaceMembers, error: workspaceMembersError} = await supabaseServerClient()
+    const {data: workspaceMembers, error: workspaceMembersError} = await supabase
       .from("workspaces")
       .select("id")
       .eq("id", workspaceId)
@@ -138,8 +156,6 @@ export async function GET(req: NextRequest) {
     }
 
     const decodedToken = jwt.verify(token, process.env.INVITATION_TOKEN_SECRET!) as {workspaceId: string, inviteCode: string, email: string};
-
-    const supabase = supabaseServerClient();
 
     const {data: {user}} = await supabase.auth.getUser();
 

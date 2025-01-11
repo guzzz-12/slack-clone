@@ -9,6 +9,7 @@ import { UploadResponseData, UploadUrlData } from "@/types/backblaze";
 import { b2Client } from "@/utils/backblaze";
 
 
+/** Route handler para crear un workspace */
 export async function POST(req: NextRequest) {
   // ID de la imagen en el bucket para eliminarla en caso de que haya error creando el workspace
   let fileId = "";
