@@ -12,6 +12,7 @@ import ChatInput from "@/components/ChatInput";
 import MessageItem from "@/components/MessageItem";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useUser } from "@/hooks/useUser";
+import { useMessages } from "@/hooks/useMessages";
 import { pageBaseTitle } from "@/utils/constants";
 import { Channel, MessageWithSender, Workspace, WorkspaceWithMembers } from "@/types/supabase";
 import { PaginatedMessages } from "@/types/paginatedMessages";
@@ -34,13 +35,9 @@ const ChannelPage = ({params}: Props) => {
   const [channelData, setChannelData] = useState<Channel | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const [messages, setMessages] = useState<PaginatedMessages>({
-    messages: [],
-    hasMore: true
-  });
-  const [page, setPage] = useState(1);
+  const {messages, loadingMessages, hasMore, page, setPage, setMessages, setLoadingMessages, setHasMore} = useMessages();
+
   const [newIncomingMessage, setNewIncomingMessage] = useState(false);
-  const [loadingMessages, setLoadingMessages] = useState(true);
 
   const [chatInputHeight, setChatInputHeight] = useState(0);
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
@@ -76,10 +73,7 @@ const ChannelPage = ({params}: Props) => {
     const channel = pusher.subscribe(`channel-${channelData.id}`);
 
     channel.bind("new-message", (data: MessageWithSender) => {
-      setMessages((prev) => ({
-        ...prev,
-        messages: [...prev.messages, data],
-      }));
+      setMessages([...messages, data]);
 
       // Scrollear al bottom del chat al recibir un nuevo mensaje
       // si la bandeja está scrolleada al bottom
@@ -94,22 +88,21 @@ const ChannelPage = ({params}: Props) => {
     });
 
     channel.bind("message-deleted", (deletedMsg: MessageWithSender) => {
-      setMessages((prev) => {
-        const messageIndex = prev.messages.findIndex(m => m.id === deletedMsg.id);
+      const currentMessages = [...messages];
+      const messageIndex = currentMessages.findIndex(m => m.id === deletedMsg.id);
 
-        if (messageIndex !== -1) {
-          prev.messages.splice(messageIndex, 1, deletedMsg);
-        }
+      if (messageIndex !== -1) {
+        currentMessages.splice(messageIndex, 1, deletedMsg);
+      }
 
-        return {...prev, messages: [...prev.messages]};
-      })
+      setMessages([...currentMessages]);
     })
 
     return () => {
       channel.unbind_all();
       channel.unsubscribe();
     };
-  }, [channelData, isScrolledToBottom]);
+  }, [channelData, isScrolledToBottom, messages]);
 
 
   /** Consultar el workspace y sus miembros */
@@ -145,6 +138,9 @@ const ChannelPage = ({params}: Props) => {
     try {
       setLoading(true);
       setChannelData(null);
+      setMessages([]);
+      setLoadingMessages(true);
+      setPage(1);
 
       const {data} = await axios.get<Channel>(`/api/workspace/${workspaceId}/channels/${channelId}`);
 
@@ -177,30 +173,26 @@ const ChannelPage = ({params}: Props) => {
       
       // Scrollear a la posición del último mensaje de la página anterior
       if (currentPage > 1) {
-        const previousPageLastMessageElement = document.getElementById(messages.messages[0].id)!;
+        const previousPageLastMessageElement = document.getElementById(messages[0].id)!;
         previousPageLastMessageElement.scrollIntoView();
       }
 
       // Actualizar el state local de los mensajes
-      setMessages((prev) => {
-        const currentMessages = [...data.messages, ...prev.messages];
-        
-        // Filtrar los mensajes duplicados
-        const uniqueMessages = currentMessages.reduce((acc, message) => {
-          const existingMessage = acc.find(m => m.id === message.id);
+      const currentMessages = [...data.messages, ...messages];
 
-          if (!existingMessage) {
-            acc.push(message);
-          }
+      // Filtrar los mensajes duplicados
+      const uniqueMessages = currentMessages.reduce((acc, message) => {
+        const existingMessage = acc.find(m => m.id === message.id);
 
-          return acc;
-        }, [] as MessageWithSender[]);
+        if (!existingMessage) {
+          acc.push(message);
+        }
 
-        return {
-          messages: uniqueMessages,
-          hasMore: data.hasMore
-        };
-      });
+        return acc;
+      }, [] as MessageWithSender[]);
+
+      setMessages(uniqueMessages);
+      setHasMore(data.hasMore);
 
       // Scrollear al fondo del chat al cargar la primera página de mensajes
       if (currentPage === 1) {
@@ -262,9 +254,9 @@ const ChannelPage = ({params}: Props) => {
       const {scrollTop, clientHeight, scrollHeight} = sectionRef.current;
 
       // Detectar si scrolleo al top del section
-      if (messages.hasMore && scrollTop === 0) {
+      if (hasMore && scrollTop === 0) {
         getMessages(page + 1);
-        setPage(prev => prev + 1);
+        setPage(page + 1);
       }
 
       // Detectar si el usuario ha scrolleado al bottom del section
@@ -295,6 +287,8 @@ const ChannelPage = ({params}: Props) => {
       className="relative flex flex-col flex-grow rounded-r-lg bg-neutral-900 overflow-hidden"
     >
       <ChatHeader
+        currentWorkspaceId={workspaceId}
+        currentChannelId={channelId}
         title={`#${channelData?.name}`}
         loading={loading}
       />
@@ -318,7 +312,7 @@ const ChannelPage = ({params}: Props) => {
         onScroll={onScrollHandler}
       >
         <div className="flex flex-col justify-start gap-3 w-full h-full">
-          {!loadingMessages && !messages.hasMore && messages.messages.length > 0 &&
+          {!loadingMessages && !hasMore && messages.length > 0 &&
             <div className="flex justify-center items-center w-full">
               <p className="text-sm text-center text-neutral-400 italic">
                 End of conversation...
@@ -326,7 +320,7 @@ const ChannelPage = ({params}: Props) => {
             </div>
           }
 
-          {!loadingMessages && !messages.hasMore && messages.messages.length === 0 &&
+          {!loadingMessages && !hasMore && messages.length === 0 &&
             <div className="flex justify-center items-center w-full h-full">
               <p className="max-w-full text-xl text-center text-neutral-400">
                 This channel is empty
@@ -340,11 +334,10 @@ const ChannelPage = ({params}: Props) => {
             </div>
           )}
 
-          {messages.messages.map((message) => (
+          {messages.map((message) => (
             <MessageItem
               key={message.id}
               message={message}
-              setMessages={setMessages}
               currentUserId={user?.id || ""}
             />
           ))}

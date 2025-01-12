@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import axios, { isAxiosError } from "axios";
 import dayjs from "dayjs";
@@ -9,20 +9,21 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 import { FiDownload, FiZoomIn } from "react-icons/fi";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { MessageWithSender } from "@/types/supabase";
-import { PaginatedMessages } from "@/types/paginatedMessages";
+import { useMessages } from "@/hooks/useMessages";
 import { useImageLightbox } from "@/hooks/useImageLightbox";
 import { cn } from "@/lib/utils";
 
 interface Props {
   currentUserId: string;
   message: MessageWithSender;
-  setMessages: Dispatch<SetStateAction<PaginatedMessages>>
 }
 
-const MessageItem = ({message, currentUserId, setMessages}: Props) => {
+const MessageItem = ({message, currentUserId}: Props) => {
   const isSender = message.sender_id === currentUserId;
   
   const [deleting, setDeleting] = useState(false);
+
+  const {messages, setMessages} = useMessages();
 
   const {setMessage, setOpen} = useImageLightbox();
 
@@ -38,16 +39,14 @@ const MessageItem = ({message, currentUserId, setMessages}: Props) => {
 
       // Actualizar el state local de los mensajes
       if (mode === "me") {
-        setMessages((prev) => {
-          const updatedMessages = [...prev.messages];
-          const messageIndex = updatedMessages.findIndex(m => m.id === message.id);
-  
-          if (messageIndex !== -1) {
-            updatedMessages.splice(messageIndex, 1, data);
-          }
-  
-          return {...prev, messages: updatedMessages};
-        });
+        const updatedMessages = [...messages];
+        const messageIndex = updatedMessages.findIndex(m => m.id === message.id);
+
+        if (messageIndex !== -1) {
+          updatedMessages.splice(messageIndex, 1, data);
+        }
+
+        setMessages(updatedMessages);
       }
       
     } catch (error: any) {
