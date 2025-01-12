@@ -185,6 +185,7 @@ export type Database = {
           created_at: string
           deleted_for_all: boolean | null
           deleted_for_ids: string[] | null
+          fts: unknown | null
           id: string
           is_deleted: boolean
           message_type: Database["public"]["Enums"]["message_type"]
@@ -202,6 +203,7 @@ export type Database = {
           created_at?: string
           deleted_for_all?: boolean | null
           deleted_for_ids?: string[] | null
+          fts?: unknown | null
           id?: string
           is_deleted?: boolean
           message_type: Database["public"]["Enums"]["message_type"]
@@ -219,6 +221,7 @@ export type Database = {
           created_at?: string
           deleted_for_all?: boolean | null
           deleted_for_ids?: string[] | null
+          fts?: unknown | null
           id?: string
           is_deleted?: boolean
           message_type?: Database["public"]["Enums"]["message_type"]
@@ -352,6 +355,31 @@ export type Database = {
           workspace_name: string
           workspace_image: string
           members: Json
+        }[]
+      }
+      search_messages_fts: {
+        Args: {
+          term: string
+          amount: number
+          skip: number
+        }
+        Returns: {
+          id: string
+          created_at: string
+          attachment_url: string
+          text_content: string
+          sender_id: string
+          workspace_id: string
+          channel_id: string
+          is_deleted: boolean
+          updated_at: string
+          seen_at: string
+          deleted_for_all: boolean
+          deleted_for_ids: string[]
+          attachment_key: string
+          attachment_name: string
+          message_type: Database["public"]["Enums"]["message_type"]
+          sender: Json
         }[]
       }
     }
