@@ -25,11 +25,11 @@ const emailSchema = z.object({
     .email({message: "Invalid email address"})
 });
 
-const supabase = supabaseServerClient();
-
 
 // Route handler para enviar invitación a un usuario
 export async function POST(req: NextRequest) {
+  const supabase = supabaseServerClient();
+
   try {
     const { workspaceId, workspaceName, inviteCode, email } = await req.json();
 
@@ -147,6 +147,8 @@ export async function POST(req: NextRequest) {
 
 // Route handler para procesar la invitación
 export async function GET(req: NextRequest) {
+  const supabase = supabaseServerClient();
+
   try {
     const { searchParams } = new URL(req.url);
     const token = searchParams.get("token");
