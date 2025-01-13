@@ -1,32 +1,32 @@
-import { NextApiRequest } from "next";
-import { Server as HttpServer } from "http";
-import { Server as SocketSever } from "socket.io";
-import { SocketApiResponse, SocketClientServerSideType, SocketServerType } from "@/types/socket";
+// import { NextApiRequest } from "next";
+// import { Server as HttpServer } from "http";
+// import { Server as SocketSever } from "socket.io";
+// import { SocketApiResponse, SocketClientServerSideType, SocketServerType } from "@/types/socket";
 
-const initializeSocketServer = (httpServer: HttpServer): SocketServerType => {
-  const origin = process.env.NEXT_PUBLIC_PROJECT_URL!;
+// const initializeSocketServer = (httpServer: HttpServer): SocketServerType => {
+//   const origin = process.env.NEXT_PUBLIC_PROJECT_URL!;
 
-  return new SocketSever(httpServer, {
-    path: "/api/socket/io",
-    addTrailingSlash: false,
-    cors: {origin}
-  });
-};
+//   return new SocketSever(httpServer, {
+//     path: "/api/socket/io",
+//     addTrailingSlash: false,
+//     cors: {origin}
+//   });
+// };
 
-// Route handler para inicializar el servidor de Socket.io
-async function handler(_req: NextApiRequest, res: SocketApiResponse) {
-  if (!res.socket.server.io) {
-    const io = initializeSocketServer(res.socket.server);
+// // Route handler para inicializar el servidor de Socket.io
+// async function handler(_req: NextApiRequest, res: SocketApiResponse) {
+//   if (!res.socket.server.io) {
+//     const io = initializeSocketServer(res.socket.server);
 
-    res.socket.server.io = io;
+//     res.socket.server.io = io;
 
-    // Eventos del servidor de Socket.io
-    io.on("connection", (socket: SocketClientServerSideType) => {
-      console.log(`Client connected: ${socket.id}`);
-    });
-  }
+//     // Eventos del servidor de Socket.io
+//     io.on("connection", (socket: SocketClientServerSideType) => {
+//       console.log(`Client connected: ${socket.id}`);
+//     });
+//   }
 
-  res.end();
-};
+//   res.end();
+// };
 
-export default handler;
+// export default handler;
