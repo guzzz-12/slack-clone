@@ -73,7 +73,7 @@ const MessageItem = ({message, currentUserId}: Props) => {
         <div className="flex justify-center items-start"
         >
           <img
-            className="w-8 h-8 object-cover object-center rounded-full border"
+            className="w-8 h-8 text-xs object-cover object-center rounded-full border"
             src={message.sender.avatar_url || ""}
             alt={`${message.sender.name} avatar`}
           />

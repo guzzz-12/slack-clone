@@ -10,6 +10,7 @@ import { FaArrowDown } from "react-icons/fa6";
 import ChatHeader from "@/components/ChatHeader";
 import ChatInput from "@/components/ChatInput";
 import MessageItem from "@/components/MessageItem";
+import VideoChat from "@/components/VideoChat";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useUser } from "@/hooks/useUser";
 import { useMessages } from "@/hooks/useMessages";
@@ -45,6 +46,7 @@ const ChannelPage = ({params}: Props) => {
     hasMore,
     page,
     term,
+    isVideoCall,
     setTerm,
     setPage,
     setMessages,
@@ -325,7 +327,7 @@ const ChannelPage = ({params}: Props) => {
       <ChatHeader
         currentWorkspaceId={workspaceId}
         currentChannelId={channelId}
-        title={`#${channelData?.name}`}
+        title={channelData?.name}
         loading={loading}
       />
 
@@ -347,54 +349,66 @@ const ChannelPage = ({params}: Props) => {
         </button>
       }
 
-      <section 
-        ref={sectionRef}
-        className="w-full flex-grow p-4 overflow-x-hidden overflow-y-auto scrollbar-thin"
-        onScroll={onScrollHandler}
-      >
-        <div className="flex flex-col justify-start gap-3 w-full h-full">
-          {!loadingMessages && !hasMore && messages.length > 0 &&
-            <div className="flex justify-center items-center w-full">
-              <p className="text-sm text-center text-neutral-400 italic">
-                End of conversation...
-              </p>
-            </div>
-          }
+      {/* Pantalla del video chat */}
+      {isVideoCall && channelData && user &&
+        <section className="overflow-y-auto scrollbar-thin">
+          <VideoChat user={user} chatId={channelData.id} />
+        </section>
+      }
 
-          {!loadingMessages && !hasMore && messages.length === 0 &&
-            <div className="flex justify-center items-center w-full h-full">
-              <p className="max-w-full text-xl text-center text-neutral-400">
-                This channel is empty
-              </p>
-            </div>
-          }
+      {/* Pantalla del chat de texto */}
+      {!isVideoCall &&
+        <>
+          <section 
+            ref={sectionRef}
+            className="w-full flex-grow p-4 overflow-x-hidden overflow-y-auto scrollbar-thin"
+            onScroll={onScrollHandler}
+          >
+            <div className="flex flex-col justify-start gap-3 w-full h-full">
+              {!loadingMessages && !hasMore && messages.length > 0 &&
+                <div className="flex justify-center items-center w-full">
+                  <p className="text-sm text-center text-neutral-400 italic">
+                    End of conversation...
+                  </p>
+                </div>
+              }
 
-          {loadingMessages && (
-            <div className="flex justify-center items-center w-full">
-              <LuLoader2 className="animate-spin" size={20} />
-            </div>
-          )}
+              {!loadingMessages && !hasMore && messages.length === 0 &&
+                <div className="flex justify-center items-center w-full h-full">
+                  <p className="max-w-full text-xl text-center text-neutral-400">
+                    {term.length === 0 ? "This channel is empty" : "No results found"}
+                  </p>
+                </div>
+              }
 
-          {messages.map((message) => (
-            <MessageItem
-              key={message.id}
-              message={message}
-              currentUserId={user?.id || ""}
+              {loadingMessages && (
+                <div className="flex justify-center items-center w-full">
+                  <LuLoader2 className="animate-spin" size={20} />
+                </div>
+              )}
+
+              {messages.map((message) => (
+                <MessageItem
+                  key={message.id}
+                  message={message}
+                  currentUserId={user?.id || ""}
+                />
+              ))}
+            </div>
+          </section>
+
+          <section
+            ref={chatInputRef}
+            className="w-full flex-shrink-0 bg-neutral-800 overflow-hidden"
+          >
+            <ChatInput
+              workspaceId={workspaceId}
+              channelId={channelId}
+              isLoading={loading}
             />
-          ))}
-        </div>
-      </section>
-
-      <section
-        ref={chatInputRef}
-        className="w-full flex-shrink-0 bg-neutral-800 overflow-hidden"
-      >
-        <ChatInput
-          workspaceId={workspaceId}
-          channelId={channelId}
-          isLoading={loading}
-        />
-      </section>
+          </section>
+        </>
+      }
     </main>
   )
 }

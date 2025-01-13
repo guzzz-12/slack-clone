@@ -1,5 +1,10 @@
+import { GoHash } from "react-icons/go";
+import { FaVideo, FaVideoSlash } from "react-icons/fa";
 import SearchBar from "./SearchBar";
 import { Skeleton } from "./ui/skeleton";
+import { Button } from "./ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { useMessages } from "@/hooks/useMessages";
 
 interface Props {
   currentWorkspaceId: string;
@@ -9,6 +14,8 @@ interface Props {
 }
 
 const ChatHeader = ({currentWorkspaceId, currentChannelId, title, loading}: Props) => {
+  const {isVideoCall, setIsVideoCall} = useMessages();
+
   return (
     <header className="flex justify-between items-center gap-2 w-full min-h-[57px] px-4 py-2 flex-shrink-0 border-b border-neutral-900 bg-neutral-800">
       {loading && (
@@ -20,15 +27,38 @@ const ChatHeader = ({currentWorkspaceId, currentChannelId, title, loading}: Prop
 
       {!loading && (
         <>
-          <h2 className="text-base font-normal flex-grow truncate">
-            {title}
-          </h2>
+          <div className="flex justify-start items-center gap-1 overflow-hidden">
+            <GoHash />
+            <h2 className="text-base font-normal flex-grow truncate">
+              {title}
+            </h2>
+          </div>
           
-          <SearchBar
-            currentWorkspaceId={currentWorkspaceId}
-            currentChannelId={currentChannelId}
-            placeholder={title!}
-          />
+          <div className="flex justify-start items-center gap-2">
+            <SearchBar
+              currentWorkspaceId={currentWorkspaceId}
+              currentChannelId={currentChannelId}
+              placeholder={title!}
+            />
+
+            <TooltipProvider>
+              <Tooltip delayDuration={250}>
+                <TooltipTrigger className="flex justify-start w-full" asChild>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setIsVideoCall(!isVideoCall)}
+                  >
+                    {isVideoCall ? <FaVideoSlash size={30} /> : <FaVideo size={30} />}
+                  </Button>
+                </TooltipTrigger>
+
+                <TooltipContent side="bottom">
+                  {!isVideoCall ? "Start Video Call" : "End video call"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+          </div>
         </>
       )}
     </header>

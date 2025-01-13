@@ -4,6 +4,7 @@ import { Lato } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { pageBaseTitle } from "@/utils/constants";
+import "@livekit/components-styles";
 import "./globals.css";
 
 export const metadata: Metadata = {

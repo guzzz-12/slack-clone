@@ -7,11 +7,13 @@ interface MessagesState {
   hasMore: boolean;
   page: number;
   term: string;
+  isVideoCall: boolean;
   setMessages: (messages: MessageWithSender[]) => void;
   setLoadingMessages: (loading: boolean) => void;
   setHasMore: (hasMore: boolean) => void;
   setPage: (page: number) => void;
   setTerm: (term: string) => void;
+  setIsVideoCall: (isVideoCall: boolean) => void;
 }
 
 export const useMessages = create<MessagesState>((set) => ({
@@ -20,9 +22,11 @@ export const useMessages = create<MessagesState>((set) => ({
   hasMore: true,
   page: 1,
   term: "",
+  isVideoCall: false,
   setMessages: (messages) => set({ messages }),
   setLoadingMessages: (loading) => set({ loadingMessages: loading }),
   setHasMore: (hasMore) => set({ hasMore }),
   setPage: (page) => set({ page }),
   setTerm: (term) => set({ term }),
+  setIsVideoCall: (isVideoCall) => set({isVideoCall}),
 }));
