@@ -13,6 +13,7 @@ import MessageItem from "@/components/MessageItem";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useUser } from "@/hooks/useUser";
 import { useMessages } from "@/hooks/useMessages";
+import { useDebounce } from "@/hooks/useDebounce";
 import { pageBaseTitle } from "@/utils/constants";
 import { Channel, MessageWithSender, Workspace, WorkspaceWithMembers } from "@/types/supabase";
 import { PaginatedMessages } from "@/types/paginatedMessages";
@@ -27,6 +28,7 @@ interface Props {
 const ChannelPage = ({params}: Props) => {
   const chatInputRef = useRef<HTMLElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const prevTermRef = useRef<string | null>(null);
 
   const {workspaceId, channelId} = params;
   
@@ -34,15 +36,25 @@ const ChannelPage = ({params}: Props) => {
 
   const [channelData, setChannelData] = useState<Channel | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const {messages, loadingMessages, hasMore, page, setPage, setMessages, setLoadingMessages, setHasMore} = useMessages();
-
   const [newIncomingMessage, setNewIncomingMessage] = useState(false);
-
   const [chatInputHeight, setChatInputHeight] = useState(0);
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
 
+  const {
+    messages,
+    loadingMessages,
+    hasMore,
+    page,
+    term,
+    setPage,
+    setMessages,
+    setLoadingMessages,
+    setHasMore
+  } = useMessages();
+
   const {user} = useUser();
+
+  const {debouncedValue} = useDebounce(term);
 
   const {
     currentWorkspace,
@@ -50,59 +62,6 @@ const ChannelPage = ({params}: Props) => {
     setCurrentWorkspace,
     setUserWorkspaces
   } = useWorkspace();
-
-
-  // Actualizar el title de la página al cambiar de channel
-  useEffect(() => {
-    if (channelData) {
-      document.title = `${pageBaseTitle} | #${channelData.name}`;
-    } else {
-      document.title = pageBaseTitle;
-    }
-  }, [channelData]);
-
-
-  // Escuchar el eventos de mensaje entrante y mensaje eliminado
-  useEffect(() => {
-    if (!channelData) return;
-
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-    });
-
-    const channel = pusher.subscribe(`channel-${channelData.id}`);
-
-    channel.bind("new-message", (data: MessageWithSender) => {
-      setMessages([...messages, data]);
-
-      // Scrollear al bottom del chat al recibir un nuevo mensaje
-      // si la bandeja está scrolleada al bottom
-      if (isScrolledToBottom) {
-        setTimeout(() => {
-          scrollToBottomHandler();
-        }, 300);
-
-      } else {
-        setNewIncomingMessage(true);
-      }
-    });
-
-    channel.bind("message-deleted", (deletedMsg: MessageWithSender) => {
-      const currentMessages = [...messages];
-      const messageIndex = currentMessages.findIndex(m => m.id === deletedMsg.id);
-
-      if (messageIndex !== -1) {
-        currentMessages.splice(messageIndex, 1, deletedMsg);
-      }
-
-      setMessages([...currentMessages]);
-    })
-
-    return () => {
-      channel.unbind_all();
-      channel.unsubscribe();
-    };
-  }, [channelData, isScrolledToBottom, messages]);
 
 
   /** Consultar el workspace y sus miembros */
@@ -165,20 +124,40 @@ const ChannelPage = ({params}: Props) => {
   }
 
   /** Consultar y paginar los mensajes asociados al channel */
-  const getMessages = async (currentPage: number) => {
+  const getMessages = async (currentPage: number, searchTerm: string | null) => {
     try {
       setLoadingMessages(true);
 
-      const {data} = await axios.get<PaginatedMessages>(`/api/workspace/${workspaceId}/channels/${channelId}/messages?page=${currentPage}`);
+      let page = searchTerm !== prevTermRef.current ? 1 : currentPage;
+
+      const {data} = await axios<PaginatedMessages>({
+        method: "GET",
+        url: `/api/workspace/${workspaceId}/channels/${channelId}/messages`,
+        params: {
+          searchTerm: searchTerm,
+          page
+        }
+      });
+
+      // Scrollear al bottom del chat al cargar la primera página de mensajes
+      if (page === 1) {
+        scrollToBottomHandler();
+      }
       
       // Scrollear a la posición del último mensaje de la página anterior
-      if (currentPage > 1) {
+      if (page > 1) {
         const previousPageLastMessageElement = document.getElementById(messages[0].id)!;
         previousPageLastMessageElement.scrollIntoView();
       }
 
-      // Actualizar el state local de los mensajes
-      const currentMessages = [...data.messages, ...messages];
+      let currentMessages: MessageWithSender[] = [];
+
+      // Actualizar el state de los mensajes
+      if (page === 1) {
+        currentMessages = data.messages;
+      } else {
+        currentMessages = [...data.messages, ...messages];
+      }      
 
       // Filtrar los mensajes duplicados
       const uniqueMessages = currentMessages.reduce((acc, message) => {
@@ -215,6 +194,57 @@ const ChannelPage = ({params}: Props) => {
     }
   }
 
+  // Actualizar el title de la página al cambiar de channel
+  useEffect(() => {
+    if (channelData) {
+      document.title = `${pageBaseTitle} | #${channelData.name}`;
+    } else {
+      document.title = pageBaseTitle;
+    }
+  }, [channelData]);
+
+  // Escuchar el eventos de mensaje entrante y mensaje eliminado
+  useEffect(() => {
+    if (!channelData) return;
+
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+    });
+
+    const channel = pusher.subscribe(`channel-${channelData.id}`);
+
+    channel.bind("new-message", (data: MessageWithSender) => {
+      setMessages([...messages, data]);
+
+      // Scrollear al bottom del chat al recibir un nuevo mensaje
+      // si la bandeja está scrolleada al bottom
+      if (isScrolledToBottom) {
+        setTimeout(() => {
+          scrollToBottomHandler();
+        }, 300);
+
+      } else {
+        setNewIncomingMessage(true);
+      }
+    });
+
+    channel.bind("message-deleted", (deletedMsg: MessageWithSender) => {
+      const currentMessages = [...messages];
+      const messageIndex = currentMessages.findIndex(m => m.id === deletedMsg.id);
+
+      if (messageIndex !== -1) {
+        currentMessages.splice(messageIndex, 1, deletedMsg);
+      }
+
+      setMessages([...currentMessages]);
+    })
+
+    return () => {
+      channel.unbind_all();
+      channel.unsubscribe();
+    };
+  }, [channelData, isScrolledToBottom, messages]);
+
   // Consultar el channel y workspace con sus miembros
   useEffect(() => {
     // Consultar el workspace si no se ha hecho ya
@@ -230,22 +260,22 @@ const ChannelPage = ({params}: Props) => {
     }
   }, [workspaceId, channelId, currentWorkspace]);
 
-
-  // Consultar la primera página de mensajes si ya cargó el channel
-  // y calcular el height del main
+  // Consultar los mensajes asociados al channel
+  // Calcular el height del main
   useEffect(() => {
-    if (channelData && page === 1) {
-      getMessages(1)
-      .then(() => {
-        // Scrollear al bottom del chat
-        scrollToBottomHandler();
-      })
+    if (channelData) {
+      getMessages(page, debouncedValue)
     }
 
-    if (chatInputRef.current) {
+    if (channelData && chatInputRef.current) {
       setChatInputHeight(chatInputRef.current.clientHeight);
     }
-  }, [channelData, page, chatInputRef]);
+  }, [channelData, chatInputRef, debouncedValue, page]);
+
+  // Guardar referencia del term previo
+  useEffect(() => {
+    prevTermRef.current = debouncedValue;
+  }, [debouncedValue]);
   
 
   /** Consultar la siguiente página de mensajes al scrollear al top */
@@ -255,7 +285,7 @@ const ChannelPage = ({params}: Props) => {
 
       // Detectar si scrolleo al top del section
       if (hasMore && scrollTop === 0) {
-        getMessages(page + 1);
+        getMessages(page + 1, debouncedValue);
         setPage(page + 1);
       }
 

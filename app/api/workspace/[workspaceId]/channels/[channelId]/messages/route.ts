@@ -7,6 +7,7 @@ import { MessageAttachmentSchema } from "@/utils/formSchemas";
 import { b2Client } from "@/utils/backblaze";
 import { pusher } from "@/utils/pusher";
 import { UploadResponseData, UploadUrlData } from "@/types/backblaze";
+import { MessageWithSender } from "@/types/supabase";
 
 interface Context {
   params: Promise<{workspaceId: string, channelId: string}>
@@ -20,8 +21,13 @@ export async function GET(req: Request, {params}: Context) {
     const perPage = 10;
     let hasMore = true;
 
+    const searchParams = new URL(req.url).searchParams;
+
     // Extraer el page del query string
-    let page = new URL(req.url).searchParams.get("page");
+    let page = searchParams.get("page");
+
+    // Extraer el searchTerm del query string
+    const searchTerm = searchParams.get("searchTerm");
 
     // Verificar que el page exista y sea número o string numérico
     if (!page || Number(page) === 0 || isNaN(Number(page))) {
@@ -46,19 +52,62 @@ export async function GET(req: Request, {params}: Context) {
       return redirect("/signin");
     }
 
-    // Calcular la paginación de los mensajes
-    const from = +perPage * (+page - 1);
-    const to = from + (perPage - 1);
+    /** Eliminar el contenido de los mensajes eliminados sólo para el usuario actual */
+    const filteredDeletedMessages = (messages: MessageWithSender[]) => {
+      return messages.map((m) => {
+        if (m.deleted_for_ids?.includes(data.user.id)) {
+          return {
+            ...m,
+            text_content: "<p class= 'deleted-message'>Message deleted</p>",
+            attachment_url: null
+          }
+        }
+  
+        return m
+      });
+    }
 
-    // Consultar los mensajes del channel en la base de datos
-    // incluyendo el sender y paginados de a 10 por página
-    const {data: messagesData, error: messagesError} = await supabase
-      .from("messages")
-      .select("*, sender:users(id, name, email, avatar_url)")
-      .eq("workspace_id", workspaceId)
-      .eq("channel_id", channelId)
-      .order("created_at", {ascending: false})
-      .range(from, to);
+    // Consultar los mensajes sin término de búsqueda
+    if (!searchTerm || searchTerm.trim().length === 0) {
+      // Calcular la paginación de los mensajes
+      const from = +perPage * (+page - 1);
+      const to = from + (perPage - 1);
+  
+      // Consultar los mensajes del channel en la base de datos
+      // incluyendo el sender y paginados de a 10 por página
+      const {data: messagesData, error: messagesError} = await supabase
+        .from("messages")
+        .select("*, sender:users(id, name, email, avatar_url)")
+        .eq("workspace_id", workspaceId)
+        .eq("channel_id", channelId)
+        .order("created_at", {ascending: false})
+        .range(from, to);
+  
+      if (messagesError) {
+        throw messagesError;
+      }
+  
+      // Verificar si hay mensajes para mostrar
+      if (messagesData.length < perPage) {
+        hasMore = false;
+      }
+
+      // Verificar si el mensaje fue borrado por el usuario actual
+      const filterDeleted = filteredDeletedMessages(messagesData);
+  
+      return NextResponse.json({messages: filterDeleted.reverse(), hasMore});
+    }
+
+    // Consultar los mensajes con término de búsqueda
+    // Calcular el limit y el offset del query para paginar los mensajes
+    const limit = perPage;
+    const offset = (Number(page) - 1) * perPage;
+
+    const {data: messagesData, error: messagesError} = await supabase.rpc("search_messages_fts", {
+      term: searchTerm.trim(),
+      amount: limit,
+      skip: offset
+    });
 
     if (messagesError) {
       throw messagesError;
@@ -70,19 +119,9 @@ export async function GET(req: Request, {params}: Context) {
     }
 
     // Verificar si el mensaje fue borrado por el usuario actual
-    const filterDeletedMessages = messagesData.map((m) => {
-      if (m.deleted_for_ids?.includes(data.user.id)) {
-        return {
-          ...m,
-          text_content: "<p class= 'deleted-message'>Message deleted</p>",
-          attachment_url: null
-        }
-      }
+    const filterDeleted = filteredDeletedMessages(messagesData);
 
-      return m
-    });
-
-    return NextResponse.json({messages: filterDeletedMessages.reverse(), hasMore});
+    return NextResponse.json({messages: filterDeleted.reverse(), hasMore});
     
   } catch (error: any) {
     if (isPostgresError(error)) {

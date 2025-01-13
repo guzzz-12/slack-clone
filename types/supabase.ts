@@ -60,7 +60,12 @@ export type Message = {
 }
 
 export type MessageWithSender = Message & {
-  sender: User
+  sender: {
+    id: string;
+    name: string | null;
+    email: string;
+    avatar_url: string | null;
+  }
 }
 
 export type Database = {
@@ -379,7 +384,12 @@ export type Database = {
           attachment_key: string
           attachment_name: string
           message_type: Database["public"]["Enums"]["message_type"]
-          sender: Json
+          sender: {
+            id: string;
+            name: string | null;
+            email: string;
+            avatar_url: string | null;
+          }
         }[]
       }
     }
