@@ -104,6 +104,7 @@ export async function GET(req: Request, {params}: Context) {
     const offset = (Number(page) - 1) * perPage;
 
     const {data: messagesData, error: messagesError} = await supabase.rpc("search_messages_fts", {
+      current_channel_id: channelId,
       term: searchTerm.trim(),
       amount: limit,
       skip: offset

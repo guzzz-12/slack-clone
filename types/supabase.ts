@@ -365,6 +365,7 @@ export type Database = {
       search_messages_fts: {
         Args: {
           term: string
+          current_channel_id: string
           amount: number
           skip: number
         }
