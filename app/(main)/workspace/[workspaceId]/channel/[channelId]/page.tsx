@@ -46,6 +46,7 @@ const ChannelPage = ({params}: Props) => {
     hasMore,
     page,
     term,
+    setTerm,
     setPage,
     setMessages,
     setLoadingMessages,
@@ -174,7 +175,7 @@ const ChannelPage = ({params}: Props) => {
       setHasMore(data.hasMore);
 
       // Scrollear al fondo del chat al cargar la primera página de mensajes
-      if (currentPage === 1) {
+      if (page === 1) {
         setTimeout(() => {
           scrollToBottomHandler();
         }, 500);
@@ -214,6 +215,12 @@ const ChannelPage = ({params}: Props) => {
     const channel = pusher.subscribe(`channel-${channelData.id}`);
 
     channel.bind("new-message", (data: MessageWithSender) => {
+      // Notificar nuevo mensaje entrante pero sin agregarlo
+      // a la bandeja si el usuario está en modo búsqueda
+      if (term.length > 0) {
+        return setNewIncomingMessage(true);
+      }
+
       setMessages([...messages, data]);
 
       // Scrollear al bottom del chat al recibir un nuevo mensaje
@@ -323,11 +330,16 @@ const ChannelPage = ({params}: Props) => {
         loading={loading}
       />
 
-      {!isScrolledToBottom && newIncomingMessage &&
+      {newIncomingMessage &&(term.length > 0 || !isScrolledToBottom) &&
         <button
           style={{bottom: `calc(${chatInputHeight}px + 1rem)`}}
           className="fixed left-[50%] flex justify-center items-center gap-2 translate-x-[-50%] px-3 py-2 rounded-s-md border bg-primary-dark hover:bg-primary-light transition-colors z-30"
-          onClick={scrollToBottomHandler}
+          onClick={() => {
+            if (term.length > 0) {
+              setTerm("");
+            }
+            scrollToBottomHandler();
+          }}
         >
           <FaArrowDown />
           <p className="text-sm text-white">
