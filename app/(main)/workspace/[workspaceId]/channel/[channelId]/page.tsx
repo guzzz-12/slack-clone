@@ -28,7 +28,6 @@ interface Props {
 const ChannelPage = ({params}: Props) => {
   const chatInputRef = useRef<HTMLElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
-  const prevTermRef = useRef<string | null>(null);
 
   const {workspaceId, channelId} = params;
   
@@ -129,24 +128,22 @@ const ChannelPage = ({params}: Props) => {
     try {
       setLoadingMessages(true);
 
-      let page = searchTerm !== prevTermRef.current ? 1 : currentPage;
-
       const {data} = await axios<PaginatedMessages>({
         method: "GET",
         url: `/api/workspace/${workspaceId}/channels/${channelId}/messages`,
         params: {
           searchTerm: searchTerm,
-          page
+          page: currentPage
         }
       });
 
       // Scrollear al bottom del chat al cargar la primera página de mensajes
-      if (page === 1) {
+      if (currentPage === 1) {
         scrollToBottomHandler();
       }
       
       // Scrollear a la posición del último mensaje de la página anterior
-      if (page > 1) {
+      if (currentPage > 1) {
         const previousPageLastMessageElement = document.getElementById(messages[0].id)!;
         previousPageLastMessageElement.scrollIntoView();
       }
@@ -154,7 +151,7 @@ const ChannelPage = ({params}: Props) => {
       let currentMessages: MessageWithSender[] = [];
 
       // Actualizar el state de los mensajes
-      if (page === 1) {
+      if (currentPage === 1) {
         currentMessages = data.messages;
       } else {
         currentMessages = [...data.messages, ...messages];
@@ -175,7 +172,7 @@ const ChannelPage = ({params}: Props) => {
       setHasMore(data.hasMore);
 
       // Scrollear al fondo del chat al cargar la primera página de mensajes
-      if (page === 1) {
+      if (currentPage === 1) {
         setTimeout(() => {
           scrollToBottomHandler();
         }, 500);
@@ -279,9 +276,11 @@ const ChannelPage = ({params}: Props) => {
     }
   }, [channelData, chatInputRef, debouncedValue, page]);
 
-  // Guardar referencia del term previo
+  // Restablecer el page al cambiar el term
   useEffect(() => {
-    prevTermRef.current = debouncedValue;
+    return () => {
+      setPage(1);
+    }
   }, [debouncedValue]);
   
 
