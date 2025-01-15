@@ -22,7 +22,7 @@ const PrivateMessageItem = ({workspaceId, user}: Props) => {
   return (
     <Link
       className="block w-full"
-      href={`/conversations/workspace/${workspaceId}/user/${user.id}`}
+      href={`/workspace/${workspaceId}/private-chat/${user.id}`}
     >
       <div className={cn("flex justify-start items-center gap-1 w-full px-2 py-1 rounded-sm bg-transparent cursor-pointer hover:bg-neutral-700 transition-colors", isActive && "bg-neutral-700")}>
         <div className="flex justify-start items-center gap-2 flex-grow overflow-hidden">
