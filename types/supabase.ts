@@ -68,6 +68,29 @@ export type MessageWithSender = Message & {
   }
 }
 
+export type PrivateMessageWithSender = {
+  attachment_key: string | null
+  attachment_name: string | null
+  attachment_url: string | null
+  created_at: string
+  deleted_for_all: boolean
+  deleted_for_ids: string[] | null
+  id: string
+  message_type: Database["public"]["Enums"]["message_type"]
+  recipient_id: string
+  seen_at: string | null
+  sender_id: string
+  text_content: string | null
+  updated_at: string | null
+  workspace_id: string
+  sender_data: {
+    id: string
+    name: string | null
+    email: string
+    avatar_url: string | null
+  }
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -260,6 +283,79 @@ export type Database = {
           },
         ]
       }
+      private_messages: {
+        Row: {
+          atachment_url: string | null
+          attachment_key: string | null
+          attachment_name: string | null
+          created_at: string
+          deleted_for_all: boolean | null
+          deleted_for_ids: string[] | null
+          id: string
+          message_type: Database["public"]["Enums"]["message_type"]
+          recipient_id: string
+          seen_at: string | null
+          sender_id: string
+          text_content: string | null
+          updated_at: string | null
+          workspace_id: string
+        }
+        Insert: {
+          atachment_url?: string | null
+          attachment_key?: string | null
+          attachment_name?: string | null
+          created_at?: string
+          deleted_for_all?: boolean | null
+          deleted_for_ids?: string[] | null
+          id?: string
+          message_type: Database["public"]["Enums"]["message_type"]
+          recipient_id?: string
+          seen_at?: string | null
+          sender_id?: string
+          text_content?: string | null
+          updated_at?: string | null
+          workspace_id?: string
+        }
+        Update: {
+          atachment_url?: string | null
+          attachment_key?: string | null
+          attachment_name?: string | null
+          created_at?: string
+          deleted_for_all?: boolean | null
+          deleted_for_ids?: string[] | null
+          id?: string
+          message_type?: Database["public"]["Enums"]["message_type"]
+          recipient_id?: string
+          seen_at?: string | null
+          sender_id?: string
+          text_content?: string | null
+          updated_at?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "private_messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "private_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "private_messages_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_key: string | null
@@ -351,6 +447,37 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_private_messages: {
+        Args: {
+          workspace: string
+          sender: string
+          recipient: string
+          skip: number
+          amount: number
+        }
+        Returns: {
+          id: string
+          sender_id: string
+          recipient_id: string
+          workspace_id: string
+          text_content: string
+          attachment_url: string
+          attachment_key: string
+          attachment_name: string
+          message_type: Database["public"]["Enums"]["message_type"]
+          seen_at: string
+          created_at: string
+          updated_at: string
+          deleted_for_all: boolean
+          deleted_for_ids: string[]
+          sender_data: {
+            id: string
+            name: string | null
+            email: string
+            avatar_url: string | null
+          }
+        }[]
+      }
       get_workspaces_with_members: {
         Args: {
           user_id: string
