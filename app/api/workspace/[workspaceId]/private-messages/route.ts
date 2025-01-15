@@ -5,17 +5,16 @@ import { supabaseServerClient } from "@/utils/supabase/supabaseServerClient";
 import { PrivateMessageWithSender } from "@/types/supabase";
 
 interface Context {
-  params: Promise<{workspaceId: string, otherUserId: string}>
+  params: Promise<{workspaceId: string}>
 }
 
 // Route handler para consultar los mensajes privados entre dos usuarios en un workspace
 export async function GET(req: NextRequest, {params}: Context) {
-  try {
+  try {    
     const workspaceId = (await params).workspaceId;
-    const otherUserId = (await params).otherUserId;
-    const perPage = 10;
-
+    
     const searchParams = new URL(req.url).searchParams;
+    const otherUserId = searchParams.get("otherUserId");
 
     // Validar la ID del workspace
     if (!uuidRegex.test(workspaceId)) {
@@ -23,7 +22,7 @@ export async function GET(req: NextRequest, {params}: Context) {
     }
 
     // Validar la ID del otro usuario
-    if (!uuidRegex.test(otherUserId)) {
+    if (!otherUserId || !uuidRegex.test(otherUserId)) {
       return NextResponse.json({message: "User not found"}, {status: 404});
     }
 
@@ -47,8 +46,8 @@ export async function GET(req: NextRequest, {params}: Context) {
       return redirect("/signin");
     }
 
-    const limit = perPage;
-    const offset = (Number(page) - 1) * perPage;
+    const limit = 10;
+    const offset = (Number(page) - 1) * limit;
     let hasMore = true;
 
     // Consultar los mensajes entre ambos usuarios en el workspace
@@ -65,7 +64,7 @@ export async function GET(req: NextRequest, {params}: Context) {
     }
 
     // Verificar si hay mensajes para mostrar
-    if (messagesData.length < perPage) {
+    if (messagesData.length < limit) {
       hasMore = false;
     }
 
