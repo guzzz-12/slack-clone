@@ -31,9 +31,17 @@ export type Workspace = {
   slug: string
 }
 
+export type WorkspaceMember = {
+  id: string
+  name: string | null
+  email: string
+  avatar_url: string | null
+  is_away: boolean
+}
+
 export type WorkspaceWithMembers = {
   workspaceData: Workspace;
-  workspaceMembers: Partial<User>[]
+  workspaceMembers: WorkspaceMember[]
 }
 
 export type Channel = {

@@ -21,7 +21,7 @@ const WorkspaceDetailPage = ({params}: Props) => {
 
   const router = useRouter();
 
-  const {currentWorkspace, loadingWorkspaces, setLoadingWorkspaces, setCurrentWorkspace, setUserWorkspaces} = useWorkspace();
+  const {currentWorkspace, loadingWorkspaces, setLoadingWorkspaces, setCurrentWorkspace, setCurrentWorkspaceMembers, setUserWorkspaces} = useWorkspace();
 
   // Consultar el workspace y sus miembros
   useEffect(() => {
@@ -38,6 +38,8 @@ const WorkspaceDetailPage = ({params}: Props) => {
         });
 
         setUserWorkspaces(userWorkspaces.data);
+
+        setCurrentWorkspaceMembers(currentWorkspace.data.workspaceMembers);
 
       } catch (error: any) {
         if (error instanceof AxiosError && error.response?.status === 404) {
