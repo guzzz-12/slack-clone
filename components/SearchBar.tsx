@@ -3,13 +3,7 @@ import { MdSearch } from "react-icons/md";
 import { Input } from "./ui/input";
 import { useMessages } from "@/hooks/useMessages";
 
-interface Props {
-  currentWorkspaceId: string;
-  currentChannelId: string;
-  placeholder: string;
-}
-
-const SearchBar = ({placeholder}: Props) => {
+const SearchBar = () => {
   const {term, setTerm, loadingMessages} = useMessages();
 
   const onChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
@@ -31,7 +25,7 @@ const SearchBar = ({placeholder}: Props) => {
         <Input
           className="w-full pl-9 border"
           type="search"
-          placeholder={`Search in ${placeholder}...`}
+          placeholder="Search messages..."
           disabled={loadingMessages}
           value={term || ""}
           onChange={onChangeHandler}

@@ -13,7 +13,7 @@ interface Props {
   loading: boolean;
 }
 
-const ChatHeader = ({currentWorkspaceId, currentChannelId, title, loading}: Props) => {
+const ChatHeader = ({title, loading}: Props) => {
   const {isVideoCall, setIsVideoCall} = useMessages();
 
   return (
@@ -35,11 +35,7 @@ const ChatHeader = ({currentWorkspaceId, currentChannelId, title, loading}: Prop
           </div>
           
           <div className="flex justify-start items-center gap-2">
-            <SearchBar
-              currentWorkspaceId={currentWorkspaceId}
-              currentChannelId={currentChannelId}
-              placeholder={title!}
-            />
+            <SearchBar />
 
             <TooltipProvider>
               <Tooltip delayDuration={250}>

@@ -36,7 +36,7 @@ const InfoSection = ({userData}: Props) => {
 
   const [unreadMessages, setUnreadMessages] = useState<MessageWithSender[]>([]);
 
-  const {currentWorkspace, currentWorkspaceMembers, loadingWorkspaces} = useWorkspace();
+  const {currentWorkspace, loadingWorkspaces} = useWorkspace();
 
 
   // Limpiar el state de los channels cuando se cambie el workspace
@@ -184,11 +184,10 @@ const InfoSection = ({userData}: Props) => {
 
       <Separator className="w-full my-4 bg-neutral-700" />
 
-      {loadingWorkspaces &&
+      {(loadingWorkspaces || loadingChannels) &&
         <>
           <div className="flex justify-between items-center w-full mb-4">
             <Skeleton className="w-[60%] h-5 bg-neutral-600" />
-            <Skeleton className="w-8 h-8 rounded-full bg-neutral-600" />
           </div>
 
           <div className="flex flex-col gap-2 w-full">
@@ -199,7 +198,7 @@ const InfoSection = ({userData}: Props) => {
         </>
       }
 
-      {!loadingWorkspaces &&
+      {!loadingWorkspaces && !loadingChannels && currentWorkspace &&
         <div className="flex flex-col gap-3 w-full max-h-[50vh]">
           <Typography
             className="font-bold"
@@ -208,7 +207,7 @@ const InfoSection = ({userData}: Props) => {
           />
 
           <div className="flex flex-col gap-1 scrollbar-thin overflow-y-auto">
-            {currentWorkspaceMembers.map((member) => (
+            {currentWorkspace.workspaceMembers.map((member) => (
               <PrivateMessageItem
                 key={member.id}
                 workspaceId={workspaceId}
