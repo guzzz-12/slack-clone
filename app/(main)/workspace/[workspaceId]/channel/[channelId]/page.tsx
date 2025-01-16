@@ -15,9 +15,9 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 import { useUser } from "@/hooks/useUser";
 import { useMessages } from "@/hooks/useMessages";
 import { useDebounce } from "@/hooks/useDebounce";
+import useFetchWorkspace from "@/hooks/useFetchWorkspace";
 import { pageBaseTitle } from "@/utils/constants";
-import { Channel, MessageWithSender, Workspace, WorkspaceWithMembers } from "@/types/supabase";
-import { PaginatedMessages } from "@/types/paginatedMessages";
+import { Channel, MessageWithSender, PaginatedMessages } from "@/types/supabase";
 
 interface Props {
   params: {
@@ -58,41 +58,9 @@ const ChannelPage = ({params}: Props) => {
 
   const {debouncedValue} = useDebounce(term);
 
-  const {
-    currentWorkspace,
-    setLoadingWorkspaces,
-    setCurrentWorkspace,
-    setUserWorkspaces
-  } = useWorkspace();
+  const {fetchWorkspace} = useFetchWorkspace(workspaceId);
 
-
-  /** Consultar el workspace y sus miembros */
-  const fetchWorkspace = async () => {
-    try {
-      setLoadingWorkspaces(true);
-
-      const currentWorkspace = await axios<WorkspaceWithMembers>(`/api/workspace/${workspaceId}`);
-      const userWorkspaces = await axios<Workspace[]>("/api/workspace/user-workspaces");
-
-      setCurrentWorkspace({
-        workspaceData: currentWorkspace.data.workspaceData,
-        workspaceMembers: currentWorkspace.data.workspaceMembers
-      });
-
-      setUserWorkspaces(userWorkspaces.data);
-
-    } catch (error: any) {
-      if (error instanceof AxiosError && error.response?.status === 404) {
-        toast.error("Workspace not found", {duration: 5000});
-        return router.replace("/user-workspaces");
-      }
-
-      toast.error(error.message);
-
-    } finally {
-      setLoadingWorkspaces(false);
-    }
-  }
+  const {currentWorkspace} = useWorkspace();
 
   /** Consultar el channel */
   const getChannel = async () => {
@@ -130,7 +98,7 @@ const ChannelPage = ({params}: Props) => {
     try {
       setLoadingMessages(true);
 
-      const {data} = await axios<PaginatedMessages>({
+      const {data} = await axios<PaginatedMessages<MessageWithSender>>({
         method: "GET",
         url: `/api/workspace/${workspaceId}/channels/${channelId}/messages`,
         params: {
@@ -156,7 +124,7 @@ const ChannelPage = ({params}: Props) => {
       if (currentPage === 1) {
         currentMessages = data.messages;
       } else {
-        currentMessages = [...data.messages, ...messages];
+        currentMessages = [...data.messages, ...messages as MessageWithSender[]];
       }      
 
       // Filtrar los mensajes duplicados
@@ -194,6 +162,7 @@ const ChannelPage = ({params}: Props) => {
     }
   }
 
+
   // Actualizar el title de la página al cambiar de channel
   useEffect(() => {
     if (channelData) {
@@ -202,6 +171,7 @@ const ChannelPage = ({params}: Props) => {
       document.title = pageBaseTitle;
     }
   }, [channelData]);
+
 
   // Escuchar el eventos de mensaje entrante y mensaje eliminado
   useEffect(() => {
@@ -220,7 +190,7 @@ const ChannelPage = ({params}: Props) => {
         return setNewIncomingMessage(true);
       }
 
-      setMessages([...messages, data]);
+      setMessages([...messages as MessageWithSender[], data]);
 
       // Scrollear al bottom del chat al recibir un nuevo mensaje
       // si la bandeja está scrolleada al bottom
@@ -242,7 +212,7 @@ const ChannelPage = ({params}: Props) => {
         currentMessages.splice(messageIndex, 1, deletedMsg);
       }
 
-      setMessages([...currentMessages]);
+      setMessages([...currentMessages as MessageWithSender[]]);
     })
 
     return () => {
@@ -250,6 +220,7 @@ const ChannelPage = ({params}: Props) => {
       channel.unsubscribe();
     };
   }, [channelData, isScrolledToBottom, messages]);
+
 
   // Consultar el channel y workspace con sus miembros
   useEffect(() => {
@@ -266,10 +237,11 @@ const ChannelPage = ({params}: Props) => {
     }
   }, [workspaceId, channelId, currentWorkspace]);
 
-  // Consultar los mensajes asociados al channel
+
+  // Consultar la primera página de mensajes
   // Calcular el height del main
   useEffect(() => {
-    if (channelData) {
+    if (channelData && page === 1) {
       getMessages(page, debouncedValue)
     }
 
@@ -277,6 +249,7 @@ const ChannelPage = ({params}: Props) => {
       setChatInputHeight(chatInputRef.current.clientHeight);
     }
   }, [channelData, chatInputRef, debouncedValue, page]);
+
 
   // Restablecer el page al cambiar el term
   useEffect(() => {
@@ -286,7 +259,7 @@ const ChannelPage = ({params}: Props) => {
   }, [debouncedValue]);
   
 
-  /** Consultar la siguiente página de mensajes al scrollear al top */
+  /** Consultar las siguientes páginas de mensajes al scrollear al top */
   const onScrollHandler = () => {
     if (sectionRef.current) {
       const {scrollTop, clientHeight, scrollHeight} = sectionRef.current;
@@ -331,7 +304,7 @@ const ChannelPage = ({params}: Props) => {
         loading={loading}
       />
 
-      {newIncomingMessage &&(term.length > 0 || !isScrolledToBottom) &&
+      {newIncomingMessage && (term.length > 0 || !isScrolledToBottom) &&
         <button
           style={{bottom: `calc(${chatInputHeight}px + 1rem)`}}
           className="fixed left-[50%] flex justify-center items-center gap-2 translate-x-[-50%] px-3 py-2 rounded-s-md border bg-primary-dark hover:bg-primary-light transition-colors z-30"
@@ -390,7 +363,7 @@ const ChannelPage = ({params}: Props) => {
               {messages.map((message) => (
                 <MessageItem
                   key={message.id}
-                  message={message}
+                  message={message as MessageWithSender}
                   currentUserId={user?.id || ""}
                 />
               ))}

@@ -480,6 +480,7 @@ export type Database = {
           recipient: string
           skip: number
           amount: number
+          search_term?: string
         }
         Returns: {
           id: string
