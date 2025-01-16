@@ -51,7 +51,7 @@ export type Channel = {
   ws_admin_id: string;
 }
 
-export type Message = {
+type ChannelMessage = {
   id: string;
   text_content: string | null;
   attachment_url: string | null;
@@ -67,7 +67,7 @@ export type Message = {
   updated_at: string | null;
 }
 
-export type MessageWithSender = Message & {
+export type MessageWithSender = ChannelMessage & {
   sender: {
     id: string;
     name: string | null;
@@ -97,6 +97,21 @@ export type PrivateMessageWithSender = {
     email: string
     avatar_url: string | null
   }
+}
+
+export type PaginatedMessages<T extends Message> = {
+  messages: T[];
+  hasMore: boolean;
+};
+
+export type Message = MessageWithSender | PrivateMessageWithSender;
+
+export const isChannelMessage = (message: any): message is MessageWithSender => {
+  return "sender" in message;
+}
+
+export const isPrivateMessage = (message: any): message is PrivateMessageWithSender => {
+  return "sender_data" in message;
 }
 
 export type Database = {
@@ -293,12 +308,13 @@ export type Database = {
       }
       private_messages: {
         Row: {
-          atachment_url: string | null
           attachment_key: string | null
           attachment_name: string | null
+          attachment_url: string | null
           created_at: string
           deleted_for_all: boolean | null
           deleted_for_ids: string[] | null
+          fts: unknown | null
           id: string
           message_type: Database["public"]["Enums"]["message_type"]
           recipient_id: string
@@ -309,12 +325,13 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
-          atachment_url?: string | null
           attachment_key?: string | null
           attachment_name?: string | null
+          attachment_url?: string | null
           created_at?: string
           deleted_for_all?: boolean | null
           deleted_for_ids?: string[] | null
+          fts?: unknown | null
           id?: string
           message_type: Database["public"]["Enums"]["message_type"]
           recipient_id?: string
@@ -325,12 +342,13 @@ export type Database = {
           workspace_id?: string
         }
         Update: {
-          atachment_url?: string | null
           attachment_key?: string | null
           attachment_name?: string | null
+          attachment_url?: string | null
           created_at?: string
           deleted_for_all?: boolean | null
           deleted_for_ids?: string[] | null
+          fts?: unknown | null
           id?: string
           message_type?: Database["public"]["Enums"]["message_type"]
           recipient_id?: string
