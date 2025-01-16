@@ -15,6 +15,8 @@ export async function GET(req: NextRequest, {params}: Context) {
     
     const searchParams = new URL(req.url).searchParams;
     const otherUserId = searchParams.get("otherUserId");
+    const searchTerm = searchParams.get("searchTerm");
+    const page = searchParams.get("page") || "1";
 
     // Validar la ID del workspace
     if (!uuidRegex.test(workspaceId)) {
@@ -25,9 +27,6 @@ export async function GET(req: NextRequest, {params}: Context) {
     if (!otherUserId || !uuidRegex.test(otherUserId)) {
       return NextResponse.json({message: "User not found"}, {status: 404});
     }
-
-    // Extraer el page del query string
-    const page = searchParams.get("page") || "1";
 
     // Validar que el page sea un número o string numérico
     if (Number(page) === 0 || isNaN(Number(page))) {
@@ -56,7 +55,8 @@ export async function GET(req: NextRequest, {params}: Context) {
       sender: user.id,
       recipient: otherUserId,
       amount: limit,
-      skip: offset
+      skip: offset,
+      search_term: searchTerm || undefined
     });
 
     if (messagesError) {
