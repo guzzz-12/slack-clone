@@ -62,22 +62,35 @@ export async function POST(req: NextRequest) {
     }
 
     // Verificar si el usuario ya forma parte del workspace
-    const {data: isMember, error: isMemberError} = await supabase
-    .from("members_workspaces")
+    const {data: invitedUserData, error: invitedUserError} = await supabase
+    .from("users")
     .select("id")
-    .eq("workspace_id", workspaceId)
-    .eq("user_id", user.id)
+    .eq("email", email)
     .limit(1);
 
-    if (isMemberError) {
-      throw isMemberError;
+    if (invitedUserError) {
+      throw invitedUserError;
     }
 
-    if (isMember.length > 0) {
-      return NextResponse.json({message: "There's already a member with this email"}, {status: 400});
+    if (invitedUserData.length > 0) {
+      const {data: isMember, error: isMemberError} = await supabase
+      .from("members_workspaces")
+      .select("id")
+      .eq("workspace_id", workspaceId)
+      .eq("user_id", invitedUserData[0].id)
+      .limit(1);
+  
+      if (isMemberError) {
+        throw isMemberError;
+      }
+  
+      if (isMember.length > 0) {
+        return NextResponse.json({message: "There's already a member with this email"}, {status: 400});
+      }
     }
 
-    // Verificar si el usuario es admin del workspace
+
+    // Verificar si el usuario que hizo la ivitación es el admin del workspace
     const {data: workspaceAdminData, error: workspaceAdminError} = await supabase
       .from("workspaces")
       .select("id")
@@ -89,7 +102,7 @@ export async function POST(req: NextRequest) {
       throw workspaceAdminError;
     }
 
-    if (workspaceAdminData.length > 0) {
+    if (workspaceAdminData.length === 0) {
       return NextResponse.json({message: "You are not allowed to perform this action"}, {status: 403});
     }
 
@@ -117,23 +130,7 @@ export async function POST(req: NextRequest) {
       html: invitationEmailTemplate(email, workspaceName, token)
     };
 
-    // Verificar si el usuario es admin del workspace
-    const {data: workspaceMembers, error: workspaceMembersError} = await supabase
-      .from("workspaces")
-      .select("id")
-      .eq("id", workspaceId)
-      .eq("admin_id", user.id)
-      .limit(1);
-    
-    if (workspaceMembersError) {
-      throw workspaceMembersError;
-    }
-
-    if (workspaceMembers.length === 0) {
-      return NextResponse.json({message: "You are not allowed to perform this action"}, {status: 403});
-    }
-
-    // Enviar el mensaje
+    // Enviar el email de invitación
     await sendgrid.send(mailContent);
 
     return NextResponse.json("Invitation sent successfully");
