@@ -190,7 +190,10 @@ export async function GET(req: NextRequest) {
     }
 
     if (isMember[0]) {
-      return NextResponse.json({message: "You are already a member of this workspace"}, {status: 400});
+      return NextResponse.json(
+        {message: `You are already a member of ${workspace[0].name}`},
+        {status: 400}
+      );
     }
 
     // Verificar si el token coincide con el token almacenado en la base de datos
