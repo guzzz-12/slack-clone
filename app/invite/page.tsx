@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios, { isAxiosError } from "axios";
 import toast from "react-hot-toast";
-import Spinner from "@/components/Spinner";
+import { LuLoader2 } from "react-icons/lu";
 import { supabaseBrowserClient } from "@/utils/supabase/supabaseBrowserClient";
 import { Workspace } from "@/types/supabase";
 
@@ -16,6 +16,10 @@ interface Props {
 
 const InvitePage = ({searchParams: {token}}: Props) => {
   const router = useRouter();
+
+  const [loading, setLoading] = useState(true);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const supabase = supabaseBrowserClient;
 
@@ -49,8 +53,12 @@ const InvitePage = ({searchParams: {token}}: Props) => {
       });
       
       toast.success(`You have successfully joined ${data.name}.`, {duration: 5000});
+
+      setSuccess(true);
       
-      router.replace(`/workspace/${data.id}`);
+      setTimeout(() => {
+        router.replace(`/workspace/${data.id}`);        
+      }, 2000);
 
     } catch (error: any) {
       let message = error.message;
@@ -62,7 +70,14 @@ const InvitePage = ({searchParams: {token}}: Props) => {
       toast.dismiss();
       toast.error(message, {duration: 10000});
 
-      router.replace("/");
+      setError(message);
+
+      setTimeout(() => {
+        router.replace("/");
+      }, 2000);
+
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -71,7 +86,44 @@ const InvitePage = ({searchParams: {token}}: Props) => {
     confirmInvitation();
   }, [token]);
 
-  return <Spinner />
+  return (
+    <main className="flex justify-center items-center w-full max-w-[450px] h-screen mx-auto">
+      {loading && (
+        <section className="flex flex-col justify-center items-center gap-3 w-full h-full text-center">
+          <LuLoader2 className="animate-spin" size={40} />
+
+          <h1 className="text-xl">
+            Processing invitation...
+          </h1>
+        </section>
+      )}
+
+      {success && (
+        <section className="flex flex-col justify-center items-center gap-2 w-full h-full text-center">
+          <LuLoader2 className="animate-spin" size={40} />
+
+          <h1 className="text-xl">
+            Invitation confirmed <br />
+            Redirecting...
+          </h1>
+        </section>)
+      }
+
+      {error && (
+        <section className="flex flex-col justify-center items-center gap-2 w-full h-full text-center">
+          <LuLoader2 className="animate-spin" size={40} />
+
+          <h1 className="text-xl">
+            There was an error confirming the invitation.
+          </h1>
+
+          <p className="font-semibold">
+            {error}
+          </p>
+        </section>
+      )}
+    </main>
+  )
 }
 
 export default InvitePage
