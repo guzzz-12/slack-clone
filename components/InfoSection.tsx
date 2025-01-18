@@ -10,7 +10,7 @@ import Typography from "./Typography";
 import ChannelItem from "./ChannelItem";
 import CreateChannelModal from "./CreateChannelModal";
 import IncomingMsgToastContent from "./IncomingMsgToastContent";
-import PrivateMessageItem from "./PrivateMessageItem";
+import PrivateChatItem from "./PrivateChatItem";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { Skeleton } from "./ui/skeleton";
@@ -208,7 +208,7 @@ const InfoSection = ({userData}: Props) => {
 
           <div className="flex flex-col gap-1 scrollbar-thin overflow-y-auto">
             {currentWorkspace.workspaceMembers.map((member) => (
-              <PrivateMessageItem
+              <PrivateChatItem
                 key={member.id}
                 workspaceId={workspaceId}
                 user={member}
