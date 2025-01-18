@@ -52,7 +52,7 @@ export async function GET(req: NextRequest, {params}: Context) {
     // Consultar los mensajes entre ambos usuarios en el workspace
     const {data: messagesData, error: messagesError} = await supabase.rpc("get_private_messages", {
       workspace: workspaceId,
-      sender: user.id,
+      sender_user_id: user.id,
       recipient: otherUserId,
       amount: limit,
       skip: offset,

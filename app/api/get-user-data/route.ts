@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
     const {data: memberData, error: memberError} = await supabase
     .from("members_workspaces")
-    .select("member:users(id, name, email, avatar_url)")
+    .select("member:users(id, name, email, avatar_url, is_away)")
     .eq("user_id", otherUserId)
     .eq("workspace_id", workspaceId)
     .limit(1)

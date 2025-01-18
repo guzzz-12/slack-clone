@@ -91,7 +91,7 @@ export type PrivateMessageWithSender = {
   text_content: string | null
   updated_at: string | null
   workspace_id: string
-  sender_data: {
+  sender: {
     id: string
     name: string | null
     email: string
@@ -476,7 +476,7 @@ export type Database = {
       get_private_messages: {
         Args: {
           workspace: string
-          sender: string
+          sender_user_id: string
           recipient: string
           skip: number
           amount: number
@@ -497,7 +497,7 @@ export type Database = {
           updated_at: string
           deleted_for_all: boolean
           deleted_for_ids: string[]
-          sender_data: {
+          sender: {
             id: string
             name: string | null
             email: string
