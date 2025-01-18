@@ -1,3 +1,4 @@
+import { MessageWithSender, PrivateMessageWithSender } from "@/types/supabase";
 import { PostgrestError } from "@supabase/supabase-js";
 
 // Expresion regular para validar strings de tipo UUID
@@ -9,4 +10,12 @@ export const pageBaseTitle = "Slack Clone";
 // Verificar si el error es de PostgreSQL
 export const isPostgresError = (error: any): error is PostgrestError => {
   return "details" in error;
+}
+
+export const isChannelMessage = (message: any): message is MessageWithSender => {
+  return "channel_id" in message;
+}
+
+export const isPrivateMessage = (message: any): message is PrivateMessageWithSender => {
+  return !isChannelMessage(message);
 }

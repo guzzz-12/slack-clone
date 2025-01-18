@@ -8,14 +8,15 @@ import { FaTimes } from "react-icons/fa";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { FiDownload, FiZoomIn } from "react-icons/fi";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
-import { MessageWithSender } from "@/types/supabase";
+import { Message, MessageWithSender, PrivateMessageWithSender } from "@/types/supabase";
 import { useMessages } from "@/hooks/useMessages";
 import { useImageLightbox } from "@/hooks/useImageLightbox";
 import { cn } from "@/lib/utils";
+import { isChannelMessage } from "@/utils/constants";
 
 interface Props {
   currentUserId: string;
-  message: MessageWithSender;
+  message: MessageWithSender | PrivateMessageWithSender;
 }
 
 const MessageItem = ({message, currentUserId}: Props) => {
@@ -27,13 +28,17 @@ const MessageItem = ({message, currentUserId}: Props) => {
 
   const {setMessage, setOpen} = useImageLightbox();
 
+  // URL de la API para borrar un mensaje del channel o de la conversación privada
+  let apiDeleteUrl = isChannelMessage(message) ? `/api/workspace/${message.workspace_id}/channels/${message.channel_id}/messages/` : `/api/workspace/${message.workspace_id}/private-messages`;
+
+  // Handler para eliminación de un mensaje
   const deleteMessageHandler = async(mode: "all" | "me") => {
     try {
       setDeleting(true);
 
-      const {data} = await axios<MessageWithSender>({
+      const {data} = await axios<Message>({
         method: "DELETE",
-        url: `/api/workspace/${message.workspace_id}/channels/${message.channel_id}/messages/`,
+        url: apiDeleteUrl,
         params: {messageId: message.id, mode}
       });
 

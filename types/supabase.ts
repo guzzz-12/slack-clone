@@ -106,14 +106,6 @@ export type PaginatedMessages<T extends Message> = {
 
 export type Message = MessageWithSender | PrivateMessageWithSender;
 
-export const isChannelMessage = (message: any): message is MessageWithSender => {
-  return "sender" in message;
-}
-
-export const isPrivateMessage = (message: any): message is PrivateMessageWithSender => {
-  return "sender_data" in message;
-}
-
 export type Database = {
   public: {
     Tables: {
