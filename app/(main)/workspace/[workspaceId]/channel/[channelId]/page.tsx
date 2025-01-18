@@ -16,8 +16,9 @@ import { useUser } from "@/hooks/useUser";
 import { useMessages } from "@/hooks/useMessages";
 import { useDebounce } from "@/hooks/useDebounce";
 import useFetchWorkspace from "@/hooks/useFetchWorkspace";
+import useFetchMessages from "@/hooks/useFetchMessages";
 import { pageBaseTitle } from "@/utils/constants";
-import { Channel, MessageWithSender, PaginatedMessages } from "@/types/supabase";
+import { Channel, MessageWithSender } from "@/types/supabase";
 
 interface Props {
   params: {
@@ -50,8 +51,7 @@ const ChannelPage = ({params}: Props) => {
     setTerm,
     setPage,
     setMessages,
-    setLoadingMessages,
-    setHasMore
+    setLoadingMessages
   } = useMessages();
 
   const {user} = useUser();
@@ -61,6 +61,22 @@ const ChannelPage = ({params}: Props) => {
   const {fetchWorkspace} = useFetchWorkspace(workspaceId);
 
   const {currentWorkspace} = useWorkspace();
+
+  const apiUrl = `/api/workspace/${workspaceId}/channels/${channelId}/messages`;
+
+  const {getMessages} = useFetchMessages(apiUrl, sectionRef);
+
+
+  /** Scrollear al bottom del chat al clickear el botón de "You have new messages" */
+  const scrollToBottomHandler = () => {
+    if (sectionRef.current) {
+      sectionRef.current.scrollTo({
+        top: sectionRef.current.scrollHeight,
+        behavior: "smooth"
+      });
+    }
+  }
+
 
   /** Consultar el channel */
   const getChannel = async () => {
@@ -90,75 +106,6 @@ const ChannelPage = ({params}: Props) => {
       
     } finally {
       setLoading(false);
-    }
-  }
-
-  /** Consultar y paginar los mensajes asociados al channel */
-  const getMessages = async (currentPage: number, searchTerm: string | null) => {
-    try {
-      setLoadingMessages(true);
-
-      const {data} = await axios<PaginatedMessages<MessageWithSender>>({
-        method: "GET",
-        url: `/api/workspace/${workspaceId}/channels/${channelId}/messages`,
-        params: {
-          searchTerm: searchTerm,
-          page: currentPage
-        }
-      });
-
-      // Scrollear al bottom del chat al cargar la primera página de mensajes
-      if (currentPage === 1) {
-        scrollToBottomHandler();
-      }
-      
-      // Scrollear a la posición del último mensaje de la página anterior
-      if (currentPage > 1) {
-        const previousPageLastMessageElement = document.getElementById(messages[0].id)!;
-        previousPageLastMessageElement.scrollIntoView();
-      }
-
-      let currentMessages: MessageWithSender[] = [];
-
-      // Actualizar el state de los mensajes
-      if (currentPage === 1) {
-        currentMessages = data.messages;
-      } else {
-        currentMessages = [...data.messages, ...messages as MessageWithSender[]];
-      }      
-
-      // Filtrar los mensajes duplicados
-      const uniqueMessages = currentMessages.reduce((acc, message) => {
-        const existingMessage = acc.find(m => m.id === message.id);
-
-        if (!existingMessage) {
-          acc.push(message);
-        }
-
-        return acc;
-      }, [] as MessageWithSender[]);
-
-      setMessages(uniqueMessages);
-      setHasMore(data.hasMore);
-
-      // Scrollear al fondo del chat al cargar la primera página de mensajes
-      if (currentPage === 1) {
-        setTimeout(() => {
-          scrollToBottomHandler();
-        }, 500);
-      }
-      
-    } catch (error: any) {
-      let message = error.message;
-
-      if (error instanceof AxiosError) {
-        message = error.response?.data.message;
-      }
-
-      toast.error(message);
-
-    } finally {
-      setLoadingMessages(false);
     }
   }
 
@@ -277,17 +224,6 @@ const ChannelPage = ({params}: Props) => {
       } else {
         setIsScrolledToBottom(false);
       }
-    }
-  }
-
-
-  // Scrollear al bottom del chat al clickear el botón de "You have new messages"
-  const scrollToBottomHandler = () => {
-    if (sectionRef.current) {
-      sectionRef.current.scrollTo({
-        top: sectionRef.current.scrollHeight,
-        behavior: "smooth"
-      });
     }
   }
 
