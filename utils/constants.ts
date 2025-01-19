@@ -19,3 +19,13 @@ export const isChannelMessage = (message: any): message is MessageWithSender => 
 export const isPrivateMessage = (message: any): message is PrivateMessageWithSender => {
   return !isChannelMessage(message);
 }
+
+/**
+ * Combinar dos UUIDs de forma que siempre tengan el mismo orden
+ */
+export const combineUuid = (A: string, B: any) => {
+  const aFirstSegment = A.split("-")[0];
+  const bFirstSegment = B.split("-")[0];
+
+  return [aFirstSegment, bFirstSegment].sort().join("-");
+}
