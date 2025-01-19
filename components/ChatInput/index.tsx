@@ -18,12 +18,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MessageWithSender } from "@/types/supabase";
 
 interface Props {
-  workspaceId: string;
-  channelId: string;
+  apiUrl: string;
   isLoading: boolean;
 }
 
-const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
+const ChatInput = ({apiUrl, isLoading}: Props) => {
   const {theme} = useTheme();
 
   const [sending, setSending] = useState(false);
@@ -70,7 +69,7 @@ const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
 
       await axios<MessageWithSender>({
         method: "POST",
-        url: `/api/workspace/${workspaceId}/channels/${channelId}/messages`,
+        url: apiUrl,
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data"
@@ -98,8 +97,7 @@ const ChatInput = ({workspaceId, channelId, isLoading}: Props) => {
     <div className="relative flex flex-col justify-start w-full min-h-[150px] max-h-[270px] border-t overflow-y-auto scrollbar-thin">
       {/* Modal de archivos a enviar como attachments */}
       <AttachmentModal
-        workspaceId={workspaceId}
-        channelId={channelId}
+        apiUrl={apiUrl}
         isOpen={openFileModal}
         setIsOpen={setOpenFileModal}
       />

@@ -62,6 +62,7 @@ const ChannelPage = ({params}: Props) => {
 
   const {currentWorkspace} = useWorkspace();
 
+  // API endpoint para consultar, enviar y eliminar los mensajes
   const apiUrl = `/api/workspace/${workspaceId}/channels/${channelId}/messages`;
 
   const {getMessages} = useFetchMessages(apiUrl, sectionRef);
@@ -311,8 +312,7 @@ const ChannelPage = ({params}: Props) => {
             className="w-full flex-shrink-0 bg-neutral-800 overflow-hidden"
           >
             <ChatInput
-              workspaceId={workspaceId}
-              channelId={channelId}
+              apiUrl={apiUrl}
               isLoading={loading}
             />
           </section>

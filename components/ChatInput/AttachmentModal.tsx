@@ -20,15 +20,14 @@ import { cn } from "@/lib/utils";
 const ACCEPTED_FILES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"];
 
 interface Props {
-  workspaceId: string;
-  channelId: string;
+  apiUrl: string;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
 }
 
 type FormType = z.infer<typeof MessageAttachmentSchema>;
 
-const AttachmentModal: FC<Props> = ({ workspaceId, channelId, isOpen, setIsOpen }) => {
+const AttachmentModal: FC<Props> = ({ apiUrl, isOpen, setIsOpen }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
@@ -189,7 +188,7 @@ const AttachmentModal: FC<Props> = ({ workspaceId, channelId, isOpen, setIsOpen 
       // Enviar el attachment al backend
       await axios({
         method: "POST",
-        url: `/api/workspace/${workspaceId}/channels/${channelId}/messages`,
+        url: apiUrl,
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data"

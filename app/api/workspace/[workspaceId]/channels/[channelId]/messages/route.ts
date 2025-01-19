@@ -144,7 +144,8 @@ export async function GET(req: Request, {params}: Context) {
 
 // Route handler para crear un mensaje en un channel
 export async function POST(req: Request, {params}: Context) {
-  // ID de la imagen en el bucket para eliminarla en caso de que haya error creando el workspace
+  // ID del attachment en el bucket para eliminarlo
+  // en caso de que haya error enviando el mensaje
   let fileId = "";
   let fileName = "";
 
