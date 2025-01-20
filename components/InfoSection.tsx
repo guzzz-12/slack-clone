@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
-import Pusher, {Channel as PusherChannel} from "pusher-js";
+import { type Channel as PusherChannel } from "pusher-js";
 import toast from "react-hot-toast";
 import { FaPlus } from "react-icons/fa6";
 import Typography from "./Typography";
@@ -16,6 +16,7 @@ import { Separator } from "./ui/separator";
 import { Skeleton } from "./ui/skeleton";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { Channel, MessageWithSender, User } from "@/types/supabase";
+import { pusherClient } from "@/utils/pusherClientSide";
 
 type Params = {
   workspaceId: string;
@@ -82,17 +83,13 @@ const InfoSection = ({userData}: Props) => {
   // Escuchar los eventos de mensajes de los channels
   // y actualizar el state local de los mensajes sin leer
   useEffect(() => {
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-    });
-
     const pusherChannels: PusherChannel[] = [];
 
     if (channels.length > 0) {
       channels.forEach((ch) => {
         const channelName = `channel-${ch.id}`;
 
-        const channel = pusher.subscribe(channelName);
+        const channel = pusherClient.subscribe(channelName);
 
         channel.bind("new-message", (data: MessageWithSender) => {
           setUnreadMessages((prev) => [...prev, data]);
@@ -116,12 +113,11 @@ const InfoSection = ({userData}: Props) => {
     return () => {
       if (pusherChannels.length > 0) {
         pusherChannels.forEach((channel) => {
-          channel.unbind_all();
-          channel.unsubscribe();
+          pusherClient.unsubscribe(channel.name);
         });
       }
     }
-  }, [channels, workspaceId, channelId]);
+  }, [channels, workspaceId, channelId, pusherClient]);
 
 
   return (

@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios, { AxiosError } from "axios";
-import Pusher from "pusher-js";
 import toast from "react-hot-toast";
 import { LuLoader2 } from "react-icons/lu";
 import { FaArrowDown } from "react-icons/fa6";
@@ -18,6 +17,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import useFetchWorkspace from "@/hooks/useFetchWorkspace";
 import useFetchMessages from "@/hooks/useFetchMessages";
 import { pageBaseTitle } from "@/utils/constants";
+import { pusherClient } from "@/utils/pusherClientSide";
 import { Channel, MessageWithSender } from "@/types/supabase";
 
 interface Props {
@@ -125,11 +125,9 @@ const ChannelPage = ({params}: Props) => {
   useEffect(() => {
     if (!channelData) return;
 
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-    });
+    const channelName = `channel-${channelData.id}`;
 
-    const channel = pusher.subscribe(`channel-${channelData.id}`);
+    const channel = pusherClient.subscribe(channelName);
 
     channel.bind("new-message", (data: MessageWithSender) => {
       // Notificar nuevo mensaje entrante pero sin agregarlo
@@ -164,10 +162,9 @@ const ChannelPage = ({params}: Props) => {
     })
 
     return () => {
-      channel.unbind_all();
-      channel.unsubscribe();
+      pusherClient.unsubscribe(channelName);
     };
-  }, [channelData, isScrolledToBottom, messages]);
+  }, [channelData, isScrolledToBottom, messages, pusherClient]);
 
 
   // Consultar el channel y workspace con sus miembros
