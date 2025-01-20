@@ -255,3 +255,139 @@ export async function POST(req: NextRequest, {params}: Context) {
     return NextResponse.json({message: "Internal server error"}, {status: 500});
   }
 }
+
+// Route handler para eliminar un mensaje privado
+export async function DELETE(req: NextRequest, {params}: Context) {
+  try {
+    const workspaceId = (await params).workspaceId;
+
+    // Validar la ID del workspace
+    if (!uuidRegex.test(workspaceId)) {
+      return NextResponse.json({message: "Workspace not found"}, {status: 404});
+    }
+
+    const messageId = new URL(req.url).searchParams.get("messageId");
+    const mode = new URL(req.url).searchParams.get("mode");
+
+    // Validar la ID del mensaje
+    if (!messageId || !uuidRegex.test(messageId)) {
+      return NextResponse.json({message: "Message not found"}, {status: 404});
+    }
+
+    // Validar el mode
+    if (mode !== "all" && mode !== "me") {
+      return NextResponse.json({message: "Invalid deletion mode: must be 'all' or 'me'"}, {status: 400});
+    }
+
+    const supabase = supabaseServerClient();
+    
+    const {data: {user}} = await supabase.auth.getUser();
+    
+    if (!user) {
+      return redirect("/signin");
+    }
+
+    // Buscar el mensaje donde el usuario sea el remitente o el recipiente
+    const {data: message, error} = await supabase
+      .from("private_messages")
+      .select("*")
+      .eq("id", messageId)
+      .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
+      .limit(1);
+    
+    // Verificar si hubo error de base de datos al consultar el mensaje
+    if (error) {
+      throw error;
+    }
+
+    // Verificar si el mensaje no existe
+    if (!message || message.length === 0) {
+      return NextResponse.json({message: "Private message not found"}, {status: 404});
+    }
+
+    // Eliminar el mensaje para todos si el mode es "all" y el mensaje pertenece al usuario
+    if (mode === "all" && message[0].sender_id === user.id) {
+      const {data: updatedMessage, error: updateMessageError} = await supabase
+        .from("private_messages")
+        .update({
+          text_content: "<p class= 'deleted-message'>Message deleted</p>",
+          attachment_url: null,
+          attachment_key: null,
+          attachment_name: null,
+          deleted_for_all: true,
+          message_type: "text",
+          deleted_for_ids: []
+        })
+        .eq("id", messageId)
+        .select("*, sender:users!sender_id(*)")
+        .single();
+
+      if (updateMessageError) {
+        throw updateMessageError;
+      }
+
+      // Eliminar el attachment del storage si existe
+      if (updatedMessage.attachment_url) {
+        await b2Client.authorize();
+
+        await b2Client.deleteFileVersion({
+          fileId: updatedMessage.attachment_key as string,
+          fileName: updatedMessage.attachment_name as string
+        })
+      }
+
+      // Emitir evento de mensaje eliminado a todos los miembros del channel
+      await pusher.trigger(
+        `private-message-${combineUuid(updatedMessage.recipient_id, updatedMessage.sender_id)}`, 
+        "message-deleted", 
+        updatedMessage
+      );
+
+      return NextResponse.json("success");
+    }
+
+    // Eliminar el mensaje para el usuario actual
+    if (mode === "me") {
+      const deletedFor = message[0].deleted_for_ids || [];
+
+      const {data: updatedMessage, error: updateMessageError} = await supabase
+        .from("private_messages")
+        .update({
+          deleted_for_ids: [...deletedFor, user.id]
+        })
+        .eq("id", message[0].id)
+        .select("*, sender:users!sender_id(*)")
+        .single();
+
+      if (updateMessageError) {
+        throw updateMessageError;
+      }
+
+      updatedMessage.text_content = "<p class= 'deleted-message'>Message deleted</p>";
+      updatedMessage.attachment_url = null;
+      updatedMessage.attachment_key = null;
+      updatedMessage.attachment_name = null;
+      updatedMessage.message_type = "text";
+
+      return NextResponse.json(updatedMessage);
+    }
+
+    return NextResponse.json(message[0]);
+    
+  } catch (error: any) {
+    if (isPostgresError(error)) {
+      const {message, code} = error;
+
+      console.log(`Error PostgreSQL eliminando el mensaje privado: ${message}, code: ${code}`);
+
+      // Verificar si el error es de mensaje no encontrado
+      if (code === "PGRST116") {
+        return NextResponse.json({message: "Private message not found"}, {status: 404});
+      }
+    } else {
+      console.log(`Error eliminando el mensaje privado`, error.message);
+    }
+
+    return NextResponse.json({message: "Internal server error"}, {status: 500});
+  }
+}
