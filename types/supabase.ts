@@ -97,6 +97,12 @@ export type PrivateMessageWithSender = {
     email: string
     avatar_url: string | null
   }
+  recipient: {
+    id: string
+    name: string | null
+    email: string
+    avatar_url: string | null
+  }
 }
 
 export type PaginatedMessages<T extends Message> = {
@@ -469,7 +475,7 @@ export type Database = {
         Args: {
           workspace: string
           sender_user_id: string
-          recipient: string
+          recipient_user_id: string
           skip: number
           amount: number
           search_term?: string
@@ -490,10 +496,16 @@ export type Database = {
           deleted_for_all: boolean
           deleted_for_ids: string[]
           sender: {
-            id: string
-            name: string | null
-            email: string
-            avatar_url: string | null
+            id: string;
+            name: string | null;
+            email: string;
+            avatar_url: string | null;
+          }
+          recipient: {
+            id: string;
+            name: string | null;
+            email: string;
+            avatar_url: string | null;
           }
         }[]
       }

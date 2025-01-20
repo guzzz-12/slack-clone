@@ -8,17 +8,17 @@ import { FaTimes } from "react-icons/fa";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { FiDownload, FiZoomIn } from "react-icons/fi";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
-import { Message, MessageWithSender } from "@/types/supabase";
+import { Message, PrivateMessageWithSender } from "@/types/supabase";
 import { useMessages } from "@/hooks/useMessages";
 import { useImageLightbox } from "@/hooks/useImageLightbox";
 import { cn } from "@/lib/utils";
 
 interface Props {
   currentUserId: string;
-  message: MessageWithSender;
+  message: PrivateMessageWithSender;
 }
 
-const MessageItem = ({message, currentUserId}: Props) => {
+const PrivateMessageItem = ({message, currentUserId}: Props) => {
   const isSender = message.sender_id === currentUserId;
   
   const [deleting, setDeleting] = useState(false);
@@ -27,8 +27,8 @@ const MessageItem = ({message, currentUserId}: Props) => {
 
   const {setMessage, setOpen} = useImageLightbox();
 
-  // URL de la API para borrar un mensaje del channel
-  let apiDeleteUrl = `/api/workspace/${message.workspace_id}/channels/${message.channel_id}/messages/`
+  // URL de la API para borrar un mensaje de la conversación privada
+  let apiDeleteUrl = `/api/workspace/${message.workspace_id}/private-messages`
 
   // Handler para eliminación de un mensaje
   const deleteMessageHandler = async(mode: "all" | "me") => {
@@ -78,8 +78,8 @@ const MessageItem = ({message, currentUserId}: Props) => {
         >
           <img
             className="w-8 h-8 text-xs object-cover object-center rounded-full border"
-            src={message.sender.avatar_url || ""}
-            alt={`${message.sender.name} avatar`}
+            src={message.recipient.avatar_url || ""}
+            alt={`${message.recipient.name} avatar`}
           />
         </div>
       )}
@@ -88,7 +88,7 @@ const MessageItem = ({message, currentUserId}: Props) => {
       <div className="flex flex-col gap-1 min-w-[80px] max-w-[80%] overflow-hidden">
         {!isSender &&
           <p className="text-sm text-neutral-400 truncate">
-            {message.sender.name ?? message.sender.email}
+            {message.recipient.name ?? message.recipient.email}
           </p>
         }
 
@@ -202,4 +202,4 @@ const MessageItem = ({message, currentUserId}: Props) => {
   )
 }
 
-export default MessageItem
+export default PrivateMessageItem
