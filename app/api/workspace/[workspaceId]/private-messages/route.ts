@@ -58,7 +58,7 @@ export async function GET(req: NextRequest, {params}: Context) {
     const {data: messagesData, error: messagesError} = await supabase.rpc("get_private_messages", {
       workspace: workspaceId,
       sender_user_id: user.id,
-      recipient: otherUserId,
+      recipient_user_id: otherUserId,
       amount: limit,
       skip: offset,
       search_term: searchTerm || undefined
@@ -216,7 +216,7 @@ export async function POST(req: NextRequest, {params}: Context) {
       workspace_id: workspaceId,
       message_type: file ? (file.type.startsWith("image") ? "image" : "pdf") : "text"
     })
-    .select("*")
+    .select("*, recipient:users!recipient_id(id, name, email, avatar_url)")
     .single();
 
     if (messageError) {
@@ -232,10 +232,9 @@ export async function POST(req: NextRequest, {params}: Context) {
     }
 
     // Emitir evento de pusher al channel
-    await pusher.trigger(`private-message-${combineUuid(userData.user.id, otherUserId)}`, "new-private-message", messageData);
+    await pusher.trigger(`conversation-${combineUuid(userData.user.id, otherUserId)}`, "new-message", messageData);
 
     return NextResponse.json(messageData);
-
     
   } catch (error: any) {
     if (isPostgresError(error)) {
@@ -319,7 +318,7 @@ export async function DELETE(req: NextRequest, {params}: Context) {
           deleted_for_ids: []
         })
         .eq("id", messageId)
-        .select("*, sender:users!sender_id(*)")
+        .select("*, recipient:users!recipient_id(id, name, email, avatar_url)")
         .single();
 
       if (updateMessageError) {
@@ -338,7 +337,7 @@ export async function DELETE(req: NextRequest, {params}: Context) {
 
       // Emitir evento de mensaje eliminado a todos los miembros del channel
       await pusher.trigger(
-        `private-message-${combineUuid(updatedMessage.recipient_id, updatedMessage.sender_id)}`, 
+        `conversation-${combineUuid(updatedMessage.recipient_id, updatedMessage.sender_id)}`, 
         "message-deleted", 
         updatedMessage
       );
@@ -356,7 +355,7 @@ export async function DELETE(req: NextRequest, {params}: Context) {
           deleted_for_ids: [...deletedFor, user.id]
         })
         .eq("id", message[0].id)
-        .select("*, sender:users!sender_id(*)")
+        .select("*, recipient:users!recipient_id(id, name, email, avatar_url)")
         .single();
 
       if (updateMessageError) {
