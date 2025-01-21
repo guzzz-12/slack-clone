@@ -5,6 +5,7 @@ import { FaSlackHash } from "react-icons/fa";
 import { CgSpinner } from "react-icons/cg";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import useFetchWorkspace from "@/hooks/useFetchWorkspace";
+import { useUser } from "@/hooks/useUser";
 import { pageBaseTitle } from "@/utils/constants";
 
 interface Props {
@@ -15,8 +16,10 @@ interface Props {
 
 const WorkspaceDetailPage = ({params}: Props) => {
   const {workspaceId} = params;
+
+  const {user} = useUser();
   
-  const {fetchWorkspace} = useFetchWorkspace(workspaceId);
+  const {fetchWorkspace} = useFetchWorkspace(workspaceId, user);
 
   const {currentWorkspace, loadingWorkspaces} = useWorkspace();
 
@@ -25,8 +28,10 @@ const WorkspaceDetailPage = ({params}: Props) => {
     localStorage.setItem("selectedWorkspaceId", workspaceId);
     
     // Consultar el workspace y sus miembros
-    fetchWorkspace();
-  }, [workspaceId]);
+    if (user) {
+      fetchWorkspace();
+    }
+  }, [workspaceId, user]);
 
 
   // Actualizar el title de la página al cambiar de workspace

@@ -58,7 +58,7 @@ const ChannelPage = ({params}: Props) => {
 
   const {debouncedValue} = useDebounce(term);
 
-  const {fetchWorkspace} = useFetchWorkspace(workspaceId);
+  const {fetchWorkspace} = useFetchWorkspace(workspaceId, user);
 
   const {currentWorkspace} = useWorkspace();
 
@@ -172,7 +172,7 @@ const ChannelPage = ({params}: Props) => {
     // Consultar el workspace si no se ha hecho ya
     // Esto es en caso de que se recargue la página
     // del channel y el state del workspace esté vacío
-    if (!currentWorkspace) {
+    if (!currentWorkspace && user) {
       fetchWorkspace();
     }
 
@@ -180,7 +180,7 @@ const ChannelPage = ({params}: Props) => {
     if (currentWorkspace) {
       getChannel();
     }
-  }, [workspaceId, channelId, currentWorkspace]);
+  }, [workspaceId, channelId, currentWorkspace, user]);
 
 
   // Consultar la primera página de mensajes
