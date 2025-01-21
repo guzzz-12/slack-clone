@@ -13,7 +13,6 @@ interface WorkspaceState {
 // Hook para manejar el estado global del workspace
 export const useWorkspace = create<WorkspaceState>()((set) => ({
   currentWorkspace: null,
-  currentWorkspaceMembers: [],
   userWorkspaces: [],
   loadingWorkspaces: true,
   setCurrentWorkspace: (workspace) => set({currentWorkspace: workspace}),

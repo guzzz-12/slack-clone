@@ -47,7 +47,10 @@ const PrivateChatPage = ({params}: Props) => {
   const [chatInputHeight, setChatInputHeight] = useState(0);
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
 
-  const {fetchWorkspace} = useFetchWorkspace(workspaceId);
+  const {user} = useUser();
+  
+  const {fetchWorkspace} = useFetchWorkspace(workspaceId, user);
+
   const {currentWorkspace} = useWorkspace();
   const {
     messages,
@@ -58,10 +61,10 @@ const PrivateChatPage = ({params}: Props) => {
     loadingMessages,
     setPage,
     setMessages,
-    setTerm
+    setTerm,
+    setLoadingMessages
   } = useMessages();
 
-  const {user} = useUser();
   const {debouncedValue} = useDebounce(term);
 
   const {getMessages} = useFetchMessages(apiUrl, sectionRef);
@@ -78,7 +81,11 @@ const PrivateChatPage = ({params}: Props) => {
 
   /** Obtener los datos del otro usuario de la conversación */
   const getOtherUserData = async () => {
+    setOtherUserData(null);
     setLoading(true);
+    setLoadingMessages(true);
+    setMessages([]);
+    setPage(1);
 
     try {
       const res = await axios<UserData>({
@@ -111,7 +118,7 @@ const PrivateChatPage = ({params}: Props) => {
     // Consultar el workspace si no se ha hecho ya
     // Esto es en caso de que se recargue la página
     // del channel y el state del workspace esté vacío
-    if (!currentWorkspace) {
+    if (!currentWorkspace && user) {
       fetchWorkspace();
     }
 
@@ -119,7 +126,7 @@ const PrivateChatPage = ({params}: Props) => {
     if (currentWorkspace) {
       getOtherUserData();
     }
-  }, [otherUserId, currentWorkspace]);
+  }, [otherUserId, currentWorkspace, user]);
 
 
   // Consultar los mensajes de la conversación privada
@@ -242,7 +249,7 @@ const PrivateChatPage = ({params}: Props) => {
       }
 
       {/* Pantalla del chat de texto */}
-      {!isVideoCall && otherUserData && user &&
+      {!isVideoCall &&
         <>
           <section
             ref={sectionRef}
@@ -272,11 +279,11 @@ const PrivateChatPage = ({params}: Props) => {
                 </div>
               )}
 
-              {messages.map((message) => (
+              {!loading && messages.map((message) => (
                 <PrivateMessageItem
                   key={message.id}
                   message={message as PrivateMessageWithSender}
-                  currentUserId={user.id}
+                  currentUserId={user?.id || ""}
                 />
               ))}
             </div>
