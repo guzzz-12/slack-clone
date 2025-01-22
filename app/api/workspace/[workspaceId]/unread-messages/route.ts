@@ -1,5 +1,6 @@
 import { isPostgresError, uuidRegex } from "@/utils/constants";
 import { supabaseServerClient } from "@/utils/supabase/supabaseServerClient";
+import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 
 interface Context {
@@ -18,11 +19,17 @@ export async function GET(req: Request, {params}: Context) {
 
     const supabase = supabaseServerClient();
 
+    const {data: {user}} = await supabase.auth.getUser();
+
+    if (!user) {
+      return redirect("/signin");
+    }
+
     // Consultar los mensajes sin leer de todos los channels del workspace
     const {data: messages, error} = await supabase.from("messages")
       .select("id, channel_id, workspace_id")
       .eq("workspace_id", workspaceId)
-      .is("seen_at", null)
+      .or(`seen_by.is.null, seen_by.not.cs.{${user.id}}`)
 
     // Verificar si hubo error de base de datos al consultar los mensajes sin leer
     if (error) {

@@ -62,7 +62,7 @@ type ChannelMessage = {
   is_deleted: boolean;
   deleted_for_ids: string[] | null;
   deleted_for_all: boolean | null;
-  seen_at: string | null;
+  seen_by: string[] | null;
   created_at: string;
   updated_at: string | null;
 }
@@ -238,7 +238,7 @@ export type Database = {
           id: string
           is_deleted: boolean
           message_type: Database["public"]["Enums"]["message_type"]
-          seen_at: string | null
+          seen_by: string[] | null
           sender_id: string
           text_content: string | null
           updated_at: string | null
@@ -256,7 +256,7 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           message_type: Database["public"]["Enums"]["message_type"]
-          seen_at?: string | null
+          seen_by?: string[] | null
           sender_id?: string
           text_content?: string | null
           updated_at?: string | null
@@ -274,7 +274,7 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           message_type?: Database["public"]["Enums"]["message_type"]
-          seen_at?: string | null
+          seen_by?: string[] | null
           sender_id?: string
           text_content?: string | null
           updated_at?: string | null
@@ -537,9 +537,9 @@ export type Database = {
           channel_id: string
           is_deleted: boolean
           updated_at: string
-          seen_at: string
           deleted_for_all: boolean
           deleted_for_ids: string[]
+          seen_by: string[]
           attachment_key: string
           attachment_name: string
           message_type: Database["public"]["Enums"]["message_type"]
