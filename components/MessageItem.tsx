@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import axios, { isAxiosError } from "axios";
 import dayjs from "dayjs";
@@ -8,9 +8,10 @@ import { FaTimes } from "react-icons/fa";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { FiDownload, FiZoomIn } from "react-icons/fi";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
-import { Message, MessageWithSender } from "@/types/supabase";
 import { useMessages } from "@/hooks/useMessages";
 import { useImageLightbox } from "@/hooks/useImageLightbox";
+import useIntersectionObserver from "@/hooks/useIntersectionObserver";
+import { Message, MessageWithSender } from "@/types/supabase";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -18,17 +19,65 @@ interface Props {
   message: MessageWithSender;
 }
 
-const MessageItem = ({message, currentUserId}: Props) => {
-  const isSender = message.sender_id === currentUserId;
-  
+const MessageItem = ({message, currentUserId}: Props) => {  
+  const messageRef = useRef<HTMLDivElement>(null);
+
   const [deleting, setDeleting] = useState(false);
 
   const {messages, setMessages} = useMessages();
 
   const {setMessage, setOpen} = useImageLightbox();
 
+  const {isIntersecting} = useIntersectionObserver(messageRef);
+
+  const isSender = message.sender_id === currentUserId;
+
   // URL de la API para borrar un mensaje del channel
-  let apiDeleteUrl = `/api/workspace/${message.workspace_id}/channels/${message.channel_id}/messages/`
+  let apiDeleteUrl = `/api/workspace/${message.workspace_id}/channels/${message.channel_id}/messages/`;
+
+  // Función para marcar un mensaje como visto
+  const updateSeenBy = async () => {
+    const seenBy = message.seen_by ? [...message.seen_by] : [];
+    const shouldEmitSeenEvent = !isSender && !seenBy.includes(currentUserId);
+
+    if (!shouldEmitSeenEvent) {
+      return;
+    }
+
+    try {
+      const res = await axios<MessageWithSender>({
+        method: "PATCH",
+        url: `/api/workspace/${message.workspace_id}/unread-messages`,
+        params: {messageId: message.id}
+      });
+
+      const updatedMessages = [...messages];
+      const messageIndex = updatedMessages.findIndex(m => m.id === message.id);
+
+      if (messageIndex !== -1) {
+        updatedMessages.splice(messageIndex, 1, res.data);
+      }
+
+      setMessages(updatedMessages);
+      
+    } catch (error: any) {
+      let message = error.message;
+
+      if (isAxiosError(error)) {
+        message = error.response?.data.message;
+      }
+
+      toast.error(message);
+    }
+  }
+  
+  // Marcar el mensaje como leído si el mensaje es visible en la bandeja
+  useEffect(() => {
+    if (isIntersecting) {
+      updateSeenBy();
+    }
+  }, [isIntersecting]);
+
 
   // Handler para eliminación de un mensaje
   const deleteMessageHandler = async(mode: "all" | "me") => {
@@ -69,6 +118,7 @@ const MessageItem = ({message, currentUserId}: Props) => {
 
   return (
     <div
+      ref={messageRef}
       id={message.id}
       className={cn("flex w-full p-2", isSender ? "justify-end gap-1 ml-auto" : "justify-start gap-2 mr-auto")}
     >
