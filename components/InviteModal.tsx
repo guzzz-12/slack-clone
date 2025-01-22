@@ -113,7 +113,7 @@ const InviteModal = ({workspaceId, workspaceName, inviteCode, isOpen, setIsOpen}
 
         {success &&
           <Alert
-            className="mt-0 bg-green-100"
+            className="mt-0"
             type="success"
             title="Invitation sent successfully."
           />
@@ -121,7 +121,7 @@ const InviteModal = ({workspaceId, workspaceName, inviteCode, isOpen, setIsOpen}
 
         {error &&
           <Alert
-            className="mt-0 bg-red-100"
+            className="mt-0"
             type="error"
             title="Error sending the invitation."
             subtitle="Refresh the page and try again."

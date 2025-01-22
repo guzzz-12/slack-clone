@@ -162,7 +162,7 @@ const ChannelPage = ({params}: Props) => {
     })
 
     return () => {
-      pusherClient.unsubscribe(channelName);
+      channel.unsubscribe();
     };
   }, [channelData, isScrolledToBottom, messages, pusherClient]);
 

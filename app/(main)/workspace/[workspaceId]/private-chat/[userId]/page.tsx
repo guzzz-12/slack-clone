@@ -184,7 +184,7 @@ const PrivateChatPage = ({params}: Props) => {
       })
   
       return () => {
-        pusherClient.unsubscribe(channelName);
+        channel.unsubscribe();
       };
     }, [otherUserData, isScrolledToBottom, messages, user, pusherClient]);
 

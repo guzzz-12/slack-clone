@@ -113,7 +113,7 @@ const InfoSection = ({userData}: Props) => {
     return () => {
       if (pusherChannels.length > 0) {
         pusherChannels.forEach((channel) => {
-          pusherClient.unsubscribe(channel.name);
+          channel.unsubscribe();
         });
       }
     }
