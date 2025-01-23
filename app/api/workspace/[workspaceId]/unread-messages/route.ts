@@ -26,9 +26,11 @@ export async function GET(req: Request, {params}: Context) {
     }
 
     // Consultar los mensajes sin leer de todos los channels del workspace
-    const {data: messages, error} = await supabase.from("messages")
+    const {data: messages, error} = await supabase
+      .from("messages")
       .select("id, channel_id, workspace_id")
       .eq("workspace_id", workspaceId)
+      .not("sender_id", "eq", user.id)
       .or(`seen_by.is.null, seen_by.not.cs.{${user.id}}`)
 
     // Verificar si hubo error de base de datos al consultar los mensajes sin leer
@@ -55,7 +57,7 @@ export async function GET(req: Request, {params}: Context) {
   }
 }
 
-// Route handler para marcar como leidos los mensajes sin leer de los channels de un workspace
+// Route handler para marcar como leídos los mensajes sin leer de los channels de un workspace
 export async function PATCH(req: NextRequest, {params}: Context) {
   try {
     const workspaceId = (await params).workspaceId;
