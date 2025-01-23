@@ -14,7 +14,7 @@ interface Context {
 }
 
 // Route handler para consultar los mensajes de un channel
-export async function GET(req: Request, {params}: Context) {
+export async function GET(req: NextRequest, {params}: Context) {
   try {
     const workspaceId = (await params).workspaceId;
     const channelId = (await params).channelId;
@@ -143,7 +143,7 @@ export async function GET(req: Request, {params}: Context) {
 
 
 // Route handler para crear un mensaje en un channel
-export async function POST(req: Request, {params}: Context) {
+export async function POST(req: NextRequest, {params}: Context) {
   // ID del attachment en el bucket para eliminarlo
   // en caso de que haya error enviando el mensaje
   let fileId = "";
@@ -243,7 +243,7 @@ export async function POST(req: Request, {params}: Context) {
         workspace_id: workspaceId,
         message_type: file ? (file.type.startsWith("image") ? "image" : "pdf") : "text"
       })
-      .select("*, sender: users(*)")
+      .select("*, sender:users(id, name, email, avatar_url)")
       .single();
     
     if (error) {

@@ -15,7 +15,7 @@ import MenuBar from "@/components/ChatInput/MenuBar";
 import AttachmentModal from "./AttachmentModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageWithSender } from "@/types/supabase";
+import { Message } from "@/types/supabase";
 
 interface Props {
   apiUrl: string;
@@ -67,7 +67,7 @@ const ChatInput = ({apiUrl, isLoading}: Props) => {
       const formData = new FormData();
       formData.append("textContent", textContent);
 
-      await axios<MessageWithSender>({
+      await axios<Message>({
         method: "POST",
         url: apiUrl,
         data: formData,

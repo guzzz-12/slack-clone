@@ -4,17 +4,20 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { FaRegFilePdf } from "react-icons/fa6";
 import Typography from "./Typography";
-import { MessageWithSender } from "@/types/supabase"
+import { isChannelMessage } from "@/utils/constants";
+import { Message } from "@/types/supabase"
 
 interface Props {
-  message: MessageWithSender;
+  message: Message;
 }
 
 const IncomingMsgToastContent = ({message}: Props) => {
+  const href = isChannelMessage(message) ? `/workspace/${message.workspace_id}/channel/${message.channel_id}` : `/workspace/${message.workspace_id}/private-chat/${message.sender.id}`
+
   return (
     <Link
       className="flex gap-2 w-[240px] px-4 py-3 border rounded-md bg-neutral-900"
-      href={`/workspace/${message.workspace_id}/channel/${message.channel_id}`}
+      href={href}
       onClick={() => toast.dismiss()}
     >
       <div className="flex flex-col justify-start h-full flex-shrink-0">

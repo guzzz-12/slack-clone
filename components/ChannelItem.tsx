@@ -22,7 +22,7 @@ const ChannelItem = ({currentChannelId, channel, unreadMessages}: Props) => {
             className="block w-full flex-shrink-0 overflow-hidden"
             href={`/workspace/${channel.workspace_id}/channel/${channel.id}`}
           >
-            <div className={cn("flex justify-start items-center gap-1 w-full px-2 py-1 bg-neutral-900 rounded-sm cursor-pointer hover:bg-neutral-700 transition-colors", channel.id === currentChannelId && "bg-neutral-700")}>
+            <div className={cn("flex justify-start items-center gap-1 w-full p-2 bg-neutral-700/30 rounded-sm cursor-pointer hover:bg-neutral-600 transition-colors", channel.id === currentChannelId && "bg-neutral-950")}>
               <GoHash className="flex-shrink-0" />
               <Typography
                 className="w-full flex-grow text-sm text-left truncate"
