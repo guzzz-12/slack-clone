@@ -5,6 +5,7 @@ import axios, { isAxiosError } from "axios";
 import toast from "react-hot-toast";
 import { LuLoader2 } from "react-icons/lu";
 import { FaArrowDown } from "react-icons/fa6";
+import { type Channel } from "pusher-js";
 import ChatHeader from "@/components/ChatHeader";
 import PrivateMessageItem from "@/components/PrivateMessageItem";
 import ChatInput from "@/components/ChatInput";
@@ -46,6 +47,7 @@ const PrivateChatPage = ({params}: Props) => {
   const [newIncomingMessage, setNewIncomingMessage] = useState(false);
   const [chatInputHeight, setChatInputHeight] = useState(0);
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
+  const [channel, setChannel] = useState<Channel | null>(null);
 
   const {user} = useUser();
   
@@ -113,6 +115,17 @@ const PrivateChatPage = ({params}: Props) => {
     }
   }
 
+
+  // Desuscribirse de la conversación privada al cambiar de conversación
+  useEffect(() => {
+    return () => {
+      if (channel) {
+        console.log(`Desuscribiendo de ${channel.name}`);
+        channel.unsubscribe();
+      }
+    }
+  }, [otherUserId]);
+
   
   useEffect(() => {
     // Consultar el workspace si no se ha hecho ya
@@ -146,9 +159,11 @@ const PrivateChatPage = ({params}: Props) => {
     useEffect(() => {
       if (!otherUserData || !user) return;
 
-      const channelName = `conversation-${combineUuid(user.id, otherUserId)}`;
+      const channelName = `conversation-${combineUuid(user.id, otherUserData.id)}`;
   
       const channel = pusherClient.subscribe(channelName);
+
+      setChannel(channel);
   
       channel.bind("new-message", (data: PrivateMessageWithSender) => {
         console.log("Nuevo mensaje entrante", data);
@@ -181,12 +196,8 @@ const PrivateChatPage = ({params}: Props) => {
         }
   
         setMessages([...currentMessages]);
-      })
-  
-      return () => {
-        channel.unsubscribe();
-      };
-    }, [otherUserData, isScrolledToBottom, messages, user, pusherClient]);
+      });
+    }, [otherUserData, isScrolledToBottom, messages, user]);
 
 
   /** Consultar la siguiente página de mensajes al scrollear al top */
