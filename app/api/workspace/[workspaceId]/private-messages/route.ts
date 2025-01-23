@@ -216,7 +216,7 @@ export async function POST(req: NextRequest, {params}: Context) {
       workspace_id: workspaceId,
       message_type: file ? (file.type.startsWith("image") ? "image" : "pdf") : "text"
     })
-    .select("*, recipient:users!recipient_id(id, name, email, avatar_url)")
+    .select("*, recipient:users!recipient_id(id, name, email, avatar_url), sender:users!sender_id(id, name, email, avatar_url)")
     .single();
 
     if (messageError) {
@@ -318,7 +318,7 @@ export async function DELETE(req: NextRequest, {params}: Context) {
           deleted_for_ids: []
         })
         .eq("id", messageId)
-        .select("*, recipient:users!recipient_id(id, name, email, avatar_url)")
+        .select("*, recipient:users!recipient_id(id, name, email, avatar_url), sender:users!sender_id(id, name, email, avatar_url)")
         .single();
 
       if (updateMessageError) {
