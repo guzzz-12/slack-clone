@@ -15,8 +15,10 @@ import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { Skeleton } from "./ui/skeleton";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { Channel, MessageWithSender, User } from "@/types/supabase";
+import { Channel, MessageWithSender, PrivateMessageWithSender, User } from "@/types/supabase";
 import { pusherClient } from "@/utils/pusherClientSide";
+import { useUser } from "@/hooks/useUser";
+import { combineUuid } from "@/utils/constants";
 
 type Params = {
   workspaceId: string;
@@ -35,8 +37,10 @@ const InfoSection = ({userData}: Props) => {
   
   const [isChannelModalOpen, setIsChannelModalOpen] = useState(false);
 
-  const [unreadMessages, setUnreadMessages] = useState<MessageWithSender[]>([]);
+  const [unreadChannelMessages, setUnreadChannelMessages] = useState<MessageWithSender[]>([]);
+  const [unreadPrivateChatMessages, setUnreadPrivateChatMessages] = useState<PrivateMessageWithSender[]>([]);
 
+  const {user} = useUser();
   const {currentWorkspace, loadingWorkspaces} = useWorkspace();
 
 
@@ -72,7 +76,7 @@ const InfoSection = ({userData}: Props) => {
       url: `/api/workspace/${workspaceId}/unread-messages`,
     })
     .then((res) => {
-      setUnreadMessages(res.data);
+      setUnreadChannelMessages(res.data);
     })
     .catch((error: any) => {
       toast.error(error.message);
@@ -92,11 +96,10 @@ const InfoSection = ({userData}: Props) => {
         const channel = pusherClient.subscribe(channelName);
 
         channel.bind("new-message", (data: MessageWithSender) => {
-          setUnreadMessages((prev) => [...prev, data]);
+          setUnreadChannelMessages((prev) => [...prev, data]);
 
           // Mostrar notificación toast cuando se reciba un nuevo mensaje en el channel
-          if (channelId !== ch.id) {
-            toast.dismiss();
+          if (!channelId || channelId !== ch.id) {
             toast.custom(
               <IncomingMsgToastContent message={data} />,
               {
@@ -117,7 +120,48 @@ const InfoSection = ({userData}: Props) => {
         });
       }
     }
-  }, [channels, workspaceId, channelId, pusherClient]);
+  }, [channels, channelId, currentWorkspace]);
+
+
+  // Escuchar los eventos de mensajes de los chats privados
+  // y actualizar el state local de los mensajes sin leer
+  useEffect(() => {
+    const pusherChannels: PusherChannel[] = [];
+
+    if (!user || !currentWorkspace) return;
+
+    // Remover al usuario actual de los miembros del workspace
+    const members = currentWorkspace.workspaceMembers.filter((member) => member.id !== user.id);
+
+    members.forEach((member) => {
+      const channelName = `conversation-${combineUuid(user.id, member.id)}`;
+      const channel = pusherClient.subscribe(channelName);
+
+      channel.bind("new-message", (data: PrivateMessageWithSender) => {
+        setUnreadPrivateChatMessages((prev) => [...prev, data]);
+
+        // Mostrar notificación toast cuando se reciba un nuevo mensaje en el chat privado
+        if (data.recipient_id === user.id) {
+          toast.custom(
+            <IncomingMsgToastContent message={data} />,
+            {
+              duration: 15000
+            }
+          );
+        }
+      });
+
+      pusherChannels.push(channel);
+    });
+
+    return () => {
+      if (pusherChannels.length > 0) {
+        pusherChannels.forEach((channel) => {
+          channel.unsubscribe();
+        });
+      }
+    }
+  }, [currentWorkspace, user]);
 
 
   return (
@@ -130,9 +174,9 @@ const InfoSection = ({userData}: Props) => {
           </div>
 
           <div className="flex flex-col gap-2 w-full">
-            <Skeleton className="w-[80%] h-4 bg-neutral-600" />
-            <Skeleton className="w-[80%] h-4 bg-neutral-600" />
-            <Skeleton className="w-[80%] h-4 bg-neutral-600" />
+            <Skeleton className="w-[80%] h-5 bg-neutral-600" />
+            <Skeleton className="w-[80%] h-5 bg-neutral-600" />
+            <Skeleton className="w-[80%] h-5 bg-neutral-600" />
           </div>
         </>
       )}
@@ -165,13 +209,13 @@ const InfoSection = ({userData}: Props) => {
           </div>
 
           {/* Renderizar los channels del workspace */}
-          <div className="flex flex-col gap-1 w-full mt-2 scrollbar-thin overflow-y-auto">
+          <div className="flex flex-col gap-2 w-full mt-2 scrollbar-thin overflow-y-auto">
             {channels.map((ch) => (
               <ChannelItem
                 key={ch.id}
                 channel={ch}
                 currentChannelId={channelId!}
-                unreadMessages={unreadMessages}
+                unreadMessages={unreadChannelMessages}
               />
             ))}
           </div>
@@ -187,9 +231,9 @@ const InfoSection = ({userData}: Props) => {
           </div>
 
           <div className="flex flex-col gap-2 w-full">
-            <Skeleton className="w-[80%] h-4 bg-neutral-600" />
-            <Skeleton className="w-[80%] h-4 bg-neutral-600" />
-            <Skeleton className="w-[80%] h-4 bg-neutral-600" />
+            <Skeleton className="w-[80%] h-5 bg-neutral-600" />
+            <Skeleton className="w-[80%] h-5 bg-neutral-600" />
+            <Skeleton className="w-[80%] h-5 bg-neutral-600" />
           </div>
         </>
       }
@@ -202,12 +246,13 @@ const InfoSection = ({userData}: Props) => {
             text="Direct Messages"
           />
 
-          <div className="flex flex-col gap-1 scrollbar-thin overflow-y-auto">
+          <div className="flex flex-col gap-2 scrollbar-thin overflow-y-auto">
             {currentWorkspace.workspaceMembers.map((member) => (
               <PrivateChatItem
                 key={member.id}
                 workspaceId={workspaceId}
                 user={member}
+                unreadMessages={unreadPrivateChatMessages}
               />
             ))}
           </div>

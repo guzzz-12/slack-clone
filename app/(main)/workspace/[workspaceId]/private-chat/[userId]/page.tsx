@@ -166,7 +166,6 @@ const PrivateChatPage = ({params}: Props) => {
       setChannel(channel);
   
       channel.bind("new-message", (data: PrivateMessageWithSender) => {
-        console.log("Nuevo mensaje entrante", data);
         // Notificar nuevo mensaje entrante pero sin agregarlo
         // a la bandeja si el usuario está en modo búsqueda
         if (term.length > 0) {
@@ -267,7 +266,7 @@ const PrivateChatPage = ({params}: Props) => {
             className="w-full flex-grow p-4 overflow-x-hidden overflow-y-auto scrollbar-thin"
             onScroll={onScrollHandler}
           >
-            <div className="flex flex-col justify-start gap-3 w-full h-full">
+            <div className="flex flex-col justify-start gap-1 w-full h-full">
               {!loadingMessages && !hasMore && messages.length > 0 &&
                 <div className="flex justify-center items-center w-full">
                   <p className="text-sm text-center text-neutral-400 italic">
