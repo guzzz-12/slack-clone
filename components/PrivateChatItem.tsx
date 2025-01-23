@@ -24,7 +24,7 @@ const PrivateChatItem = ({workspaceId, user}: Props) => {
       className="block w-full"
       href={`/workspace/${workspaceId}/private-chat/${user.id}`}
     >
-      <div className={cn("flex justify-start items-center gap-1 w-full px-2 py-1 rounded-sm bg-transparent cursor-pointer hover:bg-neutral-700 transition-colors", isItemActive && "bg-neutral-700")}>
+      <div className={cn("flex justify-start items-center gap-1 w-full px-2 py-1 rounded-sm bg-neutral-900 cursor-pointer hover:bg-neutral-700 transition-colors", isItemActive && "bg-neutral-700")}>
         <div className="flex justify-start items-center gap-2 flex-grow overflow-hidden">
           <div className="relative w-[24px] h-[24px] rounded-full flex-shrink-0">
             <img

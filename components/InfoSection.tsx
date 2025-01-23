@@ -138,7 +138,7 @@ const InfoSection = ({userData}: Props) => {
       )}
 
       {!loadingChannels && !loadingWorkspaces && (
-        <div className="flex flex-col gap-2 w-full max-h-[50vh]">
+        <div className="flex flex-col w-full max-h-[50vh]">
           <CreateChannelModal
             userId={userData.id}
             isOpen={isChannelModalOpen}
@@ -165,7 +165,7 @@ const InfoSection = ({userData}: Props) => {
           </div>
 
           {/* Renderizar los channels del workspace */}
-          <div className="flex flex-col gap-1 w-full scrollbar-thin overflow-y-auto">
+          <div className="flex flex-col gap-1 w-full mt-2 scrollbar-thin overflow-y-auto">
             {channels.map((ch) => (
               <ChannelItem
                 key={ch.id}

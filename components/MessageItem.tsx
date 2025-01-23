@@ -124,8 +124,7 @@ const MessageItem = ({message, currentUserId}: Props) => {
     >
       {/* Mostrar el avatar del otro usuario (no del usuario actual) */}
       {!isSender && (
-        <div className="flex justify-center items-start"
-        >
+        <div className="flex justify-center items-start">
           <img
             className="w-8 h-8 text-xs object-cover object-center rounded-full border"
             src={message.sender.avatar_url || ""}
