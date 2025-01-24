@@ -215,7 +215,7 @@ const Sidebar = ({userData}: Props) => {
 
             <li>
               <Link
-                href={`/workspace/${currentWorkspace.workspaceData.id}`}
+                href="/user-workspaces"
                 className="flex flex-col items-center gap-1 text-white cursor-pointer"
               >
                 <div className="p-2 rounded-lg bg-white/30 group">
