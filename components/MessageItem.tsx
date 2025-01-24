@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import axios, { isAxiosError } from "axios";
 import dayjs from "dayjs";
@@ -11,7 +11,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useMessages } from "@/hooks/useMessages";
 import { useImageLightbox } from "@/hooks/useImageLightbox";
 import useIntersectionObserver from "@/hooks/useIntersectionObserver";
-import { Message, MessageWithSender } from "@/types/supabase";
+import useDeleteMessages from "@/hooks/useDeleteMessages";
+import { MessageWithSender } from "@/types/supabase";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -22,8 +23,6 @@ interface Props {
 const MessageItem = ({message, currentUserId}: Props) => {  
   const messageRef = useRef<HTMLDivElement>(null);
 
-  const [deleting, setDeleting] = useState(false);
-
   const {messages, setMessages} = useMessages();
 
   const {setMessage, setOpen} = useImageLightbox();
@@ -33,7 +32,7 @@ const MessageItem = ({message, currentUserId}: Props) => {
   const isSender = message.sender_id === currentUserId;
 
   // URL de la API para borrar un mensaje del channel
-  let apiDeleteUrl = `/api/workspace/${message.workspace_id}/channels/${message.channel_id}/messages/`;
+  let apiDeleteUrl = `/api/workspace/${message.workspace_id}/channels/${message.channel_id}/messages`;
 
   // Función para marcar un mensaje como visto
   const updateSeenBy = async () => {
@@ -48,7 +47,10 @@ const MessageItem = ({message, currentUserId}: Props) => {
       const res = await axios<MessageWithSender>({
         method: "PATCH",
         url: `/api/workspace/${message.workspace_id}/unread-messages`,
-        params: {messageId: message.id}
+        params: {
+          messageId: message.id,
+          messageType: "channel"
+        }
       });
 
       const updatedMessages = [...messages];
@@ -78,43 +80,8 @@ const MessageItem = ({message, currentUserId}: Props) => {
     }
   }, [isIntersecting]);
 
-
   // Handler para eliminación de un mensaje
-  const deleteMessageHandler = async(mode: "all" | "me") => {
-    try {
-      setDeleting(true);
-
-      const {data} = await axios<Message>({
-        method: "DELETE",
-        url: apiDeleteUrl,
-        params: {messageId: message.id, mode}
-      });
-
-      // Actualizar el state local de los mensajes
-      if (mode === "me") {
-        const updatedMessages = [...messages];
-        const messageIndex = updatedMessages.findIndex(m => m.id === message.id);
-
-        if (messageIndex !== -1) {
-          updatedMessages.splice(messageIndex, 1, data);
-        }
-
-        setMessages(updatedMessages);
-      }
-      
-    } catch (error: any) {
-      let message = error.message;
-
-      if (isAxiosError(error)) {
-        message = error.response?.data.message;
-      }
-
-      toast.error(message);
-
-    } finally {
-      setDeleting(false);
-    }
-  }
+  const {deleteMessageHandler, deleting} = useDeleteMessages(apiDeleteUrl, message, messages);
 
   return (
     <div
