@@ -1,16 +1,14 @@
-import { useState } from "react";
 import Link from "next/link";
-import axios, { isAxiosError } from "axios";
 import dayjs from "dayjs";
-import toast from "react-hot-toast";
 import { FaPencil, FaRegFilePdf, FaRegTrashCan } from "react-icons/fa6";
 import { FaTimes } from "react-icons/fa";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { FiDownload, FiZoomIn } from "react-icons/fi";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
-import { Message, PrivateMessageWithSender } from "@/types/supabase";
+import { PrivateMessageWithSender } from "@/types/supabase";
 import { useMessages } from "@/hooks/useMessages";
 import { useImageLightbox } from "@/hooks/useImageLightbox";
+import useDeleteMessages from "@/hooks/useDeleteMessages";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -20,10 +18,8 @@ interface Props {
 
 const PrivateMessageItem = ({message, currentUserId}: Props) => {
   const isSender = message.sender_id === currentUserId;
-  
-  const [deleting, setDeleting] = useState(false);
 
-  const {messages, setMessages} = useMessages();
+  const {messages} = useMessages();
 
   const {setMessage, setOpen} = useImageLightbox();
 
@@ -31,41 +27,7 @@ const PrivateMessageItem = ({message, currentUserId}: Props) => {
   let apiDeleteUrl = `/api/workspace/${message.workspace_id}/private-messages`
 
   // Handler para eliminación de un mensaje
-  const deleteMessageHandler = async(mode: "all" | "me") => {
-    try {
-      setDeleting(true);
-
-      const {data} = await axios<Message>({
-        method: "DELETE",
-        url: apiDeleteUrl,
-        params: {messageId: message.id, mode}
-      });
-
-      // Actualizar el state local de los mensajes
-      if (mode === "me") {
-        const updatedMessages = [...messages];
-        const messageIndex = updatedMessages.findIndex(m => m.id === message.id);
-
-        if (messageIndex !== -1) {
-          updatedMessages.splice(messageIndex, 1, data);
-        }
-
-        setMessages(updatedMessages);
-      }
-      
-    } catch (error: any) {
-      let message = error.message;
-
-      if (isAxiosError(error)) {
-        message = error.response?.data.message;
-      }
-
-      toast.error(message);
-
-    } finally {
-      setDeleting(false);
-    }
-  }
+  const {deleteMessageHandler, deleting} = useDeleteMessages(apiDeleteUrl, message, messages);
 
   return (
     <div
