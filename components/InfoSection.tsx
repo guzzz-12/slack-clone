@@ -63,7 +63,9 @@ const InfoSection = ({userData}: Props) => {
   // Consultar los channels del workspace cuando el workspace haya cargado
   useEffect(() => {
     if (currentWorkspace && !loadingWorkspaces) {
-      axios<Channel[]>(`/api/workspace/${currentWorkspace.workspaceData.id}/channels`)
+      const workspaceId = currentWorkspace.workspaceData.id;
+
+      axios<Channel[]>(`/api/workspace/${workspaceId}/channels`)
       .then((res) => {
         setChannels(res.data);
         setLoadingChannels(false)
@@ -72,8 +74,22 @@ const InfoSection = ({userData}: Props) => {
         toast.error(error.message);
         setLoadingChannels(false)
       });
+
+      // Escuchar evento de nuevo channel creado en el workspace
+      const pusherChannel = pusherClient.subscribe(`workspace-${workspaceId}`);
+  
+      pusherChannel.bind("new-channel", (newChannel: Channel) => {
+        if (user?.id !== newChannel.ws_admin_id) {
+          setChannels((prev) => [newChannel, ...prev]);
+          toast.success(`A new channel (${newChannel.name}) was created on ${currentWorkspace.workspaceData.name}`, {duration: 10000});
+        }
+      });
+
+      return () => {
+        pusherChannel.unsubscribe();
+      }
     }
-  }, [currentWorkspace, loadingWorkspaces]);
+  }, [currentWorkspace, loadingWorkspaces, user]);
 
 
   // Consultar los mensajes sin leer de todos los channels
@@ -100,7 +116,6 @@ const InfoSection = ({userData}: Props) => {
       // Eliminar el channel de la lista de channels
       setChannels((prev) => prev.filter((ch) => ch.id !== data.id));
 
-      //  
       if (user?.id !== data.ws_admin_id) {
         toast.error(`Channel ${data.name} was deleted by the admin`);
       }
@@ -204,10 +219,13 @@ const InfoSection = ({userData}: Props) => {
     try {
       setDeletingChannel(true);
 
-      await axios<{channelId: string; channelName: string}>({
+      const {data} = await axios<Channel>({
         method: "DELETE",
         url: `/api/workspace/${workspaceId}/channels/${deleteChannelId}`
       });
+
+      // Eliminar el channel de la lista de channels
+      setChannels((prev) => prev.filter((ch) => ch.id !== data.id));
 
       toast.success("Channel deleted successfully");
       

@@ -87,7 +87,7 @@ const CreateChannelModal = ({isOpen, setIsOpen, setChannels}: Props) => {
         }
       });
 
-      setChannels((prevChannels) => [...prevChannels, res.data]);
+      setChannels((prevChannels) => [res.data, ...prevChannels]);
 
       formProps.reset();
 
