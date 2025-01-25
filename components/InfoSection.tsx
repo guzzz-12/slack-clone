@@ -148,7 +148,8 @@ const InfoSection = ({userData}: Props) => {
           setUnreadChannelMessages((prev) => [...prev, data]);
 
           // Mostrar notificación toast cuando se reciba un nuevo mensaje en el channel
-          if (!channelId || channelId !== ch.id) {
+          if ((!channelId || channelId !== data.channel_id) && user?.id !== data.sender_id) {
+            toast.dismiss();
             toast.custom(
               <IncomingMsgToastContent message={data} />,
               {
@@ -169,7 +170,7 @@ const InfoSection = ({userData}: Props) => {
         });
       }
     }
-  }, [channels, channelId, currentWorkspace]);
+  }, [channels, channelId, currentWorkspace, user]);
 
 
   // Escuchar los eventos de mensajes de los chats privados
