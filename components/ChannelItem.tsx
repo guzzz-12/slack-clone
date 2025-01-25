@@ -7,10 +7,11 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 import { FaRegTrashCan } from "react-icons/fa6";
 import Typography from "./Typography";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
-import { Channel, MessageWithSender, } from "@/types/supabase"
+import { Channel, MessageWithSender, User, } from "@/types/supabase";
 import { cn } from "@/lib/utils";
 
 interface Props {
+  user: User | null;
   channel: Channel;
   currentChannelId: string;
   deletingChannel: boolean;
@@ -20,7 +21,7 @@ interface Props {
   setDeleteChannelId: Dispatch<SetStateAction<string | null>>;
 }
 
-const ChannelItem = ({currentChannelId, channel, deletingChannel, unreadMessages, deleteChannelId, setDeleteChannelId, setOpenDeleteChannelModal}: Props) => {
+const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMessages, deleteChannelId, setDeleteChannelId, setOpenDeleteChannelModal}: Props) => {
   const unreadCount = unreadMessages.filter((m) => m.channel_id === channel.id).length;
   const isDeleting = deletingChannel && deleteChannelId === channel.id;
   const isActive = currentChannelId === channel.id;
@@ -46,37 +47,39 @@ const ChannelItem = ({currentChannelId, channel, deletingChannel, unreadMessages
           </span>
         )}
         
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            disabled={isDeleting}
-            asChild
-          >
-            <button
-              className="flex justify-center items-center w-6 h-6 flex-shrink-0 rounded-full hover:bg-neutral-800 transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                setDeleteChannelId(channel.id);
-              }}
-            >
-              <BsThreeDotsVertical />
-            </button>
-          </DropdownMenuTrigger>
-
-          <DropdownMenuContent>
-            <DropdownMenuItem
-              className="flex justify-start items-center gap-2 cursor-pointer"
+        {user?.id === channel.ws_admin_id && (
+          <DropdownMenu>
+            <DropdownMenuTrigger
               disabled={isDeleting}
-              onClick={(e) => {
-                e.stopPropagation();
-                setDeleteChannelId(channel.id);
-                setOpenDeleteChannelModal(true);
-              }}
+              asChild
             >
-              <FaRegTrashCan className="text-red-500" />
-              <span>Delete Channel</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <button
+                className="flex justify-center items-center w-6 h-6 flex-shrink-0 rounded-full hover:bg-neutral-800 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteChannelId(channel.id);
+                }}
+              >
+                <BsThreeDotsVertical />
+              </button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                className="flex justify-start items-center gap-2 cursor-pointer"
+                disabled={isDeleting}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteChannelId(channel.id);
+                  setOpenDeleteChannelModal(true);
+                }}
+              >
+                <FaRegTrashCan className="text-red-500" />
+                <span>Delete Channel</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </Link>
   )
