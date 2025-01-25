@@ -99,7 +99,7 @@ export async function DELETE(_req: NextRequest, {params}: Context) {
     }
 
     // Verificar si el channel que se quiere eliminar es el channel General
-    if (channelData.id === channelId) {
+    if (channelData.name.toLowerCase() === "general") {
       return NextResponse.json({message: "Channel General cannot be deleted"}, {status: 403});
     }
 
