@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { redirect } from "next/navigation";
 import { supabaseServerClient } from "@/utils/supabase/supabaseServerClient";
 import { isPostgresError } from "@/utils/constants";
+import { pusher } from "@/utils/pusher";
 
 interface Context {
   params: Promise<{workspaceId: string}>
@@ -59,6 +60,9 @@ export async function POST(req: Request, {params}: Context) {
     if (error) {
       throw error;
     }
+
+    // Enviar el evento de nuevo channel a los miembros del workspace
+    await pusher.trigger(`workspace-${workspaceId}`, "new-channel", data);
 
     return NextResponse.json(data);
     
