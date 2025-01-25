@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import axios from "axios";
+import { useParams, useRouter } from "next/navigation";
+import axios, { isAxiosError } from "axios";
 import { type Channel as PusherChannel } from "pusher-js";
 import toast from "react-hot-toast";
 import { FaPlus } from "react-icons/fa6";
@@ -14,11 +14,12 @@ import PrivateChatItem from "./PrivateChatItem";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { Skeleton } from "./ui/skeleton";
+import ConfirmationModal from "./ConfirmationModal";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { Channel, MessageWithSender, PrivateMessageWithSender, User } from "@/types/supabase";
-import { pusherClient } from "@/utils/pusherClientSide";
 import { useUser } from "@/hooks/useUser";
+import { pusherClient } from "@/utils/pusherClientSide";
 import { combineUuid } from "@/utils/constants";
+import { Channel, MessageWithSender, PrivateMessageWithSender, User } from "@/types/supabase";
 
 type Params = {
   workspaceId: string;
@@ -30,10 +31,16 @@ interface Props {
 }
 
 const InfoSection = ({userData}: Props) => {
+  const router = useRouter();
+
   const {workspaceId, channelId} = useParams<Params>()!;
 
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loadingChannels, setLoadingChannels] = useState(true);
+
+  const [openDeleteChannelModal, setOpenDeleteChannelModal] = useState(false);
+  const [deletingChannel, setDeletingChannel] = useState(false);
+  const [deleteChannelId, setDeleteChannelId] = useState<string | null>(null);
   
   const [isChannelModalOpen, setIsChannelModalOpen] = useState(false);
 
@@ -70,10 +77,14 @@ const InfoSection = ({userData}: Props) => {
 
 
   // Consultar los mensajes sin leer de todos los channels
+  // Escuchar evento de channel eliminado en el workspace
   useEffect(() => {
     axios<MessageWithSender[]>({
       method: "GET",
       url: `/api/workspace/${workspaceId}/unread-messages`,
+      params: {
+        messageType: "channel"
+      }
     })
     .then((res) => {
       setUnreadChannelMessages(res.data);
@@ -81,11 +92,33 @@ const InfoSection = ({userData}: Props) => {
     .catch((error: any) => {
       toast.error(error.message);
     });
-  }, [workspaceId]);
+
+    // Escuchar los eventos de channel eliminado en el workspace
+    const pusherChannel = pusherClient.subscribe(`workspace-${workspaceId}`);
+
+    pusherChannel.bind("channel-deleted", (data: Channel) => {
+      // Eliminar el channel de la lista de channels
+      setChannels((prev) => prev.filter((ch) => ch.id !== data.id));
+
+      //  
+      if (user?.id !== data.ws_admin_id) {
+        toast.error(`Channel ${data.name} was deleted by the admin`);
+      }
+
+      // Si el channel eliminado es el channel actual, salir del channel
+      if (data.id === channelId) {
+        router.replace(`/workspace/${workspaceId}`);
+      }
+    });
+
+    return () => {
+      pusherChannel.unsubscribe();
+    }
+  }, [workspaceId, channelId, user]);
 
 
   // Escuchar los eventos de mensajes de los channels
-  // y actualizar el state local de los mensajes sin leer
+  // y actualizar el state de los mensajes sin leer
   useEffect(() => {
     const pusherChannels: PusherChannel[] = [];
 
@@ -95,6 +128,7 @@ const InfoSection = ({userData}: Props) => {
 
         const channel = pusherClient.subscribe(channelName);
 
+        // Escuchar los eventos de mensajes entrantes de los channels
         channel.bind("new-message", (data: MessageWithSender) => {
           setUnreadChannelMessages((prev) => [...prev, data]);
 
@@ -164,8 +198,46 @@ const InfoSection = ({userData}: Props) => {
   }, [currentWorkspace, user]);
 
 
+  const deleteChannelHandler = async () => {
+    if (!deleteChannelId) return;
+    
+    try {
+      setDeletingChannel(true);
+
+      await axios<{channelId: string; channelName: string}>({
+        method: "DELETE",
+        url: `/api/workspace/${workspaceId}/channels/${deleteChannelId}`
+      });
+
+      toast.success("Channel deleted successfully");
+      
+    } catch (error: any) {
+      let message = error.message;
+
+      if (isAxiosError(error)) {
+        message = error.response?.data.message;
+      }
+
+      toast.error(message);
+
+    } finally {
+      setDeletingChannel(false);
+      setOpenDeleteChannelModal(false);
+    }
+  }
+
+
   return (
     <aside className="flex flex-col justify-start items-center w-[270px] flex-shrink-0 p-4 bg-neutral-800 rounded-l-lg border-r border-neutral-900">
+      <ConfirmationModal
+        open={openDeleteChannelModal}
+        title="Delete Channel"
+        description="Are you sure you want to delete this channel?"
+        loading={deletingChannel}
+        callback={deleteChannelHandler}
+        setOpen={setOpenDeleteChannelModal}
+      />
+
       {loadingChannels && (
         <>
           <div className="flex justify-between items-center w-full mb-4">
@@ -213,9 +285,14 @@ const InfoSection = ({userData}: Props) => {
             {channels.map((ch) => (
               <ChannelItem
                 key={ch.id}
+                user={user}
                 channel={ch}
                 currentChannelId={channelId!}
                 unreadMessages={unreadChannelMessages}
+                deleteChannelId={deleteChannelId}
+                deletingChannel={deletingChannel}
+                setDeleteChannelId={setDeleteChannelId}
+                setOpenDeleteChannelModal={setOpenDeleteChannelModal}
               />
             ))}
           </div>
