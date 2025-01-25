@@ -21,7 +21,7 @@ const UserWorkspaces = async () => {
         <SignoutBtn />
       </header>
 
-      <main className="flex flex-col justify-start items-center h-screen pb-6 overflow-hidden">
+      <main className="flex flex-col justify-start items-center pb-6 overflow-hidden">
         <section className="flex flex-col justify-center items-center w-full pt-16 pb-9 bg-neutral-900">
           <h1 className="mb-6 text-6xl text-center font-semibold">
             Slack Clone
