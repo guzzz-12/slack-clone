@@ -19,18 +19,14 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 import { useUser } from "@/hooks/useUser";
 import { pusherClient } from "@/utils/pusherClientSide";
 import { combineUuid } from "@/utils/constants";
-import { Channel, MessageWithSender, PrivateMessageWithSender, User } from "@/types/supabase";
+import { Channel, MessageWithSender, PrivateMessageWithSender } from "@/types/supabase";
 
 type Params = {
   workspaceId: string;
   channelId?: string;
 }
 
-interface Props {
-  userData: User;
-}
-
-const InfoSection = ({userData}: Props) => {
+const InfoSection = () => {
   const router = useRouter();
 
   const {workspaceId, channelId} = useParams<Params>()!;
@@ -173,12 +169,28 @@ const InfoSection = ({userData}: Props) => {
   }, [channels, channelId, currentWorkspace, user]);
 
 
+  // Consultar los mensajes sin leer de todos los chats privados
   // Escuchar los eventos de mensajes de los chats privados
   // y actualizar el state local de los mensajes sin leer
   useEffect(() => {
     const pusherChannels: PusherChannel[] = [];
 
     if (!user || !currentWorkspace) return;
+
+    axios<PrivateMessageWithSender[]>({
+      method: "GET",
+      url: `/api/workspace/${workspaceId}/unread-messages`,
+      params: {
+        messageType: "private",
+        otherUserId: user.id
+      }
+    })
+    .then((res) => {
+      setUnreadPrivateChatMessages(res.data);
+    })
+    .catch((error: any) => {
+      toast.error(error.message);
+    });
 
     // Remover al usuario actual de los miembros del workspace
     const members = currentWorkspace.workspaceMembers.filter((member) => member.id !== user.id);
@@ -275,7 +287,7 @@ const InfoSection = ({userData}: Props) => {
       {!loadingChannels && !loadingWorkspaces && (
         <div className="flex flex-col w-full max-h-[50vh]">
           <CreateChannelModal
-            userId={userData.id}
+            userId={user!.id}
             isOpen={isChannelModalOpen}
             setIsOpen={setIsChannelModalOpen}
             setChannels={setChannels}
@@ -288,7 +300,7 @@ const InfoSection = ({userData}: Props) => {
               text="Channels"
             />
 
-            {currentWorkspace?.workspaceData.admin_id === userData.id && (
+            {currentWorkspace?.workspaceData.admin_id === user!.id && (
               <Button
                 className="w-8 h-8 p-1 flex-shrink-0 rounded-full hover:bg-neutral-900 group"
                 variant="outline"
@@ -347,7 +359,7 @@ const InfoSection = ({userData}: Props) => {
               <PrivateChatItem
                 key={member.id}
                 workspaceId={workspaceId}
-                user={member}
+                member={member}
                 unreadMessages={unreadPrivateChatMessages}
               />
             ))}

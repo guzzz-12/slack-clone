@@ -11,41 +11,42 @@ type Params = {
 
 interface Props {
   workspaceId: string;
-  user: WorkspaceMember;
+  member: WorkspaceMember;
   unreadMessages: PrivateMessageWithSender[];
 }
 
-const PrivateChatItem = ({workspaceId, user}: Props) => {
+const PrivateChatItem = ({workspaceId, member, unreadMessages}: Props) => {
   const params = useParams<Params>();
 
-  const isItemActive = params.userId === user.id && params.workspaceId === workspaceId;
+  const unreadCount = unreadMessages.filter((m) => m.sender.id === member.id).length;
+  const isItemActive = params.userId === member.id && params.workspaceId === workspaceId;
 
   return (
     <Link
       className="block w-full"
-      href={`/workspace/${workspaceId}/private-chat/${user.id}`}
+      href={`/workspace/${workspaceId}/private-chat/${member.id}`}
     >
       <div className={cn("flex justify-start items-center gap-1 w-full p-2 rounded-sm bg-neutral-700/30 cursor-pointer hover:bg-neutral-600 transition-colors", isItemActive && "bg-neutral-950")}>
         <div className="flex justify-start items-center gap-2 flex-grow overflow-hidden">
           <div className="relative w-[24px] h-[24px] rounded-full flex-shrink-0">
             <img
               className="block w-full h-full text-xs object-cover object-center rounded-full"
-              src={user.avatar_url || ""}
-              alt={user.name || user.email}
+              src={member.avatar_url || ""}
+              alt={member.name || member.email}
             />
           </div>
           <Typography
             className="w-full flex-grow text-sm text-left truncate"
             variant="p"
-            text={user.name || user.email}
+            text={member.name || member.email}
           />
         </div>
 
-        <span className="flex justify-center items-center min-w-[24px] h-[24px] p-1.5 flex-shrink-0 text-[12px] font-semibold text-white rounded-full bg-primary-dark">
-          {/* {unreadCount > 99 ? "99+" : unreadCount} */}
-          99+
-        </span>
-          
+        {unreadCount > 0 && (
+          <span className="flex justify-center items-center min-w-[24px] h-[24px] p-1.5 flex-shrink-0 text-[12px] font-semibold text-white rounded-full bg-primary-dark">
+            {unreadCount > 99 ? "99+" : unreadCount}
+          </span>
+        )}
       </div>
     </Link>
   )

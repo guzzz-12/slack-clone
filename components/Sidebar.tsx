@@ -21,22 +21,17 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 import { useUser } from "@/hooks/useUser";
 import { supabaseBrowserClient } from "@/utils/supabase/supabaseBrowserClient";
 import { cn } from "@/lib/utils";
-import { User } from "@/types/supabase";
 
-interface Props {
-  userData: User;
-}
-
-const Sidebar = ({userData}: Props) => {
+const Sidebar = () => {
   const router = useRouter();
 
-  const [isAway, setIsAway] = useState(() => userData.is_away);
+  const {user, setUser, setLoadingUser} = useUser();
+
+  const [isAway, setIsAway] = useState(() => user?.is_away);
   const [openInviteModal, setOpenInviteModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const {currentWorkspace, userWorkspaces, loadingWorkspaces} = useWorkspace();
-
-  const {user, setUser, setLoadingUser} = useUser();
 
   // Consultar la data del usuario y actualizar el state global del user
   useEffect(() => {
@@ -88,13 +83,17 @@ const Sidebar = ({userData}: Props) => {
 
   // Alternar el estado available/unavailable
   const isAwayHandler = async () => {
+    if (!user) {
+      return;
+    }
+
     try {
       setLoading(true);
 
       const {error} = await supabaseBrowserClient
         .from("users")
         .update({is_away: !isAway})
-        .eq("id", userData.id);
+        .eq("id", user.id);
 
       if (error) {
         throw new Error(error.message);
@@ -108,6 +107,10 @@ const Sidebar = ({userData}: Props) => {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (
@@ -327,8 +330,8 @@ const Sidebar = ({userData}: Props) => {
               <div className="relative flex justify-center items-center w-10 h-10">
                 <img
                   className="block w-full h-full object-cover object-center rounded-lg"
-                  src={userData.avatar_url!}
-                  alt={userData.name || "User avatar"}
+                  src={user.avatar_url!}
+                  alt={user.name || "User avatar"}
                 />
 
                 <div className={cn("absolute -bottom-0.5 -right-0.5 w-[14px] h-[14px] rounded-full border-[3px] border-white z-10", isAway ? "bg-neutral-400" : "bg-green-500")}/>
@@ -339,8 +342,8 @@ const Sidebar = ({userData}: Props) => {
               <div className="flex justify-start items-center gap-2">
                 <img
                   className="block w-10 h-10 object-cover object-center rounded-full" 
-                  src={userData.avatar_url!}
-                  alt={userData.name || "User avatar"}
+                  src={user.avatar_url!}
+                  alt={user.name || "User avatar"}
                   crossOrigin="anonymous"
                 />
 
@@ -348,7 +351,7 @@ const Sidebar = ({userData}: Props) => {
                   <Typography
                     className="text-sm font-semibold"
                     variant="p"
-                    text={userData.email}
+                    text={user.email}
                   />
 
                   <div className="flex justify-start items-center gap-1">
