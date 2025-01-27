@@ -55,7 +55,7 @@ const PrivateChatItem = ({workspaceId, member, unreadMessages}: Props) => {
               alt={member.name || member.email}
             />
 
-            <div className={cn("absolute bottom-0 -right-[2px] w-2 h-2 rounded-full outline outline-2 outline-white z-30", isAway ? "bg-neutral-400" : "bg-green-500")}/>
+            <div className={cn("absolute bottom-0 right-0 w-[6px] h-[6px] rounded-full outline outline-2 outline-white z-30", isAway ? "bg-neutral-400" : "bg-green-500")}/>
           </div>
           <Typography
             className="w-full flex-grow text-sm text-left truncate"
