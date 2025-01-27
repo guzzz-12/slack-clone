@@ -17,6 +17,13 @@ export async function GET(req: Request, {params}: Context) {
       return NextResponse.json({message: "Workspace not found"}, {status: 404});
     }
 
+    const searchParams = new URL(req.url).searchParams;
+    const messageType = searchParams.get("messageType") as "channel" | "private";
+
+    if (!messageType || (messageType !== "channel" && messageType !== "private")) {
+      return NextResponse.json({message: "Invalid message type"}, {status: 400});
+    }
+
     const supabase = supabaseServerClient();
 
     const {data: {user}} = await supabase.auth.getUser();
@@ -25,20 +32,37 @@ export async function GET(req: Request, {params}: Context) {
       return redirect("/signin");
     }
 
-    // Consultar los mensajes sin leer de todos los channels del workspace
-    const {data: messages, error} = await supabase
-      .from("messages")
-      .select("id, channel_id, workspace_id")
-      .eq("workspace_id", workspaceId)
-      .not("sender_id", "eq", user.id)
-      .or(`seen_by.is.null, seen_by.not.cs.{${user.id}}`)
+    if (messageType === "channel") {
+      // Consultar los mensajes sin leer de todos los channels del workspace
+      const {data: messages, error} = await supabase
+        .from("messages")
+        .select("id, channel_id, workspace_id")
+        .eq("workspace_id", workspaceId)
+        .not("sender_id", "eq", user.id)
+        .or(`seen_by.is.null, seen_by.not.cs.{${user.id}}`)
+  
+      // Verificar si hubo error de base de datos al consultar los mensajes sin leer
+      if (error) {
+        throw error;
+      }
+  
+      return NextResponse.json(messages, {status: 200});
+    }
+
+    // Consultar los mensajes sin leer de la conversación privada
+    const {data, error} = await supabase
+    .from("private_messages")
+    .select("*, sender:users!sender_id(id, name, email, avatar_url), recipient:users!recipient_id(id, name, email, avatar_url)")
+    .eq("workspace_id", workspaceId)
+    .eq("recipient_id", user.id)
+    .is("seen_at", null);
 
     // Verificar si hubo error de base de datos al consultar los mensajes sin leer
     if (error) {
       throw error;
     }
 
-    return NextResponse.json(messages, {status: 200});
+    return NextResponse.json(data, {status: 200});
     
   } catch (error: any) {
     if (isPostgresError(error)) {
@@ -57,11 +81,19 @@ export async function GET(req: Request, {params}: Context) {
   }
 }
 
-// Route handler para marcar como leídos los mensajes sin leer de los channels de un workspace
+// Route handler para marcar como leídos los mensajes sin leer
+// de los channels o de la conversación privada de un workspace
 export async function PATCH(req: NextRequest, {params}: Context) {
   try {
     const workspaceId = (await params).workspaceId;
-    const messageId = req.nextUrl.searchParams.get("messageId");
+
+    const searchParams = req.nextUrl.searchParams;
+    const messageId = searchParams.get("messageId");
+    const messageType = searchParams.get("messageType") as "channel" | "private";
+
+    if (!messageType || (messageType !== "channel" && messageType !== "private")) {
+      return NextResponse.json({message: "Invalid message type"}, {status: 400});
+    }
 
     // Validar la ID del mensaje
     if (!messageId || !uuidRegex.test(messageId)) {
@@ -81,10 +113,44 @@ export async function PATCH(req: NextRequest, {params}: Context) {
       return redirect("/signin");
     }
 
+    // Marcar como leidos los mensajes sin leer de un channel
+    if (messageType === "channel") {
+      const {data: message, error: messageError} = await supabase
+        .from("messages")
+        .select("seen_by")
+        .eq("id", messageId)
+  
+      // Verificar si hubo error de base de datos al consultar el mensaje
+      if (messageError) {
+        throw messageError;
+      }
+  
+      if (!message || message.length === 0) {
+        return NextResponse.json({message: "Message not found"}, {status: 404});
+      }
+  
+      // Marcar como leidos los mensajes sin leer de todos los channels del workspace
+      const {data: updatedMessage, error} = await supabase
+        .from("messages")
+        .update({seen_by: message[0].seen_by ? [...message[0].seen_by, user.id] : [user.id]})
+        .eq("id", messageId)
+        .select("*, sender:users(id, name, email, avatar_url)")
+        .single();
+  
+      // Verificar si hubo error de base de datos al marcar como leidos los mensajes sin leer
+      if (error) {
+        throw error;
+      }
+  
+      return NextResponse.json(updatedMessage, {status: 200});
+    }
+
+    // Consultar el mensaje de la conversación privada
     const {data: message, error: messageError} = await supabase
-      .from("messages")
-      .select("seen_by")
-      .eq("id", messageId)
+    .from("private_messages")
+    .select("*")
+    .eq("id", messageId)
+    .eq("recipient_id", user.id);
 
     // Verificar si hubo error de base de datos al consultar el mensaje
     if (messageError) {
@@ -95,20 +161,23 @@ export async function PATCH(req: NextRequest, {params}: Context) {
       return NextResponse.json({message: "Message not found"}, {status: 404});
     }
 
-    // Marcar como leidos los mensajes sin leer de todos los channels del workspace
-    const {data: updatedMessage, error} = await supabase
-      .from("messages")
-      .update({seen_by: message[0].seen_by ? [...message[0].seen_by, user.id] : [user.id]})
-      .eq("id", messageId)
-      .select("*, sender:users(id, name, email, avatar_url)")
-      .single();
+    // Marcar como leido el mensaje de la conversación privada
+    const {data, error} = await supabase
+    .from("private_messages")
+    .update({seen_at: (new Date()).toISOString()})
+    .eq("id", messageId)
+    .select("*, sender:users!sender_id(id, name, email, avatar_url), recipient:users!recipient_id(id, name, email, avatar_url)");
 
     // Verificar si hubo error de base de datos al marcar como leidos los mensajes sin leer
     if (error) {
       throw error;
     }
 
-    return NextResponse.json(updatedMessage, {status: 200});
+    if (!data || data.length === 0) {
+      return NextResponse.json({message: "Message not found"}, {status: 404});
+    }
+
+    return NextResponse.json(data[0], {status: 200});
     
   } catch (error: any) {
     if (isPostgresError(error)) {
