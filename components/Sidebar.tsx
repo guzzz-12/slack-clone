@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 import { RiHome2Fill } from "react-icons/ri";
 import { PiChatsTeardrop } from "react-icons/pi";
 import { FiPlus } from "react-icons/fi";
@@ -90,14 +91,13 @@ const Sidebar = () => {
     try {
       setLoading(true);
 
-      const {error} = await supabaseBrowserClient
-        .from("users")
-        .update({is_away: !isAway})
-        .eq("id", user.id);
-
-      if (error) {
-        throw new Error(error.message);
-      }
+      await axios({
+        method: "POST",
+        url: `/api/user-presence`,
+        data: {
+          isAway: !isAway
+        }
+      });
 
       setIsAway(prev => !prev);
 

@@ -1,8 +1,10 @@
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import Typography from "./Typography";
 import { PrivateMessageWithSender, WorkspaceMember } from "@/types/supabase";
 import { cn } from "@/lib/utils";
+import { pusherClient } from "@/utils/pusherClientSide";
 
 type Params = {
   workspaceId: string;
@@ -18,22 +20,42 @@ interface Props {
 const PrivateChatItem = ({workspaceId, member, unreadMessages}: Props) => {
   const params = useParams<Params>();
 
+  const [isAway, setIsAway] = useState(() => member.is_away);
+
   const unreadCount = unreadMessages.filter((m) => m.sender.id === member.id).length;
   const isItemActive = params.userId === member.id && params.workspaceId === workspaceId;
+
+
+  // Escuchar el evento de cambio de presencia del usuario
+  // y actualizar el estado isAway
+  useEffect(() => {
+    const channel = pusherClient.subscribe(`member-${member.id}`);
+
+    channel.bind("user-presence", (data: { isAway: boolean }) => {
+      setIsAway(data.isAway);
+    });
+
+    return () => {
+      pusherClient.unsubscribe(`member-${member.id}`);
+    };
+  }, [member]);
+
 
   return (
     <Link
       className="block w-full"
       href={`/workspace/${workspaceId}/private-chat/${member.id}`}
     >
-      <div className={cn("flex justify-start items-center gap-1 w-full p-2 rounded-sm bg-neutral-700/30 cursor-pointer hover:bg-neutral-600 transition-colors", isItemActive && "bg-neutral-950")}>
-        <div className="flex justify-start items-center gap-2 flex-grow overflow-hidden">
+      <div className={cn("flex justify-start items-center gap-1 w-full rounded-sm bg-neutral-700/30 cursor-pointer hover:bg-neutral-600 transition-colors", isItemActive && "bg-neutral-950")}>
+        <div className="flex justify-start items-center gap-2 flex-grow p-2 overflow-hidden">
           <div className="relative w-[24px] h-[24px] rounded-full flex-shrink-0">
             <img
               className="block w-full h-full text-xs object-cover object-center rounded-full"
               src={member.avatar_url || ""}
               alt={member.name || member.email}
             />
+
+            <div className={cn("absolute bottom-0 -right-[2px] w-2 h-2 rounded-full outline outline-2 outline-white z-30", isAway ? "bg-neutral-400" : "bg-green-500")}/>
           </div>
           <Typography
             className="w-full flex-grow text-sm text-left truncate"
