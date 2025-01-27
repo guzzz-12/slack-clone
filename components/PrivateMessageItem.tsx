@@ -1,5 +1,10 @@
+"use client"
+
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import dayjs from "dayjs";
+import axios, { isAxiosError } from "axios";
+import toast from "react-hot-toast";
 import { FaPencil, FaRegFilePdf, FaRegTrashCan } from "react-icons/fa6";
 import { FaTimes } from "react-icons/fa";
 import { BsThreeDotsVertical } from "react-icons/bs";
@@ -9,6 +14,7 @@ import { PrivateMessageWithSender } from "@/types/supabase";
 import { useMessages } from "@/hooks/useMessages";
 import { useImageLightbox } from "@/hooks/useImageLightbox";
 import useDeleteMessages from "@/hooks/useDeleteMessages";
+import useIntersectionObserver from "@/hooks/useIntersectionObserver";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -17,11 +23,15 @@ interface Props {
 }
 
 const PrivateMessageItem = ({message, currentUserId}: Props) => {
+  const messageRef = useRef<HTMLDivElement>(null);
+
   const isSender = message.sender_id === currentUserId;
 
-  const {messages} = useMessages();
+  const {messages, setMessages} = useMessages();
 
   const {setMessage, setOpen} = useImageLightbox();
+
+  const {isIntersecting} = useIntersectionObserver(messageRef);
 
   // URL de la API para borrar un mensaje de la conversación privada
   let apiDeleteUrl = `/api/workspace/${message.workspace_id}/private-messages`
@@ -29,9 +39,57 @@ const PrivateMessageItem = ({message, currentUserId}: Props) => {
   // Handler para eliminación de un mensaje
   const {deleteMessageHandler, deleting} = useDeleteMessages(apiDeleteUrl, message, messages);
 
+  // Función para marcar un mensaje como visto si no ha sido visto
+  const updateSeenBy = async () => {
+    const seenAt = message.seen_at;
+    const shouldEmitSeenEvent = !isSender && !seenAt;
+
+    if (!shouldEmitSeenEvent) {
+      return;
+    }
+
+    try {
+      const res = await axios<PrivateMessageWithSender>({
+        method: "PATCH",
+        url: `/api/workspace/${message.workspace_id}/unread-messages`,
+        params: {
+          messageId: message.id,
+          messageType: "private"
+        }
+      });
+
+      const updatedMessages = [...messages];
+      const messageIndex = updatedMessages.findIndex(m => m.id === message.id);
+
+      if (messageIndex !== -1) {
+        updatedMessages.splice(messageIndex, 1, res.data);
+      }
+
+      setMessages(updatedMessages);
+      
+    } catch (error: any) {
+      let message = error.message;
+
+      if (isAxiosError(error)) {
+        message = error.response?.data.message;
+      }
+
+      toast.error(message);
+    }
+  }
+
+  // Marcar un mensaje como visto si es visible en el viewport y no ha sido visto
+  useEffect(() => {
+    if (isIntersecting) {
+      updateSeenBy();
+    }
+  }, [isIntersecting]);
+
   return (
     <div
+      ref={messageRef}
       id={message.id}
+      data-sender-id={message.sender_id}
       className={cn("flex w-full p-2", isSender ? "justify-end gap-1 ml-auto" : "justify-start gap-2 mr-auto")}
     >
       {/* Mostrar el avatar del otro usuario (no del usuario actual) */}
