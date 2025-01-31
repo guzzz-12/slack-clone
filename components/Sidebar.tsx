@@ -12,6 +12,7 @@ import toast from "react-hot-toast";
 import WorkspaceItem from "./WorkspaceItem";
 import Typography from "./Typography";
 import InviteModal from "./InviteModal";
+import ProfileModal from "./ProfileModal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Button } from "./ui/button";
@@ -31,6 +32,9 @@ const Sidebar = () => {
   const [isAway, setIsAway] = useState(() => user?.is_away);
   const [openInviteModal, setOpenInviteModal] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const [openProfilePopover, setOpenProfilePopover] = useState(false);
+  const [openProfileModal, setOpenProfileModal] = useState(false);
 
   const {currentWorkspace, userWorkspaces, loadingWorkspaces} = useWorkspace();
 
@@ -121,6 +125,11 @@ const Sidebar = () => {
         workspaceId={currentWorkspace?.workspaceData.id}
         workspaceName={currentWorkspace?.workspaceData.name}
         inviteCode={currentWorkspace?.workspaceData.invite_code}
+      />
+
+      <ProfileModal
+        open={openProfileModal}
+        setOpen={setOpenProfileModal}
       />
 
       <nav className="flex flex-col justify-between items-center flex-grow gap-4 max-h-full">
@@ -325,7 +334,10 @@ const Sidebar = () => {
             </TooltipProvider>
           }
 
-          <Popover>
+          <Popover
+            open={openProfilePopover}
+            onOpenChange={setOpenProfilePopover}
+          >
             <PopoverTrigger disabled={loadingWorkspaces || loading}>
               <div className="relative flex justify-center items-center w-10 h-10">
                 <img
@@ -339,9 +351,19 @@ const Sidebar = () => {
             </PopoverTrigger>
 
             <PopoverContent className="translate-x-[0.5rem] translate-y-[-0.5rem]" side="right">
-              <div className="flex justify-start items-center gap-2">
+              <Button
+                className="flex justify-start items-center gap-2 w-full h-auto border"
+                variant="ghost"
+                disabled={loading}
+                onClick={() => {
+                  setOpenProfilePopover(false);
+                  setTimeout(() => {
+                    setOpenProfileModal(true);                    
+                  }, 500);
+                }}
+              >
                 <img
-                  className="block w-10 h-10 object-cover object-center rounded-full" 
+                  className="block w-10 h-10 object-cover object-center rounded-full border" 
                   src={user.avatar_url!}
                   alt={user.name || "User avatar"}
                   crossOrigin="anonymous"
@@ -364,12 +386,12 @@ const Sidebar = () => {
                     />
                   </div>
                 </div>
-              </div>
+              </Button>
 
               <Separator className="my-2" />
 
               <Button
-                className="w-full border"
+                className="w-full mb-2 border"
                 variant="ghost"
                 size="sm"
                 disabled={loading}
@@ -377,8 +399,6 @@ const Sidebar = () => {
               >
                 {isAway ? "Change to available" : "Change to unavailable"}
               </Button>
-
-              <Separator className="my-2" />
 
               <Button
                 className="w-full border"
