@@ -45,6 +45,7 @@ const ConfirmationModal = (props: Props) => {
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
+      confirmBtnRef.current!.focus();
     } else {
       document.body.style.overflow = "unset";
     }

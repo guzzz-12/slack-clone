@@ -1,12 +1,13 @@
 "use client"
 
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import Link from "next/link";
 import { GoHash } from "react-icons/go";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { FaRegTrashCan } from "react-icons/fa6";
 import Typography from "./Typography";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Button } from "./ui/button";
 import { Channel, MessageWithSender, User, } from "@/types/supabase";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,8 @@ interface Props {
 }
 
 const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMessages, deleteChannelId, setDeleteChannelId, setOpenDeleteChannelModal}: Props) => {
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
   const unreadCount = unreadMessages.filter((m) => m.channel_id === channel.id).length;
   const isDeleting = deletingChannel && deleteChannelId === channel.id;
   const isActive = currentChannelId === channel.id;
@@ -31,7 +34,6 @@ const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMe
       className={cn("block w-full flex-shrink-0 overflow-hidden", isDeleting && "pointer-events-none opacity-50")}
       href={`/workspace/${channel.workspace_id}/channel/${channel.id}`}
       title={channel.name}
-      onClick={(e) => e.stopPropagation()}
     >
       <div className={cn("flex justify-start items-center gap-1 w-full p-2 rounded-sm cursor-pointer hover:bg-neutral-600 transition-colors", isActive && !isDeleting ? "bg-neutral-950" : isDeleting ? "bg-red-900" : "bg-neutral-700/30" )}>
         <GoHash className="flex-shrink-0" />
@@ -48,37 +50,47 @@ const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMe
         )}
         
         {user?.id === channel.ws_admin_id && (
-          <DropdownMenu>
-            <DropdownMenuTrigger
+          <Popover
+            open={isPopoverOpen}
+            onOpenChange={setIsPopoverOpen}
+          >
+            <PopoverTrigger
               disabled={isDeleting}
               asChild
             >
               <button
                 className="flex justify-center items-center w-6 h-6 flex-shrink-0 rounded-full hover:bg-neutral-800 transition-colors"
+                aria-labelledby="channel-options-label"
                 onClick={(e) => {
-                  e.stopPropagation();
-                  setDeleteChannelId(channel.id);
+                  e.nativeEvent.stopImmediatePropagation();
                 }}
               >
-                <BsThreeDotsVertical />
+                <span
+                  id="channel-options-label"
+                  className="sr-only"
+                >
+                  Channel options
+                </span>
+                <BsThreeDotsVertical aria-hidden />
               </button>
-            </DropdownMenuTrigger>
+            </PopoverTrigger>
 
-            <DropdownMenuContent>
-              <DropdownMenuItem
-                className="flex justify-start items-center gap-2 cursor-pointer"
+            <PopoverContent className="w-auto p-1">
+              <Button
+                className="flex justify-start items-center gap-2 w-full cursor-pointer"
+                variant="ghost"
                 disabled={isDeleting}
                 onClick={(e) => {
-                  e.stopPropagation();
+                  setIsPopoverOpen(false);
                   setDeleteChannelId(channel.id);
                   setOpenDeleteChannelModal(true);
                 }}
               >
-                <FaRegTrashCan className="text-red-500" />
+                <FaRegTrashCan className="text-red-500" aria-hidden />
                 <span>Delete Channel</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </Button>
+            </PopoverContent>
+          </Popover>
         )}
       </div>
     </Link>
