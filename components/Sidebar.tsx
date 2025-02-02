@@ -366,7 +366,6 @@ const Sidebar = () => {
                   className="block w-10 h-10 object-cover object-center rounded-full border" 
                   src={user.avatar_url!}
                   alt={user.name || "User avatar"}
-                  crossOrigin="anonymous"
                 />
 
                 <div className="flex flex-col gap-1">

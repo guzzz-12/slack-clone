@@ -5,31 +5,58 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios, { isAxiosError } from "axios";
 import toast from "react-hot-toast";
+import { LuLoader2 } from "react-icons/lu";
+import { FaRegEdit, FaRegTimesCircle } from "react-icons/fa";
+import Typography from "./Typography";
+import FormErrorMessage from "./FormErrorMessage";
 import { Button } from "./ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "./ui/form";
 import { Input } from "./ui/input";
-import FormErrorMessage from "./FormErrorMessage";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { useUser } from "@/hooks/useUser";
-import { cn } from "@/lib/utils";
+import { ACCEPTED_IMAGE_TYPES, MAX_FILE_SIZE } from "@/utils/formSchemas";
+import { imageCompressor, imgToBase64 } from "@/utils/imageCompression";
 import { User } from "@/types/supabase";
+import { cn } from "@/lib/utils";
 
 interface Props {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
 }
 
+const ImageSchema = z.object({
+  avatar: z
+    .any()
+    .refine((file: File) => !!file, "The avatar is required")
+    .refine((file) => file.size <= MAX_FILE_SIZE, "The avatar must be maximum 5MB")
+    .refine(
+      (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
+      "Only .jpg, .jpeg, .png and .webp formats are supported."
+    )
+});
+
 const ProfileModal: FC<Props> = ({ open, setOpen }) => {
   const modalRef = useRef<HTMLDialogElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const changeAvatarBtnRef = useRef<HTMLButtonElement | null>(null);
+  const discardAvatarBtnRef = useRef<HTMLButtonElement | null>(null);
   const confirmBtnRef = useRef<HTMLButtonElement | null>(null);
   const cancelBtnRef = useRef<HTMLButtonElement | null>(null);
   
+  const [processingImage, setProcessingImage] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const [imageError, setImageError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const {user, setUser} = useUser();
 
   const formSchema = z.object({
-    name: z.string().min(1, {message: "The name is required"}),
+    name: z
+      .string()
+      .min(1, {message: "The name is required"})
+      .min(3, {message: "The name must contain at least 3 characters"})
   });
 
   type FormType = z.infer<typeof formSchema>;
@@ -38,7 +65,7 @@ const ProfileModal: FC<Props> = ({ open, setOpen }) => {
     resolver: zodResolver(formSchema),
     shouldFocusError: true,
     defaultValues: {
-      name: user?.name || "",
+      name: user?.name || ""
     },
   });
 
@@ -51,58 +78,93 @@ const ProfileModal: FC<Props> = ({ open, setOpen }) => {
       setOpen(false);
     }
     
-    const refs = [inputRef.current!, confirmBtnRef.current!, cancelBtnRef.current!];
+    const refs = [inputRef.current, confirmBtnRef.current, cancelBtnRef.current];
 
     if (event.key === "Tab") {
       if (event.shiftKey) {
         if (document.activeElement === refs[0]) {
           event.preventDefault();
-          refs[refs.length - 1].focus();
+          refs[refs.length - 1]?.focus();
 
         } else if (document.activeElement === refs[refs.length - 1]) {
           event.preventDefault();
-          refs[(refs.length - 1) - 1].focus();
+          refs[(refs.length - 1) - 1]?.focus();
 
         } else {
           event.preventDefault();
           const index = refs.findIndex(ref => ref === document.activeElement);
-          refs[index - 1].focus();
+          refs[index - 1]?.focus();
         }
       } else {
         if (document.activeElement === refs[0]) {
           event.preventDefault();
-          refs[1].focus();
+          refs[1]?.focus();
 
         } else if (document.activeElement === refs[refs.length - 1]) {
           event.preventDefault();
-          refs[0].focus();
+          refs[0]?.focus();
 
         } else {
           event.preventDefault();
           const index = refs.findIndex(ref => ref === document.activeElement);
-          refs[index + 1].focus();
+          refs[index + 1]?.focus();
         }
       }
     }
   };
 
 
+  const onImageChangeHandler = async (img: File) => {
+    setProcessingImage(true);
+
+    const compressedImg = await imageCompressor(img, "file") as File;
+    const imgPreview = await imgToBase64(compressedImg);
+
+    setProcessingImage(false);
+
+    setImageFile(compressedImg);
+    setImagePreview(imgPreview);
+  }
+
+
   const submitHandler = async (values: FormType) => {
+    const formData = new FormData();
+
+    if (imageFile) {
+      const imageValidationError = ImageSchema.safeParse({avatar: imageFile}).error;
+
+      if (imageValidationError) {
+        const errors = imageValidationError.errors.map(err => err.message).join(". ");
+        setImageError(errors);
+        return;
+      }
+      
+      formData.append("avatar", imageFile);
+    }
+
+    formData.append("name", values.name);
+
     try {
       setLoading(true);
 
       const res = await axios<User>({
         url: `/api/user`,
         method: "PATCH",
-        data: {
-          name: values.name
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data"
         }
       });
 
       setUser(res.data);
 
+      formProps.reset();
+
       toast.success("Profile updated successfully");
 
+      setImageFile(null);
+      setImagePreview("");
+      setImageError("");
       setOpen(false);
 
     } catch (error: any) {
@@ -183,6 +245,100 @@ const ProfileModal: FC<Props> = ({ open, setOpen }) => {
             className="flex flex-col gap-4 w-full min-w-[360px]"
             onSubmit={formProps.handleSubmit(submitHandler)}
           >
+            <input
+              ref={imageInputRef}
+              hidden
+              type="file"
+              accept="image/jpg, image/jpeg, image/png, image/webp"
+              multiple={false}
+              disabled={processingImage || loading}
+              onChange={(e) => {
+                if (e.target.files) {
+                  onImageChangeHandler(e.target.files[0]);
+                }
+              }}
+            />
+
+            {!processingImage &&
+              <div className="flex flex-col gap-2">
+                <TooltipProvider>
+                  <div className="relative w-full h-[180px] aspect-square bg-neutral-700 rounded-md overflow-hidden">
+                    {imagePreview && imageFile &&
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            ref={discardAvatarBtnRef}
+                            className="absolute top-2 right-2 block w-[35px] h-[35px] p-1 rounded-full bg-neutral-800/60"
+                            type="button"
+                            aria-labelledby="discard-avatar"
+                            disabled={loading || processingImage}
+                            onClick={() => {
+                              setImageFile(null);
+                              setImagePreview("");
+                              imageInputRef.current!.value = "";
+                            }}
+                          >
+                            <FaRegTimesCircle className="w-full h-full text-red-500" aria-hidden />
+                          </button>
+                        </TooltipTrigger>
+
+                        <TooltipContent>
+                          <span id="discard-avatar" className="text-sm">
+                            Discard changes
+                          </span>
+                        </TooltipContent>
+                      </Tooltip>
+                    }
+
+                    {!imagePreview && !imageFile &&
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            ref={changeAvatarBtnRef}
+                            className="absolute top-2 right-2 flex justify-center items-center w-[35px] h-[35px] p-2 rounded-full bg-neutral-800/60"
+                            type="button"
+                            aria-labelledby="change-avatar"
+                            disabled={loading || processingImage}
+                            onClick={() => {
+                              imageInputRef.current!.click();
+                            }}
+                          >
+                            <FaRegEdit className="w-full h-full text-neutral-200" aria-hidden />
+                          </button>
+                        </TooltipTrigger>
+
+                        <TooltipContent>
+                          <span id="change-avatar" className="text-sm">
+                            Change Avatar
+                          </span>
+                        </TooltipContent>
+                      </Tooltip>
+                    }
+        
+                    <img
+                      className="w-full h-full object-contain object-center"
+                      src={imagePreview || user.avatar_url!}
+                      alt={imagePreview ? "Selected avatar preview" : "Your current avatar"}
+                    />
+                  </div>
+                </TooltipProvider>
+                
+                {imageError &&
+                  <Typography
+                    className={cn("text-sm text-left font-medium translate-y-[-5px] text-red-500")}
+                    text={imageError}
+                    variant="p"
+                  />
+                }
+              </div>
+            }
+
+            {processingImage &&
+              <div className="flex justify-center items-center w-full h-[180px] rounded-md border border-dashed border-neutral-300 bg-neutral-700">
+                <LuLoader2 className="text-white animate-spin" size={30} />
+              </div>
+            }
+
             <FormField
               name="name"
               control={formProps.control}
@@ -211,7 +367,7 @@ const ProfileModal: FC<Props> = ({ open, setOpen }) => {
                 ref={confirmBtnRef}
                 disabled={loading}
               >
-                Update Profile
+                Save Changes
               </Button>
 
               <Button
