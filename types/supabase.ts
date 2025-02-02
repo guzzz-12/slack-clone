@@ -8,6 +8,8 @@ export type Json =
 
 export type User = {
   avatar_key: string | null
+  avatar_name: string | null
+  avatar_id: string | null
   avatar_url: string | null
   channels: string[] | null
   created_at: string | null
@@ -382,7 +384,9 @@ export type Database = {
       }
       users: {
         Row: {
+          avatar_id: string | null
           avatar_key: string | null
+          avatar_name: string | null
           avatar_url: string | null
           channels: string[] | null
           created_at: string | null
@@ -395,7 +399,9 @@ export type Database = {
           workspaces: string[] | null
         }
         Insert: {
+          avatar_id?: string | null
           avatar_key?: string | null
+          avatar_name?: string | null
           avatar_url?: string | null
           channels?: string[] | null
           created_at?: string | null
@@ -408,7 +414,9 @@ export type Database = {
           workspaces?: string[] | null
         }
         Update: {
+          avatar_id?: string | null
           avatar_key?: string | null
+          avatar_name?: string | null
           avatar_url?: string | null
           channels?: string[] | null
           created_at?: string | null
