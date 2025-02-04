@@ -53,8 +53,8 @@ const PrivateChatItem = ({workspaceId, member, unreadMessages}: Props) => {
     
     channel.bind("call-ended", ({callerId}: {callerId: string}) => {
       console.log({videcall_ended: callerId});
-      setCallerId(null);
       setIncomingVideoCall(false);
+      setCallerId(null);
       setVideoCallType(null);
     });
 

@@ -44,7 +44,7 @@ const VideoChat = ({workspaceId, chatId, user, callType}: Props) => {
           params: {
             room: callType === "private" ? combinedUsersIds : chatId,
             username: user.email,
-            caller_id: callType === "private" ? combinedUsersIds : user.id,
+            caller_id: callType === "private" ? combinedUsersIds : chatId,
             call_type: callType,
             workspace_id: workspaceId
           }

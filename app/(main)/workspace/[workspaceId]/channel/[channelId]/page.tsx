@@ -225,8 +225,6 @@ const ChannelPage = ({params}: Props) => {
     }
   }
 
-  console.log({channelData, callerId})
-
 
   return (
     <main
