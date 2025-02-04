@@ -1,15 +1,18 @@
 "use client"
 
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Link from "next/link";
 import { GoHash } from "react-icons/go";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { FaRegTrashCan } from "react-icons/fa6";
+import { HiUserGroup } from "react-icons/hi2";
 import Typography from "./Typography";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Button } from "./ui/button";
+import { pusherClient } from "@/utils/pusherClientSide";
 import { Channel, MessageWithSender, User, } from "@/types/supabase";
 import { cn } from "@/lib/utils";
+import { useMessages } from "@/hooks/useMessages";
 
 interface Props {
   user: User | null;
@@ -24,10 +27,34 @@ interface Props {
 
 const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMessages, deleteChannelId, setDeleteChannelId, setOpenDeleteChannelModal}: Props) => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [activeMeeting, setActiveMeeting] = useState(false);
+
+  const {setCallerId, setVideoCallType} = useMessages();
 
   const unreadCount = unreadMessages.filter((m) => m.channel_id === channel.id).length;
   const isDeleting = deletingChannel && deleteChannelId === channel.id;
   const isActive = currentChannelId === channel.id;
+
+  // Escuchar eventos de video llamada (reunión)
+  useEffect(() => {
+    const pusherChannel = pusherClient.subscribe(`videocall-${channel.id}-${channel.workspace_id}`);
+
+    pusherChannel.bind("active-meeting", ({meetingChannel}: {meetingChannel: string}) => {
+      setActiveMeeting(true);
+      setCallerId(meetingChannel);
+      setVideoCallType("channel");
+    });
+
+    pusherChannel.bind("meeting-ended", ({meetingChannel}: {meetingChannel: string}) => {
+      setActiveMeeting(false);
+      setCallerId(null);
+      setVideoCallType(null);
+    });
+
+    return () => {
+      pusherChannel.unsubscribe();
+    };
+  }, [channel, currentChannelId]);
 
   return (
     <Link
@@ -36,7 +63,13 @@ const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMe
       title={channel.name}
     >
       <div className={cn("flex justify-start items-center gap-1 w-full p-2 rounded-sm cursor-pointer hover:bg-neutral-600 transition-colors", isActive && !isDeleting ? "bg-neutral-950" : isDeleting ? "bg-red-900" : "bg-neutral-700/30" )}>
-        <GoHash className="flex-shrink-0" />
+        {!activeMeeting && <GoHash className="flex-shrink-0" />}
+        {activeMeeting && 
+          <div className="relative flex justify-center items-center mr-2 ml-1 flex-shrink-0 rounded-full">
+            <div className="absolute inline-flex h-5 w-5 animate-ping rounded-full bg-green-500 opacity-75 z-10"/>
+            <HiUserGroup className="relative block w-4 h-4 flex-shrink-0 text-white z-20" />
+          </div>
+        }
         <Typography
           className="w-full flex-grow text-sm text-left truncate"
           variant="p"
