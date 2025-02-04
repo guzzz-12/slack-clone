@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 import toast from "react-hot-toast";
 import { Track } from "livekit-client";
 import {
@@ -15,27 +15,38 @@ import {
 
 import Spinner from "./Spinner";
 import { User } from "@/types/supabase";
+import { useMessages } from "@/hooks/useMessages";
+import { combineUuid } from "@/utils/constants";
 
 interface Props {
+  workspaceId: string;
   chatId: string;
   user: User;
+  callType: "channel" | "private";
 }
 
-const VideoChat = ({chatId, user}: Props) => {
+const VideoChat = ({workspaceId, chatId, user, callType}: Props) => {
   const [token, setToken] = useState("");
   const [loading, setLoading] = useState(true);
+
+  const {setCallerId, setVideoCallType} = useMessages();
 
   useEffect(() => {
     const getToken = async () => {
       setLoading(true);
+
+      const combinedUsersIds = combineUuid(user.id, chatId);
 
       try {
         const res = await axios<{token: string}>({
           method: "GET",
           url: `/api/livekit/token`,
           params: {
-            room: chatId,
-            username: user.email
+            room: callType === "private" ? combinedUsersIds : chatId,
+            username: user.email,
+            caller_id: callType === "private" ? combinedUsersIds : user.id,
+            call_type: callType,
+            workspace_id: workspaceId
           }
         });
 
@@ -53,7 +64,34 @@ const VideoChat = ({chatId, user}: Props) => {
     getToken();
   }, [chatId, user]);
 
-  if (loading) {
+  const onDisconnectHandler = async () => {
+    try {
+      const combinedUsersIds = combineUuid(user.id, chatId);
+      
+      await axios({
+        method: "GET",
+        url: `/api/workspace/${workspaceId}/end-private-videocall`,
+        params: {
+          caller_id: callType === "private" ? combinedUsersIds : user.id
+        }
+      });
+
+      setToken("");
+      setCallerId(null);
+      setVideoCallType(null);
+      
+    } catch (error: any) {
+      let message = error.message;
+
+      if (isAxiosError(error)) {
+        message = error.response?.data.message;
+      }
+
+      toast.error(message);
+    }
+  }
+
+  if (loading || !user) {
     return <Spinner />
   }
 
@@ -66,6 +104,7 @@ const VideoChat = ({chatId, user}: Props) => {
       token={token}
       serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
       data-lk-theme="default"
+      onDisconnected={onDisconnectHandler}
     >
       <MyVideoConference />
       <RoomAudioRenderer />
