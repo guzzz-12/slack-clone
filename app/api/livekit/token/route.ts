@@ -30,8 +30,14 @@ export async function GET(req: NextRequest) {
   
     at.addGrant({ room, roomJoin: true, canPublish: true, canSubscribe: true });
 
+    // Emitir evento de videollamada privada para mostrar indicador en el item del chat privado
     if (callType === "private") {
       pusher.trigger(`videocall-${callerId}-${workspaceId}`, "incoming-call", {callerId});
+    }
+
+    //Emitir evento de videollamada de channel para mostrar indicador en el item del channel
+    if (callType === "channel") {
+      pusher.trigger(`videocall-${callerId}-${workspaceId}`, "active-meeting", {meetingChannel: callerId});
     }
   
     return NextResponse.json({ token: await at.toJwt() });
