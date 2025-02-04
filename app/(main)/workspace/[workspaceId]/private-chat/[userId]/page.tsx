@@ -48,6 +48,7 @@ const PrivateChatPage = ({params}: Props) => {
   const [chatInputHeight, setChatInputHeight] = useState(0);
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
   const [channel, setChannel] = useState<Channel | null>(null);
+  const [showVideoCall, setShowVideoCall] = useState(false);
 
   const {user} = useUser();
   
@@ -59,7 +60,7 @@ const PrivateChatPage = ({params}: Props) => {
     page,
     hasMore,
     term,
-    isVideoCall,
+    callerId,
     loadingMessages,
     setPage,
     setMessages,
@@ -114,6 +115,15 @@ const PrivateChatPage = ({params}: Props) => {
       setLoading(false);
     }
   }
+
+
+  // Mostrar el video call si el otro usuario es el que llama
+  useEffect(() => {
+    if (user && otherUserData) {
+      const combinedUsersIds = combineUuid(user.id, otherUserData.id);
+      setShowVideoCall(combinedUsersIds === callerId);
+    }
+  }, [user, callerId, otherUserData]);
 
 
   // Desuscribirse de la conversación privada al cambiar de conversación
@@ -231,6 +241,7 @@ const PrivateChatPage = ({params}: Props) => {
         currentChannelId={params.userId}
         title={otherUserData?.name || otherUserData?.email}
         loading={loading}
+        chatType="private"
       />
 
       {newIncomingMessage && (term.length > 0 || !isScrolledToBottom) &&
@@ -252,14 +263,19 @@ const PrivateChatPage = ({params}: Props) => {
       }
 
       {/* Pantalla del video chat */}
-      {isVideoCall && otherUserData && user &&
+      {showVideoCall &&
         <section className="overflow-y-auto scrollbar-thin">
-          <VideoChat user={user} chatId={otherUserData.id} />
+          <VideoChat
+            user={user!}
+            chatId={otherUserData!.id}
+            callType="private"
+            workspaceId={workspaceId}
+          />
         </section>
       }
 
       {/* Pantalla del chat de texto */}
-      {!isVideoCall &&
+      {(!callerId || !showVideoCall) && user &&
         <>
           <section
             ref={sectionRef}

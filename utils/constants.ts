@@ -23,7 +23,9 @@ export const isPrivateMessage = (message: any): message is PrivateMessageWithSen
 /**
  * Combinar dos UUIDs de forma que siempre tengan el mismo orden
  */
-export const combineUuid = (A: string, B: any) => {
+export const combineUuid = (A: string, B: string) => {
+  if (!A || !B) return "";
+
   const aFirstSegment = A.split("-")[0];
   const bFirstSegment = B.split("-")[0];
 

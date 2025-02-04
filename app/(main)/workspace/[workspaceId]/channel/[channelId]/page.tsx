@@ -47,7 +47,7 @@ const ChannelPage = ({params}: Props) => {
     hasMore,
     page,
     term,
-    isVideoCall,
+    callerId,
     setTerm,
     setPage,
     setMessages,
@@ -225,6 +225,8 @@ const ChannelPage = ({params}: Props) => {
     }
   }
 
+  console.log({channelData, callerId})
+
 
   return (
     <main
@@ -236,6 +238,7 @@ const ChannelPage = ({params}: Props) => {
         currentChannelId={channelId}
         title={channelData?.name}
         loading={loading}
+        chatType="channel"
       />
 
       {newIncomingMessage && (term.length > 0 || !isScrolledToBottom) &&
@@ -257,14 +260,19 @@ const ChannelPage = ({params}: Props) => {
       }
 
       {/* Pantalla del video chat */}
-      {isVideoCall && channelData && user &&
+      {callerId && channelData?.id === callerId && user &&
         <section className="overflow-y-auto scrollbar-thin">
-          <VideoChat user={user} chatId={channelData.id} />
+          <VideoChat
+            user={user}
+            workspaceId={workspaceId}
+            chatId={channelData.id}
+            callType="channel"
+          />
         </section>
       }
 
       {/* Pantalla del chat de texto */}
-      {!isVideoCall &&
+      {(channelData?.id !== callerId || !callerId) &&
         <>
           <section 
             ref={sectionRef}
