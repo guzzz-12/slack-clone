@@ -51,6 +51,8 @@ export type Channel = {
   name: string;
   workspace_id: string;
   ws_admin_id: string;
+  has_active_meeting: boolean | null;
+  created_at: string;
 }
 
 type ChannelMessage = {
@@ -120,6 +122,7 @@ export type Database = {
       channels: {
         Row: {
           created_at: string
+          has_active_meeting: boolean | null
           id: string
           is_public: boolean | null
           name: string
@@ -128,6 +131,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          has_active_meeting?: boolean | null
           id?: string
           is_public?: boolean | null
           name: string
@@ -136,6 +140,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          has_active_meeting?: boolean | null
           id?: string
           is_public?: boolean | null
           name?: string
