@@ -10,9 +10,10 @@ import Typography from "./Typography";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Button } from "./ui/button";
 import { pusherClient } from "@/utils/pusherClientSide";
-import { Channel, MessageWithSender, User, } from "@/types/supabase";
-import { cn } from "@/lib/utils";
 import { useMessages } from "@/hooks/useMessages";
+import { useWorkspace } from "@/hooks/useWorkspace";
+import { cn } from "@/lib/utils";
+import { Channel, MessageWithSender, User, } from "@/types/supabase";
 
 interface Props {
   user: User | null;
@@ -27,8 +28,8 @@ interface Props {
 
 const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMessages, deleteChannelId, setDeleteChannelId, setOpenDeleteChannelModal}: Props) => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [activeMeeting, setActiveMeeting] = useState(false);
 
+  const {workspaceChannels, setWorkspaceChannels, setCurrentChannel} = useWorkspace();
   const {setCallerId, setVideoCallType} = useMessages();
 
   const unreadCount = unreadMessages.filter((m) => m.channel_id === channel.id).length;
@@ -37,24 +38,48 @@ const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMe
 
   // Escuchar eventos de video llamada (reunión)
   useEffect(() => {
+    if (channel) {
+      setCurrentChannel(channel);
+    }
+
     const pusherChannel = pusherClient.subscribe(`videocall-${channel.id}-${channel.workspace_id}`);
 
-    pusherChannel.bind("active-meeting", ({meetingChannel}: {meetingChannel: string}) => {
-      setActiveMeeting(true);
-      setCallerId(meetingChannel);
-      setVideoCallType("channel");
+    pusherChannel.bind("member-connected", ({meetingChannel}: {meetingChannel: Channel}) => {
+      const channelIndex = workspaceChannels.findIndex((ch) => ch.id === meetingChannel.id);
+
+      if (channelIndex !== -1) {
+        const updatedChannels = [...workspaceChannels];
+        updatedChannels.splice(channelIndex, 1, meetingChannel);
+        setWorkspaceChannels(updatedChannels);
+        setCallerId(meetingChannel.id);
+        setVideoCallType("channel");
+      }
     });
 
-    pusherChannel.bind("meeting-ended", ({meetingChannel}: {meetingChannel: string}) => {
-      setActiveMeeting(false);
-      setCallerId(null);
-      setVideoCallType(null);
+    pusherChannel.bind("member-disconnected", ({meetingChannel}: {meetingChannel: Channel}) => {
+      const channelIndex = workspaceChannels.findIndex((ch) => ch.id === meetingChannel.id);
+
+      if (channelIndex !== -1) {
+        const updatedChannels = [...workspaceChannels];
+        updatedChannels.splice(channelIndex, 1, meetingChannel);
+        setWorkspaceChannels(updatedChannels);
+
+        const updatedConnectedMembers = meetingChannel.meeting_members;
+        const isCurrentUserConnected = updatedConnectedMembers.includes(user!.id);
+
+        // Si el usuario actual se desconecta de la conferencia, mostrar el chat de texto
+        if (!isCurrentUserConnected) {
+          setCallerId(null);
+          setVideoCallType(null);
+        }
+      }
     });
 
     return () => {
       pusherChannel.unsubscribe();
+      setCurrentChannel(null);
     };
-  }, [channel, currentChannelId]);
+  }, [channel, currentChannelId, workspaceChannels, user]);
 
   return (
     <Link
@@ -63,8 +88,9 @@ const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMe
       title={channel.name}
     >
       <div className={cn("flex justify-start items-center gap-1 w-full p-2 rounded-sm cursor-pointer hover:bg-neutral-600 transition-colors", isActive && !isDeleting ? "bg-neutral-950" : isDeleting ? "bg-red-900" : "bg-neutral-700/30" )}>
-        {!activeMeeting && <GoHash className="flex-shrink-0" />}
-        {activeMeeting && 
+        {channel.meeting_members.length === 0 && <GoHash className="flex-shrink-0" />}
+
+        {channel.meeting_members.length > 0 &&
           <div className="relative flex justify-center items-center mr-2 ml-1 flex-shrink-0 rounded-full">
             <div className="absolute inline-flex h-5 w-5 animate-ping rounded-full bg-green-500 opacity-75 z-10"/>
             <HiUserGroup className="relative block w-4 h-4 flex-shrink-0 text-white z-20" />
