@@ -14,8 +14,9 @@ import {
 } from "@livekit/components-react";
 
 import Spinner from "./Spinner";
-import { User } from "@/types/supabase";
+import { Channel, User } from "@/types/supabase";
 import { useMessages } from "@/hooks/useMessages";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { combineUuid } from "@/utils/constants";
 
 interface Props {
@@ -30,7 +31,9 @@ const VideoChat = ({workspaceId, chatId, user, callType}: Props) => {
   const [loading, setLoading] = useState(true);
 
   const {setCallerId, setVideoCallType} = useMessages();
+  const {workspaceChannels, setWorkspaceChannels} = useWorkspace();
 
+  // Generar el token de LiveKit
   useEffect(() => {
     const getToken = async () => {
       setLoading(true);
@@ -64,17 +67,72 @@ const VideoChat = ({workspaceId, chatId, user, callType}: Props) => {
     getToken();
   }, [chatId, user]);
 
+  const onConnectedHandler = async () => {
+    if (callType === "channel") {
+      try {
+        const res = await axios<Channel>({
+          method: "PATCH",
+          url: `/api/workspace/${workspaceId}/channel-meeting`,
+          params: {
+            channel_id: chatId,
+            user_id: user.id
+          }
+        });
+
+        // Actualizar el state del channel de la conferencia
+        const channelIndex = workspaceChannels.findIndex((ch) => ch.id === res.data.id);
+
+        if (channelIndex !== -1) {
+          const updatedChannels = [...workspaceChannels];
+          updatedChannels.splice(channelIndex, 1, res.data);
+          setWorkspaceChannels(updatedChannels);
+        }
+
+      } catch (error: any) {
+        let message = error.message;
+
+        if (isAxiosError(error)) {
+          message = error.response?.data.message;
+        }
+
+        toast.error(message);
+      }
+    }
+  }
+
   const onDisconnectHandler = async () => {
     try {
-      const combinedUsersIds = combineUuid(user.id, chatId);
-      
-      await axios({
-        method: "GET",
-        url: `/api/workspace/${workspaceId}/end-private-videocall`,
-        params: {
-          caller_id: callType === "private" ? combinedUsersIds : user.id
+      if (callType === "private") {
+        const combinedUsersIds = combineUuid(user.id, chatId);
+        
+        await axios({
+          method: "DELETE",
+          url: `/api/workspace/${workspaceId}/end-private-videocall`,
+          params: {
+            caller_id: callType === "private" ? combinedUsersIds : user.id
+          }
+        });
+      }
+
+      if (callType === "channel") {
+        const res = await axios<Channel>({
+          method: "DELETE",
+          url: `/api/workspace/${workspaceId}/channel-meeting`,
+          params: {
+            channel_id: chatId,
+            user_id: user.id
+          }
+        });
+
+        // Actualizar el state del channel de la conferencia
+        const channelIndex = workspaceChannels.findIndex((ch) => ch.id === res.data.id);
+
+        if (channelIndex !== -1) {
+          const updatedChannels = [...workspaceChannels];
+          updatedChannels.splice(channelIndex, 1, res.data);
+          setWorkspaceChannels(updatedChannels);
         }
-      });
+      }
 
       setToken("");
       setCallerId(null);
@@ -104,6 +162,7 @@ const VideoChat = ({workspaceId, chatId, user, callType}: Props) => {
       token={token}
       serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
       data-lk-theme="default"
+      onConnected={onConnectedHandler}
       onDisconnected={onDisconnectHandler}
     >
       <MyVideoConference />
