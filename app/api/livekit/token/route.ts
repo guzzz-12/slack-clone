@@ -17,6 +17,10 @@ export async function GET(req: NextRequest) {
     } else if (!username) {
       return NextResponse.json({ error: "Missing 'username' query parameter" }, { status: 400 });
     }
+
+    if (!callerId) {
+      return NextResponse.json({ error: "Missing 'caller_id' query parameter" }, { status: 400 });
+    }
   
     const apiKey = process.env.LIVEKIT_API_KEY;
     const apiSecret = process.env.LIVEKIT_API_SECRET;
@@ -33,11 +37,6 @@ export async function GET(req: NextRequest) {
     // Emitir evento de videollamada privada para mostrar indicador en el item del chat privado
     if (callType === "private") {
       pusher.trigger(`videocall-${callerId}-${workspaceId}`, "incoming-call", {callerId});
-    }
-
-    //Emitir evento de videollamada de channel para mostrar indicador en el item del channel
-    if (callType === "channel") {
-      pusher.trigger(`videocall-${callerId}-${workspaceId}`, "active-meeting", {meetingChannel: callerId});
     }
   
     return NextResponse.json({ token: await at.toJwt() });
