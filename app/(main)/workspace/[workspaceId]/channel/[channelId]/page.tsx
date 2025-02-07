@@ -225,6 +225,9 @@ const ChannelPage = ({params}: Props) => {
     }
   }
 
+  if (!channelData) {
+    return null;
+  }
 
   return (
     <main
@@ -258,19 +261,19 @@ const ChannelPage = ({params}: Props) => {
       }
 
       {/* Pantalla del video chat */}
-      {callerId && channelData?.id === callerId && user &&
+      {((callerId && channelData.id === callerId) || (channelData.meeting_members.includes(user!.id))) && user &&
         <section className="overflow-y-auto scrollbar-thin">
           <VideoChat
             user={user}
             workspaceId={workspaceId}
-            chatId={channelData.id}
+            chatId={channelId}
             callType="channel"
           />
         </section>
       }
 
       {/* Pantalla del chat de texto */}
-      {(channelData?.id !== callerId || !callerId) &&
+      {(channelData.id !== callerId || !callerId) &&
         <>
           <section 
             ref={sectionRef}

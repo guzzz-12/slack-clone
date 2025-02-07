@@ -25,7 +25,6 @@ interface Props {
   userId: string;
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  setChannels: Dispatch<SetStateAction<Channel[]>>;
 }
 
 const ChannelFormSchema = z.object({
@@ -41,10 +40,10 @@ const ChannelFormSchema = z.object({
 
 type ChannelFormType = z.infer<typeof ChannelFormSchema>;
 
-const CreateChannelModal = ({isOpen, setIsOpen, setChannels}: Props) => {
+const CreateChannelModal = ({isOpen, setIsOpen}: Props) => {
   const router = useRouter();
 
-  const {currentWorkspace} = useWorkspace();
+  const {currentWorkspace, workspaceChannels, setWorkspaceChannels} = useWorkspace();
   
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(false);
@@ -87,7 +86,7 @@ const CreateChannelModal = ({isOpen, setIsOpen, setChannels}: Props) => {
         }
       });
 
-      setChannels((prevChannels) => [res.data, ...prevChannels]);
+      setWorkspaceChannels([res.data, ...workspaceChannels]);
 
       formProps.reset();
 

@@ -52,7 +52,8 @@ export async function POST(req: Request, {params}: Context) {
       // Convertir a boolean los strings "public" y "private"
       is_public: chanelType === "public" ? true : false,
       workspace_id: workspaceId,
-      ws_admin_id: user.id
+      ws_admin_id: user.id,
+      meeting_members: []
     })
     .select()
     .single();

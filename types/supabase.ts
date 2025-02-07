@@ -51,7 +51,7 @@ export type Channel = {
   name: string;
   workspace_id: string;
   ws_admin_id: string;
-  has_active_meeting: boolean | null;
+  meeting_members: string[];
   created_at: string;
 }
 
@@ -122,27 +122,27 @@ export type Database = {
       channels: {
         Row: {
           created_at: string
-          has_active_meeting: boolean | null
           id: string
           is_public: boolean | null
+          meeting_members: string[]
           name: string
           workspace_id: string
           ws_admin_id: string
         }
         Insert: {
           created_at?: string
-          has_active_meeting?: boolean | null
           id?: string
           is_public?: boolean | null
+          meeting_members: string[]
           name: string
           workspace_id?: string
           ws_admin_id?: string
         }
         Update: {
           created_at?: string
-          has_active_meeting?: boolean | null
           id?: string
           is_public?: boolean | null
+          meeting_members?: string[]
           name?: string
           workspace_id?: string
           ws_admin_id?: string
