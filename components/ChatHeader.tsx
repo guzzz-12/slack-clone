@@ -1,12 +1,13 @@
+"use client"
+
 import { GoHash } from "react-icons/go";
-import { FaVideo, FaVideoSlash } from "react-icons/fa";
+import { FaVideo } from "react-icons/fa";
 import SearchBar from "./SearchBar";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { useMessages } from "@/hooks/useMessages";
 import { useUser } from "@/hooks/useUser";
-import { useEffect } from "react";
 import { combineUuid } from "@/utils/constants";
 
 interface Props {
@@ -17,22 +18,24 @@ interface Props {
   chatType: "channel" | "private";
 }
 
-const ChatHeader = ({ currentChannelId, title, loading, chatType}: Props) => {
-  const {callerId, videoCallType, setCallerId, setVideoCallType} = useMessages();
+const ChatHeader = ({currentChannelId, title, loading, chatType}: Props) => {
+  const {callerId, setCallerId, setVideoCallType} = useMessages();
 
   const {user} = useUser();
 
-  // Generar el callerId cuando se inicie una videollamada
-  useEffect(() => {
-    if (videoCallType === "channel") {
+  /** Generar el callerId cuando se inicie una videollamada */
+  const onClickHandler = (type: "channel" | "private") => {
+    setVideoCallType(type);
+
+    if (type === "channel") {
       setCallerId(currentChannelId);
     }
 
-    if (videoCallType === "private" && user) {
+    if (type === "private" && user) {
       const combinedUserIds = combineUuid(user.id, currentChannelId);
       setCallerId(combinedUserIds);
     }
-  }, [videoCallType, user]);
+  }
 
   return (
     <header className="flex justify-between items-center gap-2 w-full min-h-[57px] px-4 py-2 flex-shrink-0 border-b border-neutral-900 bg-neutral-800">
@@ -55,28 +58,20 @@ const ChatHeader = ({ currentChannelId, title, loading, chatType}: Props) => {
           <div className="flex justify-start items-center gap-2">
             <SearchBar />
 
-            {videoCallType !== "private" &&
+            {!callerId &&
               <TooltipProvider>
                 <Tooltip delayDuration={250}>
                   <TooltipTrigger className="flex justify-start w-full" asChild>
                     <Button
                       variant="ghost"
-                      onClick={() => {
-                        if (callerId) {
-                          setCallerId(null);
-                          setVideoCallType(null);
-
-                        } else {
-                          setVideoCallType(chatType);
-                        }
-                      }}
+                      onClick={() => onClickHandler(chatType)}
                     >
-                      {callerId ? <FaVideoSlash size={30} /> : <FaVideo size={30} />}
+                      <FaVideo size={30} aria-hidden />
                     </Button>
                   </TooltipTrigger>
 
                   <TooltipContent side="bottom">
-                    {!callerId ? "Start Video Call" : "End video call"}
+                    {chatType  === "channel" ? "Start Video Meeting" : "Start Video Call"}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
