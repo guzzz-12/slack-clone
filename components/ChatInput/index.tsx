@@ -129,8 +129,14 @@ const ChatInput = ({apiUrl, isLoading}: Props) => {
             <div className="flex justify-between items-center gap-2">
               <Popover>
                 <PopoverTrigger className="" asChild>
-                  <button className="w-6 h-6 rounded-full bg-neutral-300">
-                    <BsEmojiSmile className="block w-full h-full text-neutral-900" />
+                  <button
+                    className="w-6 h-6 rounded-full bg-neutral-300"
+                    aria-labelledby="emoji-picker-btn-label"
+                  >
+                    <BsEmojiSmile className="block w-full h-full text-neutral-900" aria-hidden />
+                    <span id="emoji-picker-btn-label" hidden>
+                      Pick emoji
+                    </span>
                   </button>
                 </PopoverTrigger>
 
@@ -153,9 +159,11 @@ const ChatInput = ({apiUrl, isLoading}: Props) => {
 
               <button
                 className="w-6 h-6 rounded-full bg-neutral-300"
+                aria-labelledby="file-picker-btn-label"
                 onClick={() => setOpenFileModal(true)}
               >
-                <FiPlus className="block w-full h-full text-neutral-900" />
+                <FiPlus className="block w-full h-full text-neutral-900" aria-hidden />
+                <span id="file-picker-btn-label" hidden>Add attachment</span>
               </button>
             </div>
           </>
@@ -176,10 +184,12 @@ const ChatInput = ({apiUrl, isLoading}: Props) => {
 
           <button
             className="absolute right-1.5 bottom-2 w-12 h-8 p-1.5 rounded-full border border-transparent bg-neutral-300 -translate-x-2 z-10 hover:bg-neutral-400 transition-colors disabled:cursor-not-allowed disabled:bg-neutral-400"
+            aria-labelledby="send-message-btn-label"
             disabled={sending || isEmpty}
             onClick={onSubmitHandler}
           >
-            <BsSendFill className="block w-full h-full text-neutral-900" />
+            <BsSendFill className="block w-full h-full text-neutral-900" aria-hidden />
+            <span id="send-message-btn-label" hidden>Send message</span>
           </button>
         </>
       )}

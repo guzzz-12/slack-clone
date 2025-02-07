@@ -144,7 +144,7 @@ const Step2 = ({setStep}: Props) => {
           <div className="relative w-full h-[350px] bg-neutral-700 rounded-md overflow-hidden">
             <button
               className="absolute top-2 right-2 block p-1 rounded-full bg-neutral-800/60"
-              title="Discard image"
+              aria-labelledby="discard-workspace-image-btn-label"
               disabled={submitting || processingImage}
               onClick={() => {
                 setImageFile(null);
@@ -154,7 +154,10 @@ const Step2 = ({setStep}: Props) => {
                 inputRef.current!.value = "";
               }}
             >
-              <FaRegTimesCircle className="text-destructive" size={27} />
+              <FaRegTimesCircle className="text-destructive" size={27} aria-hidden />
+              <span id="discard-workspace-image-btn-label" hidden>
+                Discard image
+              </span>
             </button>
 
             <img
@@ -205,7 +208,7 @@ const Step2 = ({setStep}: Props) => {
                 variant="p"
               />
 
-              <FaRegImage className="text-neutral-400/45" size={80} />
+              <FaRegImage className="text-neutral-400/45" size={80} aria-hidden />
             </div>
           </button>
         }
@@ -226,7 +229,7 @@ const Step2 = ({setStep}: Props) => {
             disabled={processingImage || submitting}
             onClick={() => setStep(1)}
           >
-            <FaArrowLeft />
+            <FaArrowLeft aria-hidden />
             <Typography text="Back" variant="p" />
           </Button>
 
@@ -235,7 +238,7 @@ const Step2 = ({setStep}: Props) => {
             type="submit"
             disabled={processingImage || submitting}
           >
-            {submitting && <LuLoader2 className="animate-spin" size={16} />}
+            {submitting && <LuLoader2 className="animate-spin" size={16} aria-hidden />}
             <Typography text="Create Workspace" variant="p" />
           </Button>
         </div>

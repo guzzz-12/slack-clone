@@ -121,12 +121,18 @@ const MessageItem = ({message, currentUserId}: Props) => {
           <div className="relative min-w-[80px] px-4 py-2 text-sm border rounded-lg bg-neutral-950 overflow-hidden group">
             <button
               className="absolute top-0 left-0 w-full h-full flex justify-center items-center bg-neutral-900/0 group-hover:bg-neutral-900/80 transition-colors cursor-pointer"
+              aria-labelledby={`open-image-${message.id}-btn-label`}
               onClick={() => {
                 setOpen(true);
                 setMessage(message);
               }}
             >
-              <FiZoomIn className="text-neutral-300 opacity-0 group-hover:opacity-100 transition-opacity" size={30} />
+              <FiZoomIn
+                className="text-neutral-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                size={30}
+                aria-hidden
+              />
+              <span id={`open-image-${message.id}-btn-label`} hidden>Open image</span>
             </button>
             <img
               className="w-full max-w-[200px] h-auto object-contain object-center"
@@ -143,12 +149,17 @@ const MessageItem = ({message, currentUserId}: Props) => {
               href={message.attachment_url!}
               target="_blank"
               rel="noopener noreferrer"
+              aria-labelledby={`open-pdf-${message.id}-btn-label`}
               download
             >
               <FiDownload
                 className="text-neutral-300 opacity-0 group-hover:opacity-100 transition-opacity"
                 size={30}
+                aria-hidden
               />
+              <span id={`open-pdf-${message.id}-btn-label`} hidden>
+                Open PDF
+              </span>
             </Link>
             <FaRegFilePdf className="text-neutral-400" size={30} />
           </div>
@@ -167,9 +178,13 @@ const MessageItem = ({message, currentUserId}: Props) => {
           <DropdownMenuTrigger asChild>
             <button
               className={cn("flex justify-center items-center w-6 h-6 rounded-full hover:bg-neutral-800 transition-colors", isSender ? "-order-1" : "order-none")}
+              aria-labelledby={`message-${message.id}-options-btn-label`}
               disabled={deleting}
             >
-              <BsThreeDotsVertical />
+              <BsThreeDotsVertical aria-hidden />
+              <span id={`message-${message.id}-options-btn-label`} hidden>
+                Message Options
+              </span>
             </button>
           </DropdownMenuTrigger>
 
@@ -180,7 +195,7 @@ const MessageItem = ({message, currentUserId}: Props) => {
                   className="flex justify-start items-center gap-2 cursor-pointer"
                   disabled={deleting}
                 >
-                  <FaPencil />
+                  <FaPencil aria-hidden />
                   <span>Edit</span>
                 </DropdownMenuItem>
 
@@ -193,7 +208,7 @@ const MessageItem = ({message, currentUserId}: Props) => {
               disabled={deleting}
               onClick={() => deleteMessageHandler("me")}
             >
-              <FaTimes className="text-red-500" />
+              <FaTimes className="text-red-500" aria-hidden />
               <span>Delete for you</span>
             </DropdownMenuItem>
 
@@ -206,7 +221,7 @@ const MessageItem = ({message, currentUserId}: Props) => {
                   disabled={deleting}
                   onClick={() => deleteMessageHandler("all")}
                 >
-                  <FaRegTrashCan className="text-red-500" />
+                  <FaRegTrashCan className="text-red-500" aria-hidden />
                   <span>Delete for all</span>
                 </DropdownMenuItem>
               </>

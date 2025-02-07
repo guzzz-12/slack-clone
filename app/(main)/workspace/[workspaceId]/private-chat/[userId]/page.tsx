@@ -255,7 +255,7 @@ const PrivateChatPage = ({params}: Props) => {
             scrollToBottomHandler();
           }}
         >
-          <FaArrowDown />
+          <FaArrowDown aria-hidden />
           <p className="text-sm text-white">
             You have new messages
           </p>

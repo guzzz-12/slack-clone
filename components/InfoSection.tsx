@@ -303,9 +303,13 @@ const InfoSection = () => {
               <Button
                 className="w-8 h-8 p-1 flex-shrink-0 rounded-full hover:bg-neutral-900 group"
                 variant="outline"
+                aria-labelledby="channel-modal-label"
                 onClick={() => setIsChannelModalOpen(true)}
               >
-                <FaPlus className="group-hover:scale-125 transition-transform" />
+                <FaPlus className="group-hover:scale-125 transition-transform" aria-hidden />
+                <span id="channel-modal-label" hidden>
+                  Open create channel modal
+                </span>
               </Button>
             )}
           </div>

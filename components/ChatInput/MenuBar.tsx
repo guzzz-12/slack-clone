@@ -30,7 +30,7 @@ const MenuBarItem = ({content, icon, item, editor, disabled, onClick}: MenuBarIt
           <button
             className={cn("w-7 h-7 p-[3px] rounded-full border border-transparent", editor?.isActive(item) && "border-neutral-300")}
             disabled={disabled}
-            aria-labelledby="content"
+            aria-describedby="content"
             onClick={onClick}
           >
             <Icon className="block w-full h-full" aria-hidden />

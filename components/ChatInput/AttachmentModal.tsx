@@ -257,7 +257,7 @@ const AttachmentModal: FC<Props> = ({ apiUrl, isOpen, setIsOpen }) => {
           >
             {selectedFile && selectedFileType === "pdf" &&
             <>
-              <FaFilePdf className="w-14 h-14" />
+              <FaFilePdf className="w-14 h-14" aria-hidden/>
               <Typography
                 className="max-w-full text-neutral-300 font-medium truncate"
                 variant="p"
@@ -267,7 +267,7 @@ const AttachmentModal: FC<Props> = ({ apiUrl, isOpen, setIsOpen }) => {
             }
 
             {isProcessingImage &&
-              <Loader2 className="w-8 h-8 animate-spin" />
+              <Loader2 className="w-8 h-8 animate-spin" aria-hidden />
             }
 
             {selectedFile && selectedImagePreview &&
@@ -281,7 +281,7 @@ const AttachmentModal: FC<Props> = ({ apiUrl, isOpen, setIsOpen }) => {
 
             {!selectedFile && !isProcessingImage && !isDragOver &&
               <>
-                <FileIcon className="w-14 h-14" />
+                <FileIcon className="w-14 h-14" aria-hidden />
                 <Typography
                   className="text-neutral-300 font-medium"
                   variant="p"
@@ -296,6 +296,7 @@ const AttachmentModal: FC<Props> = ({ apiUrl, isOpen, setIsOpen }) => {
             <button
               className="absolute top-2 right-2 w-8 h-8 p-1 rounded-full border border-red-500 text-red-500"
               type="button"
+              aria-labelledby="discard-attachment-btn-label"
               disabled={isUploading}
               onClick={() => {
                 setSelectedFile(null);
@@ -304,7 +305,10 @@ const AttachmentModal: FC<Props> = ({ apiUrl, isOpen, setIsOpen }) => {
                 formProps.reset();
               }}
             >
-              <FaRegTrashCan className="w-full h-full" />
+              <FaRegTrashCan className="w-full h-full" aria-hidden />
+              <span id="discard-attachment-btn-label" hidden>
+                Discard attachment
+              </span>
             </button>
           }
 

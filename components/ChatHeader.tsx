@@ -64,9 +64,13 @@ const ChatHeader = ({currentChannelId, title, loading, chatType}: Props) => {
                   <TooltipTrigger className="flex justify-start w-full" asChild>
                     <Button
                       variant="ghost"
+                      aria-labelledby="start-video-call-btn"
                       onClick={() => onClickHandler(chatType)}
                     >
                       <FaVideo size={30} aria-hidden />
+                      <span id="start-video-call-btn" hidden>
+                        Start Video Call
+                      </span>
                     </Button>
                   </TooltipTrigger>
 

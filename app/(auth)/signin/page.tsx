@@ -179,6 +179,7 @@ const AuthPage = () => {
               <FcGoogle
                 className="absolute left-4 top-[50%] translate-y-[-50%] z-10"
                 size={30}
+                aria-hidden
               />
               <Typography
                 className="mx-auto text-lg"
@@ -195,6 +196,7 @@ const AuthPage = () => {
               <RxGithubLogo
                 className="absolute left-4 top-[50%] translate-y-[-50%] z-10"
                 size={30}
+                aria-hidden
               />
               <Typography
                 className="mx-auto text-lg"

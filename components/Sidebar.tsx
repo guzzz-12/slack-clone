@@ -249,16 +249,17 @@ const Sidebar = () => {
                 className="flex flex-col items-center gap-1 text-white cursor-pointer"
                 disabled={loading}
               >
-                <div className="p-2 rounded-lg bg-white/30 group">
+                <div className="p-2 rounded-lg bg-white/30 group" aria-hidden>
                   <PiChatsTeardrop
                     className="group-hover:scale-125 transition-all duration-300"
                     size={20}
+                    aria-hidden
                   />
                 </div>
                 <Typography
                   className="text-xs"
                   variant="p"
-                  text="DMs"
+                  text="Private Messages"
                 />
               </button>
             </li>
@@ -271,12 +272,14 @@ const Sidebar = () => {
                       <button
                         className="flex flex-col items-center gap-1 text-white cursor-pointer"
                         disabled={loading}
+                        aria-describedby="invite-tooltip-content"
                         onClick={() => setOpenInviteModal(true)}
                       >
-                        <div className="p-2 rounded-lg bg-white/30 group">
+                        <div className="p-2 rounded-lg bg-white/30 group" aria-hidden>
                           <MdAlternateEmail
                             className="group-hover:scale-125 transition-all duration-300"
                             size={20}
+                            aria-hidden
                           />
                         </div>
                         <Typography
@@ -288,6 +291,7 @@ const Sidebar = () => {
                     </TooltipTrigger>
 
                     <TooltipContent
+                      id="invite-tooltip-content"
                       className="max-w-[150px]"
                       side="right"
                       sideOffset={12}
@@ -315,11 +319,16 @@ const Sidebar = () => {
                   <Link
                     href="/create-workspace"
                     className="flex justify-center items-center w-10 h-10 p-2 rounded-full bg-white/30 group"
+                    aria-labelledby="create-workspace-tooltip-trigger-label"
                   >
                     <FiPlus
                       className="group-hover:scale-125 transition-all duration-300"
                       size={20}
+                      aria-hidden
                     />
+                    <span id="create-workspace-tooltip-trigger-label" hidden>
+                      Create workspace
+                    </span>
                   </Link>
                 </TooltipTrigger>
   
@@ -366,6 +375,7 @@ const Sidebar = () => {
                   className="block w-10 h-10 object-cover object-center rounded-full border" 
                   src={user.avatar_url!}
                   alt={user.name || "User avatar"}
+                  aria-hidden
                 />
 
                 <div className="flex flex-col gap-1">

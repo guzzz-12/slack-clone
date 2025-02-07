@@ -22,9 +22,13 @@ const SignoutBtn = () => {
         <TooltipTrigger asChild>
           <button
             className="p-2"
+            aria-labelledby="signout-tooltip-trigger-label"
             onClick={signoutHandler}
           >
-            <MdLogout size={30} />
+            <MdLogout size={30} aria-hidden />
+            <span id="signout-tooltip-trigger-label" hidden>
+              Sign out
+            </span>
           </button>
         </TooltipTrigger>
 
