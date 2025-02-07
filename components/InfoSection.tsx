@@ -30,8 +30,7 @@ const InfoSection = () => {
   const router = useRouter();
 
   const {workspaceId, channelId} = useParams<Params>()!;
-
-  const [channels, setChannels] = useState<Channel[]>([]);
+  
   const [loadingChannels, setLoadingChannels] = useState(true);
 
   const [openDeleteChannelModal, setOpenDeleteChannelModal] = useState(false);
@@ -44,13 +43,13 @@ const InfoSection = () => {
   const [unreadPrivateChatMessages, setUnreadPrivateChatMessages] = useState<PrivateMessageWithSender[]>([]);
 
   const {user} = useUser();
-  const {currentWorkspace, loadingWorkspaces} = useWorkspace();
+  const {workspaceChannels, currentWorkspace, loadingWorkspaces, setWorkspaceChannels} = useWorkspace();
 
 
   // Limpiar el state de los channels cuando se cambie el workspace
   useEffect(() => {
     if (loadingWorkspaces) {
-      setChannels([]);
+      setWorkspaceChannels([]);
       setLoadingChannels(true);
     }
   }, [loadingWorkspaces]);
@@ -63,29 +62,15 @@ const InfoSection = () => {
 
       axios<Channel[]>(`/api/workspace/${workspaceId}/channels`)
       .then((res) => {
-        setChannels(res.data);
+        setWorkspaceChannels(res.data);
         setLoadingChannels(false)
       })
       .catch((error: any) => {
         toast.error(error.message);
         setLoadingChannels(false)
       });
-
-      // Escuchar evento de nuevo channel creado en el workspace
-      const pusherChannel = pusherClient.subscribe(`workspace-${workspaceId}`);
-  
-      pusherChannel.bind("new-channel", (newChannel: Channel) => {
-        if (user?.id !== newChannel.ws_admin_id) {
-          setChannels((prev) => [newChannel, ...prev]);
-          toast.success(`A new channel (${newChannel.name}) was created on ${currentWorkspace.workspaceData.name}`, {duration: 10000});
-        }
-      });
-
-      return () => {
-        pusherChannel.unsubscribe();
-      }
     }
-  }, [currentWorkspace, loadingWorkspaces, user]);
+  }, [currentWorkspace, loadingWorkspaces]);
 
 
   // Consultar los mensajes sin leer de todos los channels
@@ -104,28 +89,43 @@ const InfoSection = () => {
     .catch((error: any) => {
       toast.error(error.message);
     });
-
-    // Escuchar los eventos de channel eliminado en el workspace
-    const pusherChannel = pusherClient.subscribe(`workspace-${workspaceId}`);
-
-    pusherChannel.bind("channel-deleted", (data: Channel) => {
-      // Eliminar el channel de la lista de channels
-      setChannels((prev) => prev.filter((ch) => ch.id !== data.id));
-
-      if (user?.id !== data.ws_admin_id) {
-        toast.error(`Channel ${data.name} was deleted by the admin`);
-      }
-
-      // Si el channel eliminado es el channel actual, salir del channel
-      if (data.id === channelId) {
-        router.replace(`/workspace/${workspaceId}`);
-      }
-    });
-
-    return () => {
-      pusherChannel.unsubscribe();
-    }
   }, [workspaceId, channelId, user]);
+
+
+  // Escuchar los eventos de los channels
+  useEffect(() => {
+    if (currentWorkspace) {
+      const pusherChannel = pusherClient.subscribe(`workspace-${workspaceId}`);
+        
+      // Escuchar evento de nuevo channel creado en el workspace
+      pusherChannel.bind("new-channel", (newChannel: Channel) => {
+        if (user?.id !== newChannel.ws_admin_id) {
+          setWorkspaceChannels([...workspaceChannels, newChannel]);
+          toast.success(`A new channel (${newChannel.name}) was created on ${currentWorkspace.workspaceData.name}`, {duration: 10000});
+        }
+      });
+
+      // Escuchar los eventos de channel eliminado en el workspace
+      pusherChannel.bind("channel-deleted", (data: Channel) => {
+        // Eliminar el channel de la lista de channels
+        setWorkspaceChannels([...workspaceChannels].filter((ch) => ch.id !== data.id));
+
+        if (user?.id !== data.ws_admin_id) {
+          toast.error(`Channel ${data.name} was deleted by the admin`);
+        }
+
+        // Si el channel eliminado es el channel actual, salir del channel
+        if (data.id === channelId) {
+          router.replace(`/workspace/${workspaceId}`);
+        }
+      });
+
+      return () => {
+        pusherChannel.unsubscribe();
+      }
+    }
+
+  }, [currentWorkspace, user, workspaceChannels, channelId]);
 
 
   // Escuchar los eventos de mensajes de los channels
@@ -133,8 +133,8 @@ const InfoSection = () => {
   useEffect(() => {
     const pusherChannels: PusherChannel[] = [];
 
-    if (channels.length > 0) {
-      channels.forEach((ch) => {
+    if (workspaceChannels.length > 0) {
+      workspaceChannels.forEach((ch) => {
         const channelName = `channel-${ch.id}`;
 
         const channel = pusherClient.subscribe(channelName);
@@ -166,7 +166,7 @@ const InfoSection = () => {
         });
       }
     }
-  }, [channels, channelId, currentWorkspace, user]);
+  }, [workspaceChannels, channelId, currentWorkspace, user]);
 
 
   // Consultar los mensajes sin leer de todos los chats privados
@@ -238,7 +238,7 @@ const InfoSection = () => {
       });
 
       // Eliminar el channel de la lista de channels
-      setChannels((prev) => prev.filter((ch) => ch.id !== data.id));
+      setWorkspaceChannels([...workspaceChannels].filter((ch) => ch.id !== data.id));
 
       toast.success("Channel deleted successfully");
       
@@ -290,7 +290,6 @@ const InfoSection = () => {
             userId={user!.id}
             isOpen={isChannelModalOpen}
             setIsOpen={setIsChannelModalOpen}
-            setChannels={setChannels}
           />
 
           <div className="flex justify-between items-center w-full">
@@ -313,7 +312,7 @@ const InfoSection = () => {
 
           {/* Renderizar los channels del workspace */}
           <div className="flex flex-col gap-2 w-full mt-2 scrollbar-thin overflow-y-auto">
-            {channels.map((ch) => (
+            {workspaceChannels.map((ch) => (
               <ChannelItem
                 key={ch.id}
                 user={user}
