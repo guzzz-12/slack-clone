@@ -225,10 +225,6 @@ const ChannelPage = ({params}: Props) => {
     }
   }
 
-  if (!channelData) {
-    return null;
-  }
-
   return (
     <main
       style={{contain: "layout"}}
@@ -261,7 +257,7 @@ const ChannelPage = ({params}: Props) => {
       }
 
       {/* Pantalla del video chat */}
-      {((callerId && channelData.id === callerId) || (channelData.meeting_members.includes(user!.id))) && user &&
+      {channelData && user && (channelData.id === callerId) &&
         <section className="overflow-y-auto scrollbar-thin">
           <VideoChat
             user={user}
@@ -273,7 +269,7 @@ const ChannelPage = ({params}: Props) => {
       }
 
       {/* Pantalla del chat de texto */}
-      {(channelData.id !== callerId || !callerId) &&
+      {channelData && (channelData.id !== callerId || !callerId) &&
         <>
           <section 
             ref={sectionRef}

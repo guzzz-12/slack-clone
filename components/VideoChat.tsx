@@ -109,7 +109,7 @@ const VideoChat = ({workspaceId, chatId, user, callType}: Props) => {
           method: "DELETE",
           url: `/api/workspace/${workspaceId}/end-private-videocall`,
           params: {
-            caller_id: callType === "private" ? combinedUsersIds : user.id
+            caller_id: combinedUsersIds
           }
         });
       }

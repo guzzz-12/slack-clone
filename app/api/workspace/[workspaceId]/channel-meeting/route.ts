@@ -43,12 +43,14 @@ export async function PATCH(req: NextRequest, {params}: Context) {
     }
 
     const {meeting_members} = channelData;
+    const updatedMeetingMembers = [...meeting_members, userId];
+    const filteredMeetingMembers = [...new Set(updatedMeetingMembers)];
 
     // Agregar el miembro a la video conferencia del channel
     const {data: updatedMeetingData, error: updatedMeetingError} = await supabase
     .from("channels")
     .update({
-      meeting_members: [...meeting_members, userId]
+      meeting_members: filteredMeetingMembers
     })
     .eq("id", channelId)
     .select("*")

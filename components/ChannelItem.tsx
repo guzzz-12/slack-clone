@@ -65,10 +65,10 @@ const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMe
         setWorkspaceChannels(updatedChannels);
 
         const updatedConnectedMembers = meetingChannel.meeting_members;
-        const isCurrentUserConnected = updatedConnectedMembers.includes(user!.id);
+        const isCurrentUserConnected = !!updatedConnectedMembers.find((memberId) => memberId === user!.id);
 
-        // Si el usuario actual se desconecta de la conferencia, mostrar el chat de texto
-        if (!isCurrentUserConnected) {
+        // Mostrar el chat de texto si no hay miembros conectados en la conferencia o si el usuario actual se desconecta de la conferencia
+        if (!isCurrentUserConnected || updatedConnectedMembers.length === 0) {
           setCallerId(null);
           setVideoCallType(null);
         }
@@ -77,7 +77,6 @@ const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMe
 
     return () => {
       pusherChannel.unsubscribe();
-      setCurrentChannel(null);
     };
   }, [channel, currentChannelId, workspaceChannels, user]);
 
