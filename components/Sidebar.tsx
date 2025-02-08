@@ -113,10 +113,6 @@ const Sidebar = () => {
     }
   }
 
-  if (!user) {
-    return null;
-  }
-
   return (
     <div className="flex flex-col justify-start items-stretch h-full w-16 flex-shrink-0 p-4 pt-0 bg-black">
       <InviteModal
@@ -310,7 +306,7 @@ const Sidebar = () => {
         )}
       </nav>
 
-      {!loadingWorkspaces && (
+      {!loadingWorkspaces && user && (
         <div className="flex flex-col items-center gap-3">
           {currentWorkspace?.workspaceData.admin_id === user?.id && 
             <TooltipProvider>
