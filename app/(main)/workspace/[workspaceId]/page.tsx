@@ -44,16 +44,11 @@ const WorkspaceDetailPage = ({params}: Props) => {
   }, [currentWorkspace, loadingWorkspaces]);
 
 
-  if (!currentWorkspace) {
-    return null;
-  }
-
-
   return (
     <main className="flex flex-col justify-center items-center flex-grow p-4 rounded-r-lg bg-neutral-900 overflow-y-auto scrollbar-thin">
       {loadingWorkspaces && <CgSpinner className="w-16 h-16 animate-spin" />}
 
-      {!loadingWorkspaces && (
+      {!loadingWorkspaces && currentWorkspace && (
         <>
           <h1 className="mb-2 text-center text-3xl font-normal">
             Welcome to <span className="font-mono">#{(currentWorkspace.workspaceData.name).replace(" ", "")}</span>
