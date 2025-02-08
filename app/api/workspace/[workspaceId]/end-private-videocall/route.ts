@@ -7,7 +7,7 @@ interface Context {
 }
 
 // Route handler para finalizar una videollamada privada
-export async function GET(req: NextRequest, {params}: Context) {
+export async function DELETE(req: NextRequest, {params}: Context) {
   try {
     const workspaceId = (await params).workspaceId;
 
