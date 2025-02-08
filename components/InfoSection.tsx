@@ -284,10 +284,10 @@ const InfoSection = () => {
         </>
       )}
 
-      {!loadingChannels && !loadingWorkspaces && (
+      {!loadingChannels && !loadingWorkspaces && user && (
         <div className="flex flex-col w-full max-h-[50vh]">
           <CreateChannelModal
-            userId={user!.id}
+            userId={user.id}
             isOpen={isChannelModalOpen}
             setIsOpen={setIsChannelModalOpen}
           />
@@ -299,7 +299,7 @@ const InfoSection = () => {
               text="Channels"
             />
 
-            {currentWorkspace?.workspaceData.admin_id === user!.id && (
+            {currentWorkspace?.workspaceData.admin_id === user.id && (
               <Button
                 className="w-8 h-8 p-1 flex-shrink-0 rounded-full hover:bg-neutral-900 group"
                 variant="outline"
