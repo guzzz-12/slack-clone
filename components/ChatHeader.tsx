@@ -2,12 +2,14 @@
 
 import { GoHash } from "react-icons/go";
 import { FaVideo } from "react-icons/fa";
+import { AiOutlineVideoCameraAdd } from "react-icons/ai";
 import SearchBar from "./SearchBar";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { useMessages } from "@/hooks/useMessages";
 import { useUser } from "@/hooks/useUser";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { combineUuid } from "@/utils/constants";
 
 interface Props {
@@ -20,7 +22,7 @@ interface Props {
 
 const ChatHeader = ({currentChannelId, title, loading, chatType}: Props) => {
   const {callerId, setCallerId, setVideoCallType} = useMessages();
-
+  const {currentChannel} = useWorkspace();
   const {user} = useUser();
 
   /** Generar el callerId cuando se inicie una videollamada */
@@ -35,6 +37,10 @@ const ChatHeader = ({currentChannelId, title, loading, chatType}: Props) => {
       const combinedUserIds = combineUuid(user.id, currentChannelId);
       setCallerId(combinedUserIds);
     }
+  }
+
+  if (!currentChannel || !user) {
+    return null;
   }
 
   return (
@@ -58,7 +64,32 @@ const ChatHeader = ({currentChannelId, title, loading, chatType}: Props) => {
           <div className="flex justify-start items-center gap-2">
             <SearchBar />
 
-            {!callerId &&
+            {/* Mostrar botón para unirse a una reunión si el channel tiene una reunión activa y el usuario no se ha unido */}
+            {currentChannel.meeting_members.length > 0 && !currentChannel.meeting_members.includes(user.id) &&
+              <TooltipProvider>
+                <Tooltip delayDuration={250}>
+                  <TooltipTrigger className="flex justify-start w-full" asChild>
+                    <Button
+                      variant="ghost"
+                      aria-labelledby="join-meeting-btn"
+                      onClick={() => onClickHandler("channel")}
+                    >
+                      <AiOutlineVideoCameraAdd size={30} aria-hidden />
+                      <span id="join-meeting-btn" hidden>
+                        Join meeting
+                      </span>
+                    </Button>
+                  </TooltipTrigger>
+
+                  <TooltipContent side="bottom">
+                    Join Meeting
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            }
+
+            {/* Mostrar botón para iniciar una reunión si no hay una reunión activa */}
+            {!callerId && currentChannel.meeting_members.length === 0 &&
               <TooltipProvider>
                 <Tooltip delayDuration={250}>
                   <TooltipTrigger className="flex justify-start w-full" asChild>
