@@ -3,10 +3,12 @@
 import { GoHash } from "react-icons/go";
 import { FaVideo } from "react-icons/fa";
 import { AiOutlineVideoCameraAdd } from "react-icons/ai";
+import { TbMessage2Search } from "react-icons/tb";
 import SearchBar from "./SearchBar";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { useMessages } from "@/hooks/useMessages";
 import { useUser } from "@/hooks/useUser";
 import { useWorkspace } from "@/hooks/useWorkspace";
@@ -61,8 +63,42 @@ const ChatHeader = ({currentChannelId, title, loading, chatType}: Props) => {
             </h2>
           </div>
           
-          <div className="flex justify-start items-center gap-2">
-            <SearchBar />
+          <div className="flex justify-start items-center gap-1">
+            <div className="hidden flex-shrink-0 min-[900px]:block">
+              <SearchBar />
+            </div>
+
+            <Popover>
+              <TooltipProvider>
+                <Tooltip delayDuration={250}>
+                  <TooltipTrigger
+                    className="flex justify-center items-center w-fit flex-shrink-0 min-[900px]:hidden" 
+                    asChild
+                  >
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        aria-labelledby="seach-btn-label"
+                        onClick={() => false}
+                      >
+                        <TbMessage2Search size={30} aria-hidden />
+                        <span id="seach-btn-label" hidden>
+                          Search messages
+                        </span>
+                      </Button>
+                    </PopoverTrigger>
+                  </TooltipTrigger>
+
+                  <TooltipContent side="bottom">
+                    Search messages
+                  </TooltipContent>
+
+                  <PopoverContent className="w-fit p-0" side="bottom">
+                    <SearchBar />
+                  </PopoverContent>
+                </Tooltip>
+              </TooltipProvider>
+            </Popover>
 
             {/* Mostrar botón para unirse a una reunión si el channel tiene una reunión activa y el usuario no se ha unido */}
             {currentChannel.meeting_members.length > 0 && !currentChannel.meeting_members.includes(user.id) &&
@@ -70,7 +106,7 @@ const ChatHeader = ({currentChannelId, title, loading, chatType}: Props) => {
                 <Tooltip delayDuration={250}>
                   <TooltipTrigger className="flex justify-start w-full" asChild>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       aria-labelledby="join-meeting-btn"
                       onClick={() => onClickHandler("channel")}
                     >
@@ -94,7 +130,7 @@ const ChatHeader = ({currentChannelId, title, loading, chatType}: Props) => {
                 <Tooltip delayDuration={250}>
                   <TooltipTrigger className="flex justify-start w-full" asChild>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       aria-labelledby="start-video-call-btn"
                       onClick={() => onClickHandler(chatType)}
                     >

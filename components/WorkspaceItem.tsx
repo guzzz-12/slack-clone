@@ -18,6 +18,7 @@ const WorkspaceItem = ({user, workspace, loading}: Props) => {
   return (
     <Link
       className={cn("flex items-center gap-2 w-full px-2 py-1 rounded-sm bg-transparent hover:bg-neutral-700 cursor-pointer transition-all", isActive && "bg-neutral-700")}
+      aria-labelledby="workspace-name"
       href={`/workspace/${workspace.id}`}
       onClick={(e) => {
         if (loading) {
@@ -33,6 +34,7 @@ const WorkspaceItem = ({user, workspace, loading}: Props) => {
 
       <div className="w-full overflow-hidden">
         <Typography
+          id="workspace-name"
           className="max-w-full text-sm truncate"
           variant="p"
           text={workspace.name}
