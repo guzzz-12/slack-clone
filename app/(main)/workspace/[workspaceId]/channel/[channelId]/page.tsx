@@ -228,7 +228,7 @@ const ChannelPage = ({params}: Props) => {
   return (
     <main
       style={{contain: "layout"}}
-      className="relative flex flex-col flex-grow rounded-r-lg bg-neutral-900 overflow-hidden"
+      className="relative flex flex-col flex-grow h-full rounded-r-lg bg-neutral-900 overflow-hidden"
     >
       <ChatHeader
         currentWorkspaceId={workspaceId}
@@ -268,57 +268,63 @@ const ChannelPage = ({params}: Props) => {
         </section>
       }
 
+      {(loading || loadingMessages) && !channelData && (
+        <section className="flex justify-center items-center w-full h-full">
+          <LuLoader2 className="animate-spin" size={20} />
+        </section>
+      )}
+
       {/* Pantalla del chat de texto */}
       {channelData && (channelData.id !== callerId || !callerId) &&
-        <>
-          <section 
-            ref={sectionRef}
-            className="w-full flex-grow p-4 overflow-x-hidden overflow-y-auto scrollbar-thin"
-            onScroll={onScrollHandler}
-          >
-            <div className="flex flex-col justify-start gap-1 w-full h-full">
-              {!loadingMessages && !hasMore && messages.length > 0 &&
-                <div className="flex justify-center items-center w-full">
-                  <p className="text-sm text-center text-neutral-400 italic">
-                    End of conversation...
-                  </p>
-                </div>
-              }
+        <section 
+          ref={sectionRef}
+          className="w-full flex-grow p-4 overflow-x-hidden overflow-y-auto scrollbar-thin"
+          onScroll={onScrollHandler}
+        >
+          <div className="flex flex-col justify-start gap-1 w-full h-full">
+            {loadingMessages &&
+              <div className="flex justify-center items-center w-full h-full">
+                <LuLoader2 className="animate-spin" size={20} />
+              </div>
+            }
 
-              {!loadingMessages && !hasMore && messages.length === 0 &&
-                <div className="flex justify-center items-center w-full h-full">
-                  <p className="max-w-full text-xl text-center text-neutral-400">
-                    {term.length === 0 ? "This channel is empty" : "No results found"}
-                  </p>
-                </div>
-              }
+            {!loadingMessages && !hasMore && messages.length > 0 &&
+              <div className="flex justify-center items-center w-full">
+                <p className="text-sm text-center text-neutral-400 italic">
+                  End of conversation...
+                </p>
+              </div>
+            }
 
-              {loadingMessages && (
-                <div className="flex justify-center items-center w-full">
-                  <LuLoader2 className="animate-spin" size={20} />
-                </div>
-              )}
+            {!loadingMessages && !hasMore && messages.length === 0 &&
+              <div className="flex justify-center items-center w-full h-full">
+                <p className="max-w-full text-xl text-center text-neutral-400">
+                  {term.length === 0 ? "This channel is empty" : "No results found"}
+                </p>
+              </div>
+            }
 
-              {messages.map((message) => (
-                <MessageItem
-                  key={message.id}
-                  message={message as MessageWithSender}
-                  currentUserId={user?.id || ""}
-                />
-              ))}
-            </div>
-          </section>
+            {messages.map((message) => (
+              <MessageItem
+                key={message.id}
+                message={message as MessageWithSender}
+                currentUserId={user?.id || ""}
+              />
+            ))}
+          </div>
+        </section>
+      }
 
-          <section
-            ref={chatInputRef}
-            className="w-full flex-shrink-0 bg-neutral-800 overflow-hidden"
-          >
-            <ChatInput
-              apiUrl={apiUrl}
-              isLoading={loading}
-            />
-          </section>
-        </>
+      {!callerId &&
+        <section
+          ref={chatInputRef}
+          className="w-full flex-shrink-0 bg-neutral-800 overflow-hidden"
+        >
+          <ChatInput
+            apiUrl={apiUrl}
+            isLoading={loading}
+          />
+        </section>
       }
     </main>
   )
