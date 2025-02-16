@@ -94,7 +94,7 @@ const PrivateMessageItem = ({message, currentUserId}: Props) => {
     >
       {/* Mostrar el avatar del otro usuario (no del usuario actual) */}
       {!isSender && (
-        <div className="flex justify-center items-start"
+        <div className="flex justify-center items-start flex-shrink-0"
         >
           <img
             className="w-8 h-8 text-xs object-cover object-center rounded-full border"
@@ -105,7 +105,7 @@ const PrivateMessageItem = ({message, currentUserId}: Props) => {
       )}
 
       {/* Mostrar el contenido del mensage y la fecha debajo */}
-      <div className="flex flex-col gap-1 min-w-[80px] max-w-[80%] overflow-hidden">
+      <div className="flex flex-col gap-1 w-full min-w-[80px] min-[550px]:max-w-[80%] overflow-hidden">
         {!isSender &&
           <p className="text-sm text-neutral-400 truncate">
             {message.recipient.name ?? message.recipient.email}

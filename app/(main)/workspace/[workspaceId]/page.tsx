@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { FaSlackHash } from "react-icons/fa";
-import { CgSpinner } from "react-icons/cg";
+import { LuLoader2 } from "react-icons/lu";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import useFetchWorkspace from "@/hooks/useFetchWorkspace";
 import { useUser } from "@/hooks/useUser";
@@ -46,16 +46,16 @@ const WorkspaceDetailPage = ({params}: Props) => {
 
   return (
     <main className="flex flex-col justify-center items-center flex-grow p-4 rounded-r-lg bg-neutral-900 overflow-y-auto scrollbar-thin">
-      {loadingWorkspaces && <CgSpinner className="w-16 h-16 animate-spin" />}
+      {loadingWorkspaces && <LuLoader2 className="animate-spin" size={35} />}
 
       {!loadingWorkspaces && currentWorkspace && (
         <>
-          <h1 className="mb-2 text-center text-3xl font-normal">
+          <h1 className="mb-2 text-center text-xl min-[800px]:text-3xl font-normal">
             Welcome to <span className="font-mono">#{(currentWorkspace.workspaceData.name).replace(" ", "")}</span>
           </h1>
 
           <section className="flex flex-col justify-center items-center gap-3 w-full">
-            <h2 className="text-lg text-center text-neutral-300">
+            <h2 className="text-sm min-[800px]:text-lg text-center text-neutral-300">
               Select a channel or a private conversation
             </h2>
 

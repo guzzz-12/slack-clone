@@ -259,7 +259,7 @@ const InfoSection = () => {
 
 
   return (
-    <aside className="flex flex-col justify-start items-center w-[270px] flex-shrink-0 p-4 bg-neutral-800 rounded-l-lg border-r border-neutral-900">
+    <aside className="flex flex-col justify-start items-center w-[120px] min-[600px]:w-[180px] min-[900px]:w-[270px] flex-shrink-0 p-4 bg-neutral-800 rounded-l-lg border-r border-neutral-900">
       <ConfirmationModal
         open={openDeleteChannelModal}
         title="Delete Channel"

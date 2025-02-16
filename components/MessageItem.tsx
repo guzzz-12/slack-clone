@@ -93,7 +93,7 @@ const MessageItem = ({message, currentUserId}: Props) => {
       {!isSender && (
         <div className="flex justify-center items-start">
           <img
-            className="w-8 h-8 text-xs object-cover object-center rounded-full border"
+            className="w-8 h-8 flex-shrink-0 text-xs object-cover object-center rounded-full border"
             src={message.sender.avatar_url || ""}
             alt={`${message.sender.name} avatar`}
           />
@@ -101,7 +101,7 @@ const MessageItem = ({message, currentUserId}: Props) => {
       )}
 
       {/* Mostrar el contenido del mensage y la fecha debajo */}
-      <div className="flex flex-col gap-1 min-w-[80px] max-w-[80%] overflow-hidden">
+      <div className="flex flex-col gap-1 w-full min-w-[80px] min-[550px]:max-w-[80%] overflow-hidden">
         {!isSender &&
           <p className="text-sm text-neutral-400 truncate">
             {message.sender.name ?? message.sender.email}
