@@ -22,6 +22,8 @@ export async function GET(_req: NextRequest) {
       throw error;
     }
 
+    console.log({CRON_JOB_DATA: {activeUsers: data}});
+
     return NextResponse.json({CRON_JOB_DATA: {activeUsers: data}});
     
   } catch (error: any) {
