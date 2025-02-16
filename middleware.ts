@@ -7,7 +7,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 
+  // Excluir del middleware el endpoint del cron job de vercel
+  if (request.nextUrl.pathname.includes("/api/cron")) {
+    return NextResponse.next();
+  }
+
+  // Excluir del middleware los endpoints de Socket.io (deprecado)
   if (request.nextUrl.pathname.includes("/api/socket/io")) {
     return NextResponse.next();
   }

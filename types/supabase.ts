@@ -484,6 +484,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      count_registered_users: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       get_private_messages: {
         Args: {
           workspace: string
