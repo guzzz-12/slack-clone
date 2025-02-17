@@ -200,6 +200,9 @@ const Step2 = ({setStep}: Props) => {
                 onImageChangeHandler(droppedFile[0]);
               }
             }}
+            {...(formProps.formState.errors.image && {
+              "aria-describedby": "image-validation-error"
+            })}
           >
             <div className="flex flex-col justify-center items-center gap-3">
               <Typography
@@ -215,6 +218,7 @@ const Step2 = ({setStep}: Props) => {
 
         {formProps.formState.errors.image &&
           <Typography
+            id="image-validation-error"
             className={cn("text-sm text-left font-medium translate-y-[-5px]", theme === "dark" ? "text-red-500" : "text-destructive")}
             text={formProps.formState.errors.image.message as string}
             variant="p"

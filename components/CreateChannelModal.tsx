@@ -151,13 +151,13 @@ const CreateChannelModal = ({isOpen, setIsOpen}: Props) => {
                   <FormControl>
                     <Input
                       className={cn(formProps.formState.errors.channelName ? "border-destructive" : "border")}
-                      placeholder="My Channel"
                       disabled={submitting}
+                      {...(formProps.formState.errors.channelName && {"aria-describedby": "channelName-error-msg"})}
                       {...field}
                     />
                   </FormControl>
 
-                  <FormErrorMessage />
+                  <FormErrorMessage id="channelName-error-msg" />
                 </FormItem>
               )}
             />
@@ -174,7 +174,9 @@ const CreateChannelModal = ({isOpen, setIsOpen}: Props) => {
                     defaultValue="public"
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger
+                        {...(formProps.formState.errors.channelType && {"aria-describedby": "channelType-error-msg"})}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                     </FormControl>
@@ -189,7 +191,7 @@ const CreateChannelModal = ({isOpen, setIsOpen}: Props) => {
                     </SelectContent>
                   </Select>
 
-                  <FormErrorMessage />
+                  <FormErrorMessage id="channelType-error-msg" />
                 </FormItem>
               )}
             />
@@ -214,6 +216,7 @@ const CreateChannelModal = ({isOpen, setIsOpen}: Props) => {
               <Button
                 className="w-max ml-2 text-white bg-transparent hover:bg-neutral-900"
                 type="button"
+                variant="outline"
                 disabled={submitting}
                 onClick={() => setIsOpen(false)}
               >

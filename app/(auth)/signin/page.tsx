@@ -15,6 +15,7 @@ import Spinner from "@/components/Spinner";
 import FormErrorMessage from "@/components/FormErrorMessage";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { supabaseBrowserClient } from "@/utils/supabase/supabaseBrowserClient";
 import { cn } from "@/lib/utils";
@@ -222,16 +223,19 @@ const AuthPage = () => {
                 control={formProps.control}
                 render={({field}) => (
                   <FormItem>
+                    <Label className={cn("block w-full text-left", formProps.formState.errors.email ? "text-red-500" : "text-white")}>
+                      Email
+                    </Label>
                     <FormControl>
                       <Input
                         className={cn(formProps.formState.errors.email ? "border-destructive" : "border")}
-                        placeholder="john.doe@mail.com"
                         disabled={loading}
+                        {...(formProps.formState.errors.email && {"aria-describedby": "email-signin-error-msg"})}
                         {...field}
                       />
                     </FormControl>
 
-                    <FormErrorMessage />
+                    <FormErrorMessage id="email-signin-error-msg" />
                   </FormItem>
                 )}
               />

@@ -146,13 +146,13 @@ const InviteModal = ({workspaceId, workspaceName, inviteCode, isOpen, setIsOpen}
                   <FormControl>
                     <Input
                       className={cn(formProps.formState.errors.email ? "border-destructive" : "border")}
-                      placeholder="john.doe@mail.com"
                       disabled={loading}
+                      {...(formProps.formState.errors.email && {"aria-describedby": "invite-email-error-msg"})}
                       {...field}
                     />
                   </FormControl>
 
-                  <FormErrorMessage />
+                  <FormErrorMessage id="invite-email-error-msg" />
                 </FormItem>
               )}
             />

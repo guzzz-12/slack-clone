@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 import { useFormContext } from "react-hook-form";
 import Typography from "../Typography";
 import FormErrorMessage from "../FormErrorMessage";
-import { FormControl, FormField, FormItem } from "../ui/form";
+import { FormControl, FormField, FormItem, FormLabel } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { FormType } from "@/app/create-workspace/page";
@@ -68,34 +68,27 @@ const Step1 = ({setStep}: Props) => {
           control={formProps.control}
           render={({field}) => (
             <FormItem>
+              <FormLabel className={cn(formProps.formState.errors.name ? "text-red-500" : "text-white")}>
+                Name
+              </FormLabel>
               <FormControl>
                 <Input
                   className={cn("px-3 py-5 text-base", theme === "light" ? "text-neutral-900" : "text-white", formProps.formState.errors.name ? "border-destructive" : "border")}
-                  placeholder="My Workspace"
+                  {...(formProps.formState.errors.name && {"aria-describedby": "name-error-msg"})}
                   {...field}
                 />
               </FormControl>
               
-              <FormErrorMessage />
+              <FormErrorMessage id="name-error-msg" />
             </FormItem>
           )}
         />
 
-        <div className="flex justify-start items-center gap-1 w-full">
-          <Button
-            className="w-max text-white bg-primary-dark hover:bg-primary-light"
-            type="submit"
-          >
-            <Typography
-              text="Continue"
-              variant="p"
-            />
-          </Button>
-
+        <div className="flex justify-end items-center gap-1 w-full">
           {/* Navegar de regreso al workspace seleccionado */}
           {selectedWorkspace && (
             <Button
-              className="w-max text-white hover:bg-neutral-900"
+              className="w-max border border-neutral-500"
               variant="ghost"
               type="button"
               onClick={() => {
@@ -108,6 +101,16 @@ const Step1 = ({setStep}: Props) => {
               />
             </Button>
           )}
+
+          <Button
+            className="w-max text-white bg-primary-dark hover:bg-primary-light"
+            type="submit"
+          >
+            <Typography
+              text="Continue"
+              variant="p"
+            />
+          </Button> 
         </div>
       </form>
     </div>
