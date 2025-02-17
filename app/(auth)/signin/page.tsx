@@ -47,7 +47,7 @@ const AuthPage = () => {
 
   // Verificar si el usuario está autenticado y redirigirlo si lo está
   useEffect(() => {
-    document.title = `${pageBaseTitle} | Sign in`;
+    document.title = `Sign in | ${pageBaseTitle}`;
     
     const getUser = async () => {
       try {

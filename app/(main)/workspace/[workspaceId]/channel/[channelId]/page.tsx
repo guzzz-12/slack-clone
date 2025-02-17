@@ -114,7 +114,7 @@ const ChannelPage = ({params}: Props) => {
   // Actualizar el title de la página al cambiar de channel
   useEffect(() => {
     if (channelData) {
-      document.title = `${pageBaseTitle} | #${channelData.name}`;
+      document.title = `#${channelData.name} | ${pageBaseTitle}`;
     } else {
       document.title = pageBaseTitle;
     }

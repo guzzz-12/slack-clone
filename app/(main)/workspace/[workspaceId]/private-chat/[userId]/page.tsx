@@ -16,7 +16,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useMessages } from "@/hooks/useMessages";
 import { useUser } from "@/hooks/useUser";
 import useFetchMessages from "@/hooks/useFetchMessages";
-import { combineUuid } from "@/utils/constants";
+import { combineUuid, pageBaseTitle } from "@/utils/constants";
 import { pusherClient } from "@/utils/pusherClientSide";
 import { PrivateMessageWithSender } from "@/types/supabase";
 
@@ -120,6 +120,9 @@ const PrivateChatPage = ({params}: Props) => {
   // Mostrar el video call si el otro usuario es el que llama
   useEffect(() => {
     if (user && otherUserData) {
+      // Actualizar el title de la página
+      document.title = `Chat with ${otherUserData.name || otherUserData.email} | ${pageBaseTitle}`;
+
       const combinedUsersIds = combineUuid(user.id, otherUserData.id);
       setShowVideoCall(combinedUsersIds === callerId);
     }

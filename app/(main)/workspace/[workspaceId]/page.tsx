@@ -37,7 +37,7 @@ const WorkspaceDetailPage = ({params}: Props) => {
   // Actualizar el title de la página al cambiar de workspace
   useEffect(() => {
     if (currentWorkspace && !loadingWorkspaces) {
-      document.title = `${pageBaseTitle} | ${currentWorkspace.workspaceData.name}`;
+      document.title = `${currentWorkspace.workspaceData.name} | ${pageBaseTitle}`;
     } else {
       document.title = pageBaseTitle;
     }

@@ -28,7 +28,7 @@ const CreateWorkspacePage = () => {
 
   // Actualizar el title de la página
   useEffect(() => {
-    document.title = `${pageBaseTitle} | Create workspace`;
+    document.title = `Create Workspace | ${pageBaseTitle}`;
   }, []);
 
   return (
