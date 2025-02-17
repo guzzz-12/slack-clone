@@ -6,9 +6,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
-import { BsSlack } from "react-icons/bs";
 import { FcGoogle } from "react-icons/fc";
 import { RxGithubLogo } from "react-icons/rx";
+import { FaConnectdevelop } from "react-icons/fa6";
 import Typography from "@/components/Typography";
 import Alert from "@/components/Alert";
 import Spinner from "@/components/Spinner";
@@ -138,17 +138,20 @@ const AuthPage = () => {
       {!loadingUser &&
         <section className="w-full max-w-[450px]">
           <div className="flex justify-center items-center gap-3 mb-3">
-            <BsSlack size={30} />
-            <Typography variant="h2" text="Slack" />
+            <FaConnectdevelop className="w-[40px] h-[40px] shrink-0 sm:w-[50px] sm:h-[50px]" />
+            <h1 className="text-4xl sm:text-5xl">
+              TeamFlow
+            </h1>
           </div>
 
           <Typography
-            className="mb-1"
+            className="mb-1 text-xl lg:text-xl"
             variant="h3"
-            text="Sign in to your Slack account"
+            text="Sign in to your TeamFlow account"
           />
 
           <Typography
+            className="text-sm"
             variant="p"
             text="We suggest using the email address that you use at work"
           />

@@ -36,7 +36,7 @@ const CreateWorkspacePage = () => {
       <section className="flex flex-col justify-center items-center w-[550px] mb-4">
         <div className="flex justify-center items-center gap-3 mb-2">
           <BsSlack size={30} />
-          <Typography variant="h1" text="Slack Clone" />
+          <Typography variant="h1" text="TeamFlow" />
         </div>
 
         <Typography

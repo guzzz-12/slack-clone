@@ -5,7 +5,7 @@ import { PostgrestError } from "@supabase/supabase-js";
 export const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Titulo base de las paginas
-export const pageBaseTitle = "Slack Clone";
+export const pageBaseTitle = "TeamFlow";
 
 // Verificar si el error es de PostgreSQL
 export const isPostgresError = (error: any): error is PostgrestError => {

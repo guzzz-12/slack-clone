@@ -120,7 +120,7 @@ export const invitationEmailTemplate = (email: string, workspaceName: string, to
             <h2 class="template__title">Hello ${email}</h2>
 
             <p class="template__main-text">
-              You have been invited to join ${workspaceName}. <br> Signin to Slack Clone with this email address <br> and follow the link below to join the workspace.
+              You have been invited to join ${workspaceName}. <br> Signin to TeamFlow with this email address <br> and follow the link below to join the workspace.
             </p>
             
             <a href=${href} class="template__link" target="__blank">

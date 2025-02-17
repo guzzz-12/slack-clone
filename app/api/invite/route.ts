@@ -123,10 +123,10 @@ export async function POST(req: NextRequest) {
     const mailContent = {
       to: email,
       from: {
-        name: "Slack Clone",
+        name: "TeamFlow App",
         email
       },
-      subject: "Invitation to Slack Clone",
+      subject: "Invitation to TeamFlow",
       html: invitationEmailTemplate(email, workspaceName, token)
     };
 

@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { FaArrowRight } from "react-icons/fa6";
+import { FaArrowRight, FaConnectdevelop } from "react-icons/fa6";
 import { FiPlus } from "react-icons/fi";
 import { Separator } from "@/components/ui/separator";
 import SignoutBtn from "@/components/SignoutBtn";
@@ -23,8 +23,8 @@ const UserWorkspaces = async () => {
 
       <main className="flex flex-col justify-start items-center pb-6 overflow-hidden">
         <section className="flex flex-col justify-center items-center w-full pt-16 pb-9 bg-neutral-900">
-          <h1 className="mb-6 text-6xl text-center font-semibold">
-            Slack Clone
+          <h1 className="flex gap-3 mb-6 text-6xl text-center font-semibold">
+            <FaConnectdevelop className="stroke-1" aria-hidden /> TeamFlow
           </h1>
 
           <h2 className="mb-4 text-xl text-center">
