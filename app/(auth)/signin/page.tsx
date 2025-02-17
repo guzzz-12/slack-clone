@@ -230,7 +230,7 @@ const AuthPage = () => {
                       <Input
                         className={cn(formProps.formState.errors.email ? "border-destructive" : "border")}
                         disabled={loading}
-                        {...(formProps.formState.errors.email && {"aria-describedby": "email-signin-error-msg"})}
+                        aria-describedby="email-signin-error-msg"
                         {...field}
                       />
                     </FormControl>

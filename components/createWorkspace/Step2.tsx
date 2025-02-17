@@ -172,6 +172,7 @@ const Step2 = ({setStep}: Props) => {
           <button
             className={cn("flex justify-center items-center w-full h-[350px] p-3 border border-blue-700 border-dashed rounded-md bg-neutral-950", isDrag ? "border-blue-500 border-2" : "border-blue-700")}
             type="button"
+            aria-describedby="image-validation-error"
             disabled={processingImage || submitting}
             onClick={() => inputRef.current?.click()}
             onDragOver={(e) => {
@@ -200,9 +201,6 @@ const Step2 = ({setStep}: Props) => {
                 onImageChangeHandler(droppedFile[0]);
               }
             }}
-            {...(formProps.formState.errors.image && {
-              "aria-describedby": "image-validation-error"
-            })}
           >
             <div className="flex flex-col justify-center items-center gap-3">
               <Typography

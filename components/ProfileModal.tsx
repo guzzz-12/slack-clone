@@ -302,9 +302,7 @@ const ProfileModal: FC<Props> = ({ open, setOpen }) => {
                             onClick={() => {
                               imageInputRef.current!.click();
                             }}
-                            {...(imageError && {
-                              "aria-describedby": "image-validation-error-message"
-                            })}
+                            aria-describedby="image-validation-error-message"
                           >
                             <FaRegEdit className="w-full h-full text-neutral-200" aria-hidden />
                           </button>
@@ -355,7 +353,7 @@ const ProfileModal: FC<Props> = ({ open, setOpen }) => {
                     <Input
                       className={cn(formProps.formState.errors.name ? "border-destructive" : "border-neutral-600")}
                       disabled={loading}
-                      {...(formProps.formState.errors.name && {"aria-describedby": "name-error-msg"})}
+                      aria-describedby="name-error-msg"
                       {...formProps.register("name")}
                       {...field}
                       ref={inputRef}

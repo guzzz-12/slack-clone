@@ -74,12 +74,12 @@ const Step1 = ({setStep}: Props) => {
               <FormControl>
                 <Input
                   className={cn("px-3 py-5 text-base", theme === "light" ? "text-neutral-900" : "text-white", formProps.formState.errors.name ? "border-destructive" : "border")}
-                  {...(formProps.formState.errors.name && {"aria-describedby": "name-error-msg"})}
+                  aria-describedby="workspace-name-error-msg"
                   {...field}
                 />
               </FormControl>
               
-              <FormErrorMessage id="name-error-msg" />
+              <FormErrorMessage id="workspace-name-error-msg" />
             </FormItem>
           )}
         />
