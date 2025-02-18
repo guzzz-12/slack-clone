@@ -174,7 +174,7 @@ const ProfileModal: FC<Props> = ({ open, setOpen }) => {
         message = error.response?.data.message;
       }
 
-      toast.error(message);
+      toast.error(message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
       
     } finally {
       setLoading(false);

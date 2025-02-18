@@ -196,7 +196,7 @@ const AttachmentModal: FC<Props> = ({ apiUrl, isOpen, setIsOpen }) => {
       });
     
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
       
     } finally {
       setIsUploading(false);

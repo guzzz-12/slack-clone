@@ -36,7 +36,7 @@ const useFetchWorkspace = (workspaceId: string, currentUser: User | null) => {
         return router.replace("/user-workspaces");
       }
 
-      toast.error(error.message);
+      toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
 
     } finally {
       setLoadingWorkspaces(false);

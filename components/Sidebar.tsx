@@ -55,7 +55,7 @@ const Sidebar = () => {
       }
     })
     .catch((error) => {
-      toast.error(error.message);
+      toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
     })
     .finally(() => {
       setLoadingUser(false);
@@ -78,7 +78,7 @@ const Sidebar = () => {
       router.refresh();
 
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
       
     } finally {
       localStorage.removeItem("selectedWorkspaceId");
@@ -106,7 +106,7 @@ const Sidebar = () => {
       setIsAway(prev => !prev);
 
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
       
     } finally {
       setLoading(false);

@@ -86,7 +86,7 @@ const ChatInput = ({apiUrl, isLoading}: Props) => {
         message = error.response?.data.message;
       }
 
-      toast.error(message);
+      toast.error(message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
 
     } finally {
       setSending(false);

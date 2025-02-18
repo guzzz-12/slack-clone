@@ -195,7 +195,7 @@ const Step2 = ({setStep}: Props) => {
                 const extension = droppedFile[0].type.split("/")[1];
 
                 if (!ACCEPTED_IMAGE_TYPES.includes(extension)) {
-                  return toast.error("Invalid file type. Select only jpe, jpeg, png or webp files.");
+                  return toast.error("Invalid file type. Select only jpe, jpeg, png or webp files.", {ariaProps: {role: "alert", "aria-live": "assertive"}});
                 }
 
                 onImageChangeHandler(droppedFile[0]);

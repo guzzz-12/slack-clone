@@ -66,7 +66,9 @@ const AuthPage = () => {
         }
 
       } catch (error: any) {
-        toast.error(error.message);
+        toast.error(error.message, {
+          ariaProps: {role: "alert", "aria-live": "assertive"}
+        });
         
       } finally {
         setLoadingUser(false);
@@ -94,7 +96,10 @@ const AuthPage = () => {
       });
 
     } catch (error: any) {
-      toast.error(error.message, {duration: 10000});
+      toast.error(error.message, {
+        duration: 10000,
+        ariaProps: {role: "alert", "aria-live": "assertive"}
+      });
       setLoading(false);
     }
   }
@@ -123,7 +128,11 @@ const AuthPage = () => {
       formProps.reset();
       
     } catch (error: any) {
-      toast.error(error.message, {duration: 10000});
+      toast.error(error.message, {
+        duration: 10000,
+        ariaProps: {role: "alert", "aria-live": "assertive"}
+      });
+      
       setLoading(false);
       setError(true);
     }
@@ -156,22 +165,20 @@ const AuthPage = () => {
             text="We suggest using the email address that you use at work"
           />
 
-          {success &&
-            <Alert
-              className="mt-4"
-              type="success"
-              title="A sign in link has been sent. Check your inbox."
-            />
-          }
+          <Alert
+            className="mt-4"
+            type="success"
+            open={success}
+            title="A sign in link has been sent. Check your inbox."
+          />
 
-          {error &&
-            <Alert
-              className="mt-4"
-              type="error"
-              title="Error sending the sign in link."
-              subtitle="Refresh the page and try again after a couple of minutes."
-            />
-          }
+          <Alert
+            className="mt-4"
+            type="error"
+            title="Error sending the sign in link."
+            subtitle="Refresh the page and try again after a couple of minutes."
+            open={error}
+          />
 
           <div className="flex flex-col gap-2 mt-4">
             <Button

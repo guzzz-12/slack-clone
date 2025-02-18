@@ -73,12 +73,12 @@ const InviteModal = ({workspaceId, workspaceName, inviteCode, isOpen, setIsOpen}
       if (isAxiosError(error)) {
         message = error.response?.data.message;
         setIsOpen(false);
-        return  toast.error(message);
+        return  toast.error(message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
       }
 
       setError(true);
 
-      toast.error(message);
+      toast.error(message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
 
     } finally {
       setLoading(false);
@@ -111,22 +111,20 @@ const InviteModal = ({workspaceId, workspaceName, inviteCode, isOpen, setIsOpen}
           </DialogDescription>
         </DialogHeader>
 
-        {success &&
-          <Alert
-            className="mt-0"
-            type="success"
-            title="Invitation sent successfully."
-          />
-        }
+        <Alert
+          className="mt-0"
+          type="success"
+          title="Invitation sent successfully."
+          open={success}
+        />
 
-        {error &&
-          <Alert
-            className="mt-0"
-            type="error"
-            title="Error sending the invitation."
-            subtitle="Refresh the page and try again."
-          />
-        }
+        <Alert
+          className="mt-0"
+          type="error"
+          title="Error sending the invitation."
+          subtitle="Refresh the page and try again."
+          open={error}
+        />
 
         <Separator />
 

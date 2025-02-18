@@ -79,6 +79,14 @@ body {
     @apply bg-background text-foreground;
   }
 
+  .custom-alert {
+    @apply absolute p-0
+  }
+
+  .custom-alert:not(:empty) {
+    @apply static p-3 border
+  }
+
   .message-text-content:not(:has(pre)) {
     @apply w-fit;
   }

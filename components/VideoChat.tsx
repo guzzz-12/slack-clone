@@ -57,7 +57,7 @@ const VideoChat = ({workspaceId, chatId, user, callType}: Props) => {
         setToken(token);
         
       } catch (error: any) {
-        toast.error(error.message);
+        toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
 
       } finally {
         setLoading(false);
@@ -95,7 +95,7 @@ const VideoChat = ({workspaceId, chatId, user, callType}: Props) => {
           message = error.response?.data.message;
         }
 
-        toast.error(message);
+        toast.error(message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
       }
     }
   }
@@ -145,7 +145,7 @@ const VideoChat = ({workspaceId, chatId, user, callType}: Props) => {
         message = error.response?.data.message;
       }
 
-      toast.error(message);
+      toast.error(message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
     }
   }
 

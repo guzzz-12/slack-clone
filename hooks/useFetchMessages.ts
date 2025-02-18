@@ -85,7 +85,7 @@ const useFetchMessages = (
         message = error.response?.data.message;
       }
 
-      toast.error(message);
+      toast.error(message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
 
     } finally {
       setLoadingMessages(false);

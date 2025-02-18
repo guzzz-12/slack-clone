@@ -74,7 +74,7 @@ const PrivateMessageItem = ({message, currentUserId}: Props) => {
         message = error.response?.data.message;
       }
 
-      toast.error(message);
+      toast.error(message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
     }
   }
 

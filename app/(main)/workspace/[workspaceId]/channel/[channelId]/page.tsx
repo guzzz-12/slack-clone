@@ -95,15 +95,19 @@ const ChannelPage = ({params}: Props) => {
     } catch (error: any) {
       if (error instanceof AxiosError && error.response?.status === 404) {
         if (error.response.data.message.toLowerCase().includes("channel")) {
-          toast.error("Channel not found", {duration: 5000});
+          toast.error("Channel not found", {
+            duration: 5000,
+            ariaProps: {role: "alert", "aria-live": "assertive"}
+          });
+
           return router.replace(`/workspace/${workspaceId}`);
         };
 
-        toast.error("Workspace not found");
+        toast.error("Workspace not found", {ariaProps: {role: "alert", "aria-live": "assertive"}});
         return router.replace("/user-workspaces");
       }
 
-      toast.error(error.message);
+      toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
       
     } finally {
       setLoading(false);

@@ -42,7 +42,7 @@ const useDeleteMessages = (apiDeleteUrl: string, message: Message, messages: Mes
         message = error.response?.data.message;
       }
 
-      toast.error(message);
+      toast.error(message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
 
     } finally {
       setDeleting(false);

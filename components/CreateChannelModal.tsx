@@ -105,7 +105,7 @@ const CreateChannelModal = ({isOpen, setIsOpen}: Props) => {
         formProps.setError("channelName", {message});
       }
 
-      toast.error(message, {duration: 10000});
+      toast.error(message, {duration: 10000, ariaProps: {role: "alert", "aria-live": "assertive"}});
 
       setSubmitting(false);
     }
@@ -132,6 +132,13 @@ const CreateChannelModal = ({isOpen, setIsOpen}: Props) => {
             Create a new channel in <span className="font-bold">{currentWorkspace.workspaceData.name}</span>
           </DialogDescription>
         </DialogHeader>
+
+        <Alert
+          open={!error}
+          type="error"
+          title="Error creating channel"
+          subtitle="Refresh the page and try again."
+        />
 
         <Separator />
 
@@ -193,14 +200,6 @@ const CreateChannelModal = ({isOpen, setIsOpen}: Props) => {
                 </FormItem>
               )}
             />
-
-            {error &&
-              <Alert
-                type="error"
-                title="Error creating channel"
-                subtitle="Refresh the page and try again after a couple of minutes."
-              />
-            }
 
             <div className="flex justify-end">
               <Button

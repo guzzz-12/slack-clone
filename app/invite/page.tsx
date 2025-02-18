@@ -29,7 +29,7 @@ const InvitePage = ({searchParams: {token}}: Props) => {
       const {data: {user}} = await supabase.auth.getUser();
 
       if (!user) {
-        toast.error("You need to be signed in with your email address to confirm the invitation to the workspace.", {duration: 20000});
+        toast.error("You need to be signed in with your email address to confirm the invitation to the workspace.", {duration: 20000, ariaProps: {role: "alert", "aria-live": "assertive"}});
 
         router.replace("/signin");
 
@@ -37,7 +37,7 @@ const InvitePage = ({searchParams: {token}}: Props) => {
       }
 
       if (!token) {
-        toast.error("Invalid invitation link.", {duration: 20000});
+        toast.error("Invalid invitation link.", {duration: 20000, ariaProps: {role: "alert", "aria-live": "assertive"}});
         return router.replace("/");
       }
 
@@ -68,7 +68,7 @@ const InvitePage = ({searchParams: {token}}: Props) => {
       }
   
       toast.dismiss();
-      toast.error(message, {duration: 10000});
+      toast.error(message, {duration: 10000, ariaProps: {role: "alert", "aria-live": "assertive"}});
 
       setError(message);
 

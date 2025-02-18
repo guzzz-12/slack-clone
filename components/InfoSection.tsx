@@ -66,7 +66,7 @@ const InfoSection = () => {
         setLoadingChannels(false)
       })
       .catch((error: any) => {
-        toast.error(error.message);
+        toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
         setLoadingChannels(false)
       });
     }
@@ -87,7 +87,7 @@ const InfoSection = () => {
       setUnreadChannelMessages(res.data);
     })
     .catch((error: any) => {
-      toast.error(error.message);
+      toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
     });
   }, [workspaceId, channelId, user]);
 
@@ -111,7 +111,7 @@ const InfoSection = () => {
         setWorkspaceChannels([...workspaceChannels].filter((ch) => ch.id !== data.id));
 
         if (user?.id !== data.ws_admin_id) {
-          toast.error(`Channel ${data.name} was deleted by the admin`);
+          toast.error(`Channel ${data.name} was deleted by the admin`, {ariaProps: {role: "alert", "aria-live": "assertive"}});
         }
 
         // Si el channel eliminado es el channel actual, salir del channel
@@ -189,7 +189,7 @@ const InfoSection = () => {
       setUnreadPrivateChatMessages(res.data);
     })
     .catch((error: any) => {
-      toast.error(error.message);
+      toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
     });
 
     // Remover al usuario actual de los miembros del workspace
@@ -249,7 +249,7 @@ const InfoSection = () => {
         message = error.response?.data.message;
       }
 
-      toast.error(message);
+      toast.error(message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
 
     } finally {
       setDeletingChannel(false);
