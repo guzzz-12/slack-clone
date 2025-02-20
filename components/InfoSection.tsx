@@ -29,21 +29,21 @@ type Params = {
 const InfoSection = () => {
   const router = useRouter();
 
-  const {workspaceId, channelId} = useParams<Params>()!;
-  
+  const { workspaceId, channelId } = useParams<Params>()!;
+
   const [loadingChannels, setLoadingChannels] = useState(true);
 
   const [openDeleteChannelModal, setOpenDeleteChannelModal] = useState(false);
   const [deletingChannel, setDeletingChannel] = useState(false);
   const [deleteChannelId, setDeleteChannelId] = useState<string | null>(null);
-  
+
   const [isChannelModalOpen, setIsChannelModalOpen] = useState(false);
 
   const [unreadChannelMessages, setUnreadChannelMessages] = useState<MessageWithSender[]>([]);
   const [unreadPrivateChatMessages, setUnreadPrivateChatMessages] = useState<PrivateMessageWithSender[]>([]);
 
-  const {user} = useUser();
-  const {workspaceChannels, currentWorkspace, loadingWorkspaces, setWorkspaceChannels} = useWorkspace();
+  const { user } = useUser();
+  const { workspaceChannels, currentWorkspace, loadingWorkspaces, setWorkspaceChannels } = useWorkspace();
 
 
   // Limpiar el state de los channels cuando se cambie el workspace
@@ -61,14 +61,14 @@ const InfoSection = () => {
       const workspaceId = currentWorkspace.workspaceData.id;
 
       axios<Channel[]>(`/api/workspace/${workspaceId}/channels`)
-      .then((res) => {
-        setWorkspaceChannels(res.data);
-        setLoadingChannels(false)
-      })
-      .catch((error: any) => {
-        toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
-        setLoadingChannels(false)
-      });
+        .then((res) => {
+          setWorkspaceChannels(res.data);
+          setLoadingChannels(false)
+        })
+        .catch((error: any) => {
+          toast.error(error.message, { ariaProps: { role: "alert", "aria-live": "assertive" } });
+          setLoadingChannels(false)
+        });
     }
   }, [currentWorkspace, loadingWorkspaces]);
 
@@ -83,12 +83,12 @@ const InfoSection = () => {
         messageType: "channel"
       }
     })
-    .then((res) => {
-      setUnreadChannelMessages(res.data);
-    })
-    .catch((error: any) => {
-      toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
-    });
+      .then((res) => {
+        setUnreadChannelMessages(res.data);
+      })
+      .catch((error: any) => {
+        toast.error(error.message, { ariaProps: { role: "alert", "aria-live": "assertive" } });
+      });
   }, [workspaceId, channelId, user]);
 
 
@@ -96,12 +96,12 @@ const InfoSection = () => {
   useEffect(() => {
     if (currentWorkspace) {
       const pusherChannel = pusherClient.subscribe(`workspace-${workspaceId}`);
-        
+
       // Escuchar evento de nuevo channel creado en el workspace
       pusherChannel.bind("new-channel", (newChannel: Channel) => {
         if (user?.id !== newChannel.ws_admin_id) {
           setWorkspaceChannels([...workspaceChannels, newChannel]);
-          toast.success(`A new channel (${newChannel.name}) was created on ${currentWorkspace.workspaceData.name}`, {duration: 10000});
+          toast.success(`A new channel (${newChannel.name}) was created on ${currentWorkspace.workspaceData.name}`, { duration: 10000 });
         }
       });
 
@@ -111,7 +111,7 @@ const InfoSection = () => {
         setWorkspaceChannels([...workspaceChannels].filter((ch) => ch.id !== data.id));
 
         if (user?.id !== data.ws_admin_id) {
-          toast.error(`Channel ${data.name} was deleted by the admin`, {ariaProps: {role: "alert", "aria-live": "assertive"}});
+          toast.error(`Channel ${data.name} was deleted by the admin`, { ariaProps: { role: "alert", "aria-live": "assertive" } });
         }
 
         // Si el channel eliminado es el channel actual, salir del channel
@@ -185,12 +185,12 @@ const InfoSection = () => {
         otherUserId: user.id
       }
     })
-    .then((res) => {
-      setUnreadPrivateChatMessages(res.data);
-    })
-    .catch((error: any) => {
-      toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
-    });
+      .then((res) => {
+        setUnreadPrivateChatMessages(res.data);
+      })
+      .catch((error: any) => {
+        toast.error(error.message, { ariaProps: { role: "alert", "aria-live": "assertive" } });
+      });
 
     // Remover al usuario actual de los miembros del workspace
     const members = currentWorkspace.workspaceMembers.filter((member) => member.id !== user.id);
@@ -228,11 +228,11 @@ const InfoSection = () => {
 
   const deleteChannelHandler = async () => {
     if (!deleteChannelId) return;
-    
+
     try {
       setDeletingChannel(true);
 
-      const {data} = await axios<Channel>({
+      const { data } = await axios<Channel>({
         method: "DELETE",
         url: `/api/workspace/${workspaceId}/channels/${deleteChannelId}`
       });
@@ -241,7 +241,7 @@ const InfoSection = () => {
       setWorkspaceChannels([...workspaceChannels].filter((ch) => ch.id !== data.id));
 
       toast.success("Channel deleted successfully");
-      
+
     } catch (error: any) {
       let message = error.message;
 
@@ -249,7 +249,7 @@ const InfoSection = () => {
         message = error.response?.data.message;
       }
 
-      toast.error(message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
+      toast.error(message, { ariaProps: { role: "alert", "aria-live": "assertive" } });
 
     } finally {
       setDeletingChannel(false);
@@ -259,7 +259,11 @@ const InfoSection = () => {
 
 
   return (
-    <aside className="flex flex-col justify-start items-center w-[120px] min-[600px]:w-[180px] min-[900px]:w-[270px] flex-shrink-0 p-4 bg-neutral-800 rounded-l-lg border-r border-neutral-900">
+    <aside
+      className="flex flex-col justify-start items-center w-[120px] min-[600px]:w-[180px] min-[900px]:w-[270px] flex-shrink-0 p-4 bg-neutral-800 rounded-l-lg border-r border-neutral-900"
+      role="region"
+      aria-label="Main Sidebar"
+    >
       <ConfirmationModal
         open={openDeleteChannelModal}
         title="Delete Channel"

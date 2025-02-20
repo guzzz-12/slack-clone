@@ -27,12 +27,12 @@ interface Props {
   }
 }
 
-const ChannelPage = ({params}: Props) => {
+const ChannelPage = ({ params }: Props) => {
   const chatInputRef = useRef<HTMLElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
 
-  const {workspaceId, channelId} = params;
-  
+  const { workspaceId, channelId } = params;
+
   const router = useRouter();
 
   const [channelData, setChannelData] = useState<Channel | null>(null);
@@ -54,18 +54,18 @@ const ChannelPage = ({params}: Props) => {
     setLoadingMessages
   } = useMessages();
 
-  const {user} = useUser();
+  const { user } = useUser();
 
-  const {debouncedValue} = useDebounce(term);
+  const { debouncedValue } = useDebounce(term);
 
-  const {fetchWorkspace} = useFetchWorkspace(workspaceId, user);
+  const { fetchWorkspace } = useFetchWorkspace(workspaceId, user);
 
-  const {currentWorkspace} = useWorkspace();
+  const { currentWorkspace } = useWorkspace();
 
   // API endpoint para consultar, enviar y eliminar los mensajes
   const apiUrl = `/api/workspace/${workspaceId}/channels/${channelId}/messages`;
 
-  const {getMessages} = useFetchMessages(apiUrl, sectionRef);
+  const { getMessages } = useFetchMessages(apiUrl, sectionRef);
 
 
   /** Scrollear al bottom del chat al clickear el botón de "You have new messages" */
@@ -88,7 +88,7 @@ const ChannelPage = ({params}: Props) => {
       setLoadingMessages(true);
       setPage(1);
 
-      const {data} = await axios.get<Channel>(`/api/workspace/${workspaceId}/channels/${channelId}`);
+      const { data } = await axios.get<Channel>(`/api/workspace/${workspaceId}/channels/${channelId}`);
 
       setChannelData(data);
 
@@ -97,18 +97,18 @@ const ChannelPage = ({params}: Props) => {
         if (error.response.data.message.toLowerCase().includes("channel")) {
           toast.error("Channel not found", {
             duration: 5000,
-            ariaProps: {role: "alert", "aria-live": "assertive"}
+            ariaProps: { role: "alert", "aria-live": "assertive" }
           });
 
           return router.replace(`/workspace/${workspaceId}`);
         };
 
-        toast.error("Workspace not found", {ariaProps: {role: "alert", "aria-live": "assertive"}});
+        toast.error("Workspace not found", { ariaProps: { role: "alert", "aria-live": "assertive" } });
         return router.replace("/user-workspaces");
       }
 
-      toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
-      
+      toast.error(error.message, { ariaProps: { role: "alert", "aria-live": "assertive" } });
+
     } finally {
       setLoading(false);
     }
@@ -206,12 +206,12 @@ const ChannelPage = ({params}: Props) => {
       setPage(1);
     }
   }, [debouncedValue]);
-  
+
 
   /** Consultar las siguientes páginas de mensajes al scrollear al top */
   const onScrollHandler = () => {
     if (sectionRef.current) {
-      const {scrollTop, clientHeight, scrollHeight} = sectionRef.current;
+      const { scrollTop, clientHeight, scrollHeight } = sectionRef.current;
 
       // Detectar si scrolleo al top del section
       if (hasMore && scrollTop === 0) {
@@ -231,7 +231,7 @@ const ChannelPage = ({params}: Props) => {
 
   return (
     <main
-      style={{contain: "layout"}}
+      style={{ contain: "layout" }}
       className="relative flex flex-col flex-grow h-full rounded-r-lg bg-neutral-900 overflow-hidden"
     >
       <ChatHeader
@@ -244,7 +244,7 @@ const ChannelPage = ({params}: Props) => {
 
       {newIncomingMessage && (term.length > 0 || !isScrolledToBottom) &&
         <button
-          style={{bottom: `calc(${chatInputHeight}px + 1rem)`}}
+          style={{ bottom: `calc(${chatInputHeight}px + 1rem)` }}
           className="fixed left-[50%] flex justify-center items-center gap-2 translate-x-[-50%] px-3 py-2 rounded-s-md border bg-primary-dark hover:bg-primary-light transition-colors z-30"
           onClick={() => {
             if (term.length > 0) {
@@ -280,11 +280,16 @@ const ChannelPage = ({params}: Props) => {
 
       {/* Pantalla del chat de texto */}
       {channelData && (channelData.id !== callerId || !callerId) &&
-        <section 
+        <section
           ref={sectionRef}
           className="w-full flex-grow p-4 overflow-x-hidden overflow-y-auto scrollbar-thin"
+          aria-labelledby="messages-section"
           onScroll={onScrollHandler}
         >
+          <span id="messages-section" hidden>
+            Messages
+          </span>
+
           <div className="flex flex-col justify-start gap-1 w-full h-full">
             {loadingMessages &&
               <div className="flex justify-center items-center w-full h-full">

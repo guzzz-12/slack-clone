@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { RiHome2Fill } from "react-icons/ri";
-import { PiChatsTeardrop } from "react-icons/pi";
 import { FiPlus } from "react-icons/fi";
 import { MdAlternateEmail } from "react-icons/md";
 import toast from "react-hot-toast";
@@ -27,7 +26,7 @@ import { cn } from "@/lib/utils";
 const Sidebar = () => {
   const router = useRouter();
 
-  const {user, setUser, setLoadingUser} = useUser();
+  const { user, setUser, setLoadingUser } = useUser();
 
   const [isAway, setIsAway] = useState(() => user?.is_away);
   const [openInviteModal, setOpenInviteModal] = useState(false);
@@ -36,30 +35,30 @@ const Sidebar = () => {
   const [openProfilePopover, setOpenProfilePopover] = useState(false);
   const [openProfileModal, setOpenProfileModal] = useState(false);
 
-  const {currentWorkspace, userWorkspaces, loadingWorkspaces} = useWorkspace();
+  const { currentWorkspace, userWorkspaces, loadingWorkspaces } = useWorkspace();
 
   // Consultar la data del usuario y actualizar el state global del user
   useEffect(() => {
     setLoadingUser(true);
 
     supabaseBrowserClient.auth.getSession()
-    .then((res) => {
-      if (res.data.session) {
-        const userId = res.data.session.user.id;
-        return supabaseBrowserClient.from("users").select("*").eq("id", userId).single();
-      }
-    })
-    .then((res) => {
-      if (res) {
-        setUser(res.data);
-      }
-    })
-    .catch((error) => {
-      toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
-    })
-    .finally(() => {
-      setLoadingUser(false);
-    });
+      .then((res) => {
+        if (res.data.session) {
+          const userId = res.data.session.user.id;
+          return supabaseBrowserClient.from("users").select("*").eq("id", userId).single();
+        }
+      })
+      .then((res) => {
+        if (res) {
+          setUser(res.data);
+        }
+      })
+      .catch((error) => {
+        toast.error(error.message, { ariaProps: { role: "alert", "aria-live": "assertive" } });
+      })
+      .finally(() => {
+        setLoadingUser(false);
+      });
   }, []);
 
   // Cerrar sesión
@@ -67,7 +66,7 @@ const Sidebar = () => {
     try {
       setLoading(true);
 
-      const {error} = await supabaseBrowserClient.auth.signOut();
+      const { error } = await supabaseBrowserClient.auth.signOut();
 
       if (error) {
         throw new Error(error.message);
@@ -78,8 +77,8 @@ const Sidebar = () => {
       router.refresh();
 
     } catch (error: any) {
-      toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
-      
+      toast.error(error.message, { ariaProps: { role: "alert", "aria-live": "assertive" } });
+
     } finally {
       localStorage.removeItem("selectedWorkspaceId");
       setLoading(false);
@@ -106,15 +105,19 @@ const Sidebar = () => {
       setIsAway(prev => !prev);
 
     } catch (error: any) {
-      toast.error(error.message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
-      
+      toast.error(error.message, { ariaProps: { role: "alert", "aria-live": "assertive" } });
+
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="flex flex-col justify-start items-stretch h-full w-16 flex-shrink-0 p-4 pt-0 bg-black">
+    <section
+      className="flex flex-col justify-start items-stretch h-full w-16 flex-shrink-0 p-4 pt-0 bg-black"
+      role="region"
+      aria-label="Navigation Sidebar"
+    >
       <InviteModal
         isOpen={openInviteModal}
         setIsOpen={setOpenInviteModal}
@@ -206,7 +209,7 @@ const Sidebar = () => {
                                 size={20}
                               />
                             </div>
-                            
+
                             <Typography
                               className="text-sm"
                               variant="p"
@@ -240,26 +243,6 @@ const Sidebar = () => {
               </Link>
             </li>
 
-            <li>
-              <button
-                className="flex flex-col items-center gap-1 text-white cursor-pointer"
-                disabled={loading}
-              >
-                <div className="p-2 rounded-lg bg-white/30 group" aria-hidden>
-                  <PiChatsTeardrop
-                    className="group-hover:scale-125 transition-all duration-300"
-                    size={20}
-                    aria-hidden
-                  />
-                </div>
-                <Typography
-                  className="text-xs"
-                  variant="p"
-                  text="Private Messages"
-                />
-              </button>
-            </li>
-
             {currentWorkspace.workspaceData.admin_id === user?.id && (
               <li>
                 <TooltipProvider>
@@ -268,9 +251,13 @@ const Sidebar = () => {
                       <button
                         className="flex flex-col items-center gap-1 text-white cursor-pointer"
                         disabled={loading}
-                        aria-describedby="invite-tooltip-content"
+                        aria-describedby="invite-tooltip-trigger-description"
                         onClick={() => setOpenInviteModal(true)}
                       >
+                        <span id="invite-tooltip-trigger-description" hidden>
+                          Invite your friends to join this workspace
+                        </span>
+
                         <div className="p-2 rounded-lg bg-white/30 group" aria-hidden>
                           <MdAlternateEmail
                             className="group-hover:scale-125 transition-all duration-300"
@@ -308,7 +295,7 @@ const Sidebar = () => {
 
       {!loadingWorkspaces && user && (
         <div className="flex flex-col items-center gap-3">
-          {currentWorkspace?.workspaceData.admin_id === user?.id && 
+          {currentWorkspace?.workspaceData.admin_id === user?.id &&
             <TooltipProvider>
               <Tooltip delayDuration={250}>
                 <TooltipTrigger disabled={loadingWorkspaces || loading} asChild>
@@ -327,7 +314,7 @@ const Sidebar = () => {
                     </span>
                   </Link>
                 </TooltipTrigger>
-  
+
                 <TooltipContent side="right">
                   <Typography
                     variant="p"
@@ -351,7 +338,7 @@ const Sidebar = () => {
                   alt={user.name || "User avatar"}
                 />
 
-                <div className={cn("absolute -bottom-0.5 -right-0.5 w-[14px] h-[14px] rounded-full border-[3px] border-white z-10", isAway ? "bg-neutral-400" : "bg-green-500")}/>
+                <div className={cn("absolute -bottom-0.5 -right-0.5 w-[14px] h-[14px] rounded-full border-[3px] border-white z-10", isAway ? "bg-neutral-400" : "bg-green-500")} />
               </div>
             </PopoverTrigger>
 
@@ -363,12 +350,12 @@ const Sidebar = () => {
                 onClick={() => {
                   setOpenProfilePopover(false);
                   setTimeout(() => {
-                    setOpenProfileModal(true);                    
+                    setOpenProfileModal(true);
                   }, 500);
                 }}
               >
                 <img
-                  className="block w-10 h-10 object-cover object-center rounded-full border" 
+                  className="block w-10 h-10 object-cover object-center rounded-full border"
                   src={user.avatar_url!}
                   alt={user.name || "User avatar"}
                   aria-hidden
@@ -382,7 +369,7 @@ const Sidebar = () => {
                   />
 
                   <div className="flex justify-start items-center gap-1">
-                    <div className={cn("w-3 h-3 rounded-full", isAway ? "bg-neutral-400" : "bg-green-500")}/>
+                    <div className={cn("w-3 h-3 rounded-full", isAway ? "bg-neutral-400" : "bg-green-500")} />
 
                     <Typography
                       className="text-xs text-neutral-300"
@@ -418,7 +405,7 @@ const Sidebar = () => {
           </Popover>
         </div>
       )}
-    </div>
+    </section>
   )
 }
 

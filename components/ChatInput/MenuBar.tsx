@@ -10,9 +10,11 @@ interface Props {
   editor: Editor | null;
 }
 
-interface MenuBarItemProps{
+interface MenuBarItemProps {
   content: ReactNode;
   icon: keyof typeof icons;
+  label: string;
+  description: string;
   editor: Editor | null;
   item: "bold" | "italic" | "strike" | "code" | "orderedList" | "bulletList" | "codeBlock";
   disabled: boolean;
@@ -20,7 +22,7 @@ interface MenuBarItemProps{
 }
 
 /** Item del menú del editor */
-const MenuBarItem = ({content, icon, item, editor, disabled, onClick}: MenuBarItemProps) => {
+const MenuBarItem = ({ content, icon, label, description, item, editor, disabled, onClick }: MenuBarItemProps) => {
   const Icon = icons[icon];
 
   return (
@@ -30,28 +32,33 @@ const MenuBarItem = ({content, icon, item, editor, disabled, onClick}: MenuBarIt
           <button
             className={cn("w-7 h-7 p-[3px] rounded-full border border-transparent", editor?.isActive(item) && "border-neutral-300")}
             disabled={disabled}
-            aria-describedby="content"
+            aria-labelledby={`item-label-${item.toLowerCase()}`}
+            aria-describedby={`item-description-${item.toLowerCase()}`}
             onClick={onClick}
           >
+            <span id={`item-label-${item.toLowerCase()}`} hidden>{label}</span>
+            <span id={`item-description-${item.toLowerCase()}`} hidden>{description}</span>
             <Icon className="block w-full h-full" aria-hidden />
           </button>
         </TooltipTrigger>
 
         <TooltipContent id="content">
           {content}
-        </TooltipContent>        
+        </TooltipContent>
       </Tooltip>
     </TooltipProvider>
   )
 };
 
-const MenuBar = ({editor}: Props) => {
+const MenuBar = ({ editor }: Props) => {
   return (
     <div className="flex justify-start items-center gap-2 w-full">
       <TooltipProvider delayDuration={100}>
         <MenuBarItem
           content="Bold"
           icon="Bold"
+          label="Text Bold"
+          description="Toggle text bold style"
           item="bold"
           editor={editor}
           disabled={!editor?.can().chain().focus().toggleBold().run()}
@@ -61,6 +68,8 @@ const MenuBar = ({editor}: Props) => {
         <MenuBarItem
           content="Italic"
           icon="Italic"
+          label="Text Italic"
+          description="Toggle text italic style"
           item="italic"
           editor={editor}
           disabled={!editor?.can().chain().focus().toggleItalic().run()}
@@ -70,6 +79,8 @@ const MenuBar = ({editor}: Props) => {
         <MenuBarItem
           content="Strike"
           icon="Strikethrough"
+          label="Text Strikethrough"
+          description="Toggle text strikethrough"
           item="strike"
           editor={editor}
           disabled={!editor?.can().chain().focus().toggleStrike().run()}
@@ -79,6 +90,8 @@ const MenuBar = ({editor}: Props) => {
         <MenuBarItem
           content="Bullet List"
           icon="List"
+          label="Bullet List"
+          description="Toggle bullet list"
           item="bulletList"
           editor={editor}
           disabled={!editor?.can().chain().focus().toggleBulletList().run()}
@@ -88,6 +101,8 @@ const MenuBar = ({editor}: Props) => {
         <MenuBarItem
           content="Ordered List"
           icon="ListOrdered"
+          label="Ordered List"
+          description="Toggle ordered list"
           item="orderedList"
           editor={editor}
           disabled={!editor?.can().chain().focus().toggleOrderedList().run()}
@@ -97,6 +112,8 @@ const MenuBar = ({editor}: Props) => {
         <MenuBarItem
           content="Code"
           icon="Code"
+          label="Code"
+          description="Toggle code style"
           item="code"
           editor={editor}
           disabled={!editor?.can().chain().focus().toggleCode().run()}
@@ -106,6 +123,8 @@ const MenuBar = ({editor}: Props) => {
         <MenuBarItem
           content="Code Block"
           icon="SquareCode"
+          label="Code Block"
+          description="Toggle code block style"
           item="codeBlock"
           editor={editor}
           disabled={!editor?.can().chain().focus().toggleCodeBlock().run()}
