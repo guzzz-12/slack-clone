@@ -30,25 +30,25 @@ interface Props {
 const ChannelFormSchema = z.object({
   channelName: z
     .string()
-    .min(3, {message: "The channel name must be at least 3 characters long"})
-    .max(60, {message: "The channel name must be at most 100 characters long"})
+    .min(3, { message: "The channel name must be at least 3 characters long" })
+    .max(60, { message: "The channel name must be at most 100 characters long" })
     .refine((val) => {
       return val.trim() !== "";
-    }, {message: "The channel name cannot be empty"}),
-    channelType: z.enum(["public", "private"])
+    }, { message: "The channel name cannot be empty" }),
+  channelType: z.enum(["public", "private"])
 });
 
 type ChannelFormType = z.infer<typeof ChannelFormSchema>;
 
-const CreateChannelModal = ({isOpen, setIsOpen}: Props) => {
+const CreateChannelModal = ({ isOpen, setIsOpen }: Props) => {
   const router = useRouter();
 
-  const {currentWorkspace, workspaceChannels, setWorkspaceChannels} = useWorkspace();
-  
+  const { currentWorkspace, workspaceChannels, setWorkspaceChannels } = useWorkspace();
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(false);
 
-  const {theme} = useTheme();
+  const { theme } = useTheme();
 
   const formProps = useForm<ChannelFormType>({
     resolver: zodResolver(ChannelFormSchema),
@@ -90,7 +90,7 @@ const CreateChannelModal = ({isOpen, setIsOpen}: Props) => {
 
       formProps.reset();
 
-      toast.success("Channel created successfully", {duration: 5000});
+      toast.success("Channel created successfully", { duration: 5000 });
 
       router.refresh();
 
@@ -102,14 +102,14 @@ const CreateChannelModal = ({isOpen, setIsOpen}: Props) => {
 
       if (error instanceof AxiosError && error.response?.status.toString().startsWith("4")) {
         message = error.response.data.message;
-        formProps.setError("channelName", {message});
+        formProps.setError("channelName", { message });
       }
 
-      toast.error(message, {duration: 10000, ariaProps: {role: "alert", "aria-live": "assertive"}});
+      toast.error(message, { duration: 10000, ariaProps: { role: "alert", "aria-live": "assertive" } });
 
       setSubmitting(false);
     }
-  }  
+  }
 
   return (
     <Dialog
@@ -134,7 +134,7 @@ const CreateChannelModal = ({isOpen, setIsOpen}: Props) => {
         </DialogHeader>
 
         <Alert
-          open={!error}
+          open={error}
           type="error"
           title="Error creating channel"
           subtitle="Refresh the page and try again."
@@ -150,7 +150,7 @@ const CreateChannelModal = ({isOpen, setIsOpen}: Props) => {
             <FormField
               name="channelName"
               control={formProps.control}
-              render={({field}) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel className={cn((theme === "dark" && formProps.formState.errors.channelName) && "text-red-500")}>
                     Channel name

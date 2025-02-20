@@ -3,6 +3,7 @@
 import { Dispatch, SetStateAction, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "./ui/button";
+import { useInertAttribute } from "@/hooks/useInertAttribute";
 
 interface Props {
   open: boolean;
@@ -20,9 +21,12 @@ const ConfirmationModal = (props: Props) => {
   const confirmBtnRef = useRef<HTMLButtonElement | null>(null);
   const cancelBtnRef = useRef<HTMLButtonElement | null>(null);
 
+  const { setInert } = useInertAttribute();
+
   // Focus trap y cerrar modal al pulsar escape
   const handleKeyDown = (event: KeyboardEvent) => {
     if (open && event.key === "Escape") {
+      setInert(false);
       setOpen(false);
     }
 
@@ -41,13 +45,17 @@ const ConfirmationModal = (props: Props) => {
     }
   };
 
-  // Deshabilitar el scroll del body
+  // Deshabilitar el scroll del body,
+  // dar focus al botón de confirmación y
+  // hacer inertes todos los elementos interactivos
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
       confirmBtnRef.current!.focus();
+      setInert(true);
     } else {
       document.body.style.overflow = "unset";
+      setInert(false);
     }
 
     document.addEventListener("keydown", handleKeyDown);

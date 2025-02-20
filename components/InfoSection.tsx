@@ -319,7 +319,7 @@ const InfoSection = () => {
           </div>
 
           {/* Renderizar los channels del workspace */}
-          <div className="flex flex-col gap-2 w-full mt-2 scrollbar-thin overflow-y-auto">
+          <div className="flex flex-col gap-2 w-full mt-2 p-1 scrollbar-thin overflow-y-auto">
             {workspaceChannels.map((ch) => (
               <ChannelItem
                 key={ch.id}
@@ -361,7 +361,7 @@ const InfoSection = () => {
             text="Direct Messages"
           />
 
-          <div className="flex flex-col gap-2 scrollbar-thin overflow-y-auto">
+          <div className="flex flex-col gap-2 p-1 scrollbar-thin overflow-y-auto">
             {currentWorkspace.workspaceMembers.map((member) => (
               <PrivateChatItem
                 key={member.id}
