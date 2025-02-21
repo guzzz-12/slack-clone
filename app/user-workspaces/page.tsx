@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 const UserWorkspaces = async () => {
-  const {email} = await getUserData();
+  const { email } = await getUserData();
   const workspaces = await getUserWorkspaces();
 
   return (
@@ -32,7 +32,7 @@ const UserWorkspaces = async () => {
           </h2>
 
           <Link
-            className="flex justify-center items-center gap-1 w-full max-w-[450px] px-4 py-2 text-sm text-neutral-900 uppercase bg-neutral-300 rounded-md hover:bg-neutral-100 transition-colors group"
+            className="flex justify-center items-center gap-1 w-full max-w-[450px] px-4 py-2 text-sm text-neutral-900 uppercase bg-neutral-300 rounded-md outline-offset-4 hover:bg-neutral-100 transition-colors group"
             href="/create-workspace"
           >
             <FiPlus className="group-hover:scale-125 transition-transform" size={24} /> Create workspace
@@ -40,9 +40,9 @@ const UserWorkspaces = async () => {
         </section>
 
         <div className="flex justify-center items-center gap-6 w-full my-9">
-          <Separator/>
+          <Separator />
           <span className="text-sm text-neutral-400 font-semibold">OR</span>
-          <Separator/>
+          <Separator />
         </div>
 
         <section className="flex flex-col items-center gap-4 w-full max-w-[750px] p-4 bg-neutral-900 rounded-md overflow-hidden">
@@ -70,7 +70,7 @@ const UserWorkspaces = async () => {
                   <Link
                     key={workspace.workspace_id}
                     href={`/workspace/${workspace.workspace_id}`}
-                    className="flex justify-start items-center gap-2 w-full pr-4 rounded-lg bg-neutral-800 cursor-pointer hover:bg-neutral-700 transition-colors duration-350 group"
+                    className="flex justify-start items-center gap-2 w-full pr-4 rounded-lg bg-neutral-800 outline-offset-4 cursor-pointer hover:bg-neutral-700 transition-colors duration-350 group"
                   >
                     <div className="w-12 h-12 rounded-l-lg overflow-hidden">
                       <img

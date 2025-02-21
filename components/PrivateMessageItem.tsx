@@ -22,22 +22,22 @@ interface Props {
   message: PrivateMessageWithSender;
 }
 
-const PrivateMessageItem = ({message, currentUserId}: Props) => {
+const PrivateMessageItem = ({ message, currentUserId }: Props) => {
   const messageRef = useRef<HTMLDivElement>(null);
 
   const isSender = message.sender_id === currentUserId;
 
-  const {messages, setMessages} = useMessages();
+  const { messages, setMessages } = useMessages();
 
-  const {setMessage, setOpen} = useImageLightbox();
+  const { setMessage, setOpen } = useImageLightbox();
 
-  const {isIntersecting} = useIntersectionObserver(messageRef);
+  const { isIntersecting } = useIntersectionObserver(messageRef);
 
   // URL de la API para borrar un mensaje de la conversación privada
   let apiDeleteUrl = `/api/workspace/${message.workspace_id}/private-messages`
 
   // Handler para eliminación de un mensaje
-  const {deleteMessageHandler, deleting} = useDeleteMessages(apiDeleteUrl, message, messages);
+  const { deleteMessageHandler, deleting } = useDeleteMessages(apiDeleteUrl, message, messages);
 
   // Función para marcar un mensaje como visto si no ha sido visto
   const updateSeenBy = async () => {
@@ -66,7 +66,7 @@ const PrivateMessageItem = ({message, currentUserId}: Props) => {
       }
 
       setMessages(updatedMessages);
-      
+
     } catch (error: any) {
       let message = error.message;
 
@@ -74,7 +74,7 @@ const PrivateMessageItem = ({message, currentUserId}: Props) => {
         message = error.response?.data.message;
       }
 
-      toast.error(message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
+      toast.error(message, { ariaProps: { role: "alert", "aria-live": "assertive" } });
     }
   }
 
@@ -105,16 +105,10 @@ const PrivateMessageItem = ({message, currentUserId}: Props) => {
       )}
 
       {/* Mostrar el contenido del mensage y la fecha debajo */}
-      <div className="flex flex-col gap-1 w-full min-w-[80px] min-[550px]:max-w-[80%] overflow-hidden">
-        {!isSender &&
-          <p className="text-sm text-neutral-400 truncate">
-            {message.recipient.name ?? message.recipient.email}
-          </p>
-        }
-
+      <div className="flex flex-col gap-2 w-max px-4 py-2 bg-neutral-950 rounded-md min-w-[80px] min-[550px]:max-w-[80%] overflow-hidden">
         {message.text_content &&
           <div
-            className="px-4 py-2 text-sm border rounded-lg bg-neutral-950 overflow-x-auto scrollbar-thin message-text-content"
+            className="text-sm overflow-x-auto scrollbar-thin message-text-content"
             dangerouslySetInnerHTML={{
               __html: message.text_content
             }}
@@ -122,7 +116,7 @@ const PrivateMessageItem = ({message, currentUserId}: Props) => {
         }
 
         {message.message_type === "image" &&
-          <div className="relative min-w-[80px] px-4 py-2 text-sm border rounded-lg bg-neutral-950 overflow-hidden group">
+          <div className="relative min-w-[80px] text-sm rounded-lg overflow-hidden group">
             <button
               className="absolute top-0 left-0 w-full h-full flex justify-center items-center bg-neutral-900/0 group-hover:bg-neutral-900/80 transition-colors cursor-pointer"
               aria-labelledby={`message-${message.id}-options-btn-label`}
@@ -140,6 +134,7 @@ const PrivateMessageItem = ({message, currentUserId}: Props) => {
                 Message Options
               </span>
             </button>
+
             <img
               className="w-full max-w-[200px] h-auto object-contain object-center"
               src={message.attachment_url!}
@@ -172,7 +167,7 @@ const PrivateMessageItem = ({message, currentUserId}: Props) => {
         }
 
         <span
-          className={cn("block w-full text-[10px] text-neutral-400", message.sender_id === currentUserId ? "pr-2 text-right" : "pl-2 text-left")}
+          className={cn("block w-full text-[10px] text-neutral-400 text-right")}
           title={dayjs(message.created_at).format("DD/MM/YYYY - HH:mm:ss")}
         >
           {dayjs(message.created_at).format("DD/MM/YYYY")}
@@ -208,7 +203,7 @@ const PrivateMessageItem = ({message, currentUserId}: Props) => {
                 <DropdownMenuSeparator />
               </>
             }
-            
+
             <DropdownMenuItem
               className="flex justify-start items-center gap-2 cursor-pointer"
               disabled={deleting}

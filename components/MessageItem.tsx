@@ -20,14 +20,14 @@ interface Props {
   message: MessageWithSender;
 }
 
-const MessageItem = ({message, currentUserId}: Props) => {  
+const MessageItem = ({ message, currentUserId }: Props) => {
   const messageRef = useRef<HTMLDivElement>(null);
 
-  const {messages, setMessages} = useMessages();
+  const { messages, setMessages } = useMessages();
 
-  const {setMessage, setOpen} = useImageLightbox();
+  const { setMessage, setOpen } = useImageLightbox();
 
-  const {isIntersecting} = useIntersectionObserver(messageRef);
+  const { isIntersecting } = useIntersectionObserver(messageRef);
 
   const isSender = message.sender_id === currentUserId;
 
@@ -61,7 +61,7 @@ const MessageItem = ({message, currentUserId}: Props) => {
       }
 
       setMessages(updatedMessages);
-      
+
     } catch (error: any) {
       let message = error.message;
 
@@ -69,10 +69,10 @@ const MessageItem = ({message, currentUserId}: Props) => {
         message = error.response?.data.message;
       }
 
-      toast.error(message, {ariaProps: {role: "alert", "aria-live": "assertive"}});
+      toast.error(message, { ariaProps: { role: "alert", "aria-live": "assertive" } });
     }
   }
-  
+
   // Marcar el mensaje como leído si el mensaje es visible en la bandeja
   useEffect(() => {
     if (isIntersecting) {
@@ -81,7 +81,7 @@ const MessageItem = ({message, currentUserId}: Props) => {
   }, [isIntersecting]);
 
   // Handler para eliminación de un mensaje
-  const {deleteMessageHandler, deleting} = useDeleteMessages(apiDeleteUrl, message, messages);
+  const { deleteMessageHandler, deleting } = useDeleteMessages(apiDeleteUrl, message, messages);
 
   return (
     <div
@@ -101,7 +101,7 @@ const MessageItem = ({message, currentUserId}: Props) => {
       )}
 
       {/* Mostrar el contenido del mensage y la fecha debajo */}
-      <div className="flex flex-col gap-1 w-full min-w-[80px] min-[550px]:max-w-[80%] overflow-hidden">
+      <div className="flex flex-col gap-1 w-max min-w-[80px] min-[550px]:max-w-[80%] overflow-hidden">
         {!isSender &&
           <p className="text-sm text-neutral-400 truncate">
             {message.sender.name ?? message.sender.email}
@@ -202,7 +202,7 @@ const MessageItem = ({message, currentUserId}: Props) => {
                 <DropdownMenuSeparator />
               </>
             }
-            
+
             <DropdownMenuItem
               className="flex justify-start items-center gap-2 cursor-pointer"
               disabled={deleting}
