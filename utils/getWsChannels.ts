@@ -9,7 +9,7 @@ export const getWsChannels = async (workspaceId: string): Promise<Channel[]> => 
     .from("channels")
     .select("*")
     .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: false });
+    .order("last_message_date", { ascending: false });
 
   if (error) {
     throw new Error(error.message);
