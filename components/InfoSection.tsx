@@ -143,6 +143,15 @@ const InfoSection = () => {
         channel.bind("new-message", (data: MessageWithSender) => {
           setUnreadChannelMessages((prev) => [...prev, data]);
 
+          const messageChannel = workspaceChannels.find((ch) => ch.id === data.channel_id)!;
+
+          // Subir el channel al principio de la lista de channels
+          if (messageChannel) {
+            const filtered = workspaceChannels.filter((ch) => ch.id !== messageChannel.id);
+            const updatedChannels = [messageChannel, ...filtered];
+            setWorkspaceChannels(updatedChannels);
+          }
+
           // Mostrar notificación toast cuando se reciba un nuevo mensaje en el channel
           if ((!channelId || channelId !== data.channel_id) && user?.id !== data.sender_id) {
             toast.dismiss();
