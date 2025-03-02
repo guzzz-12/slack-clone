@@ -26,15 +26,16 @@ interface Props {
   setDeleteChannelId: Dispatch<SetStateAction<string | null>>;
 }
 
-const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMessages, deleteChannelId, setDeleteChannelId, setOpenDeleteChannelModal}: Props) => {
+const ChannelItem = ({ user, currentChannelId, channel, deletingChannel, unreadMessages, deleteChannelId, setDeleteChannelId, setOpenDeleteChannelModal }: Props) => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
-  const {workspaceChannels, setWorkspaceChannels, setCurrentChannel} = useWorkspace();
-  const {setCallerId, setVideoCallType} = useMessages();
+  const { workspaceChannels, setWorkspaceChannels, setCurrentChannel } = useWorkspace();
+  const { setCallerId, setVideoCallType } = useMessages();
 
-  const unreadCount = unreadMessages.filter((m) => m.channel_id === channel.id).length;
-  const isDeleting = deletingChannel && deleteChannelId === channel.id;
-  const isActive = currentChannelId === channel.id;
+  const isChannelActive = currentChannelId === channel.id;
+  const isDeletingChannel = deletingChannel && deleteChannelId === channel.id;
+
+  const unreadMesaggesCount = isChannelActive ? 0 : unreadMessages.filter((m) => m.channel_id === channel.id).length;
 
   // Escuchar eventos de video llamada (reunión)
   useEffect(() => {
@@ -44,7 +45,7 @@ const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMe
 
     const pusherChannel = pusherClient.subscribe(`videocall-${channel.id}-${channel.workspace_id}`);
 
-    pusherChannel.bind("member-connected", ({meetingChannel}: {meetingChannel: Channel}) => {
+    pusherChannel.bind("member-connected", ({ meetingChannel }: { meetingChannel: Channel }) => {
       const channelIndex = workspaceChannels.findIndex((ch) => ch.id === meetingChannel.id);
 
       if (channelIndex !== -1) {
@@ -56,7 +57,7 @@ const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMe
       }
     });
 
-    pusherChannel.bind("member-disconnected", ({meetingChannel}: {meetingChannel: Channel}) => {
+    pusherChannel.bind("member-disconnected", ({ meetingChannel }: { meetingChannel: Channel }) => {
       const channelIndex = workspaceChannels.findIndex((ch) => ch.id === meetingChannel.id);
 
       if (channelIndex !== -1) {
@@ -82,16 +83,16 @@ const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMe
 
   return (
     <Link
-      className={cn("block w-full flex-shrink-0 overflow-hidden", isDeleting && "pointer-events-none opacity-50")}
+      className={cn("block w-full flex-shrink-0 overflow-hidden", isDeletingChannel && "pointer-events-none opacity-50")}
       href={`/workspace/${channel.workspace_id}/channel/${channel.id}`}
       title={channel.name}
     >
-      <div className={cn("flex justify-start items-center gap-1 w-full p-2 rounded-sm cursor-pointer hover:bg-neutral-600 transition-colors", isActive && !isDeleting ? "bg-neutral-950" : isDeleting ? "bg-red-900" : "bg-neutral-700/30" )}>
+      <div className={cn("flex justify-start items-center gap-1 w-full p-2 rounded-sm cursor-pointer hover:bg-neutral-600 transition-colors", isChannelActive && !isDeletingChannel ? "bg-neutral-950" : isDeletingChannel ? "bg-red-900" : "bg-neutral-700/30")}>
         {channel.meeting_members.length === 0 && <GoHash className="flex-shrink-0" />}
 
         {channel.meeting_members.length > 0 &&
           <div className="relative flex justify-center items-center mr-2 ml-1 flex-shrink-0 rounded-full">
-            <div className="absolute inline-flex h-5 w-5 animate-ping rounded-full bg-green-500 opacity-75 z-10"/>
+            <div className="absolute inline-flex h-5 w-5 animate-ping rounded-full bg-green-500 opacity-75 z-10" />
             <HiUserGroup className="relative block w-4 h-4 flex-shrink-0 text-white z-20" />
           </div>
         }
@@ -101,19 +102,19 @@ const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMe
           text={channel.name}
         />
 
-        {unreadCount > 0 && (
+        {unreadMesaggesCount > 0 && (
           <span className="flex justify-center items-center min-w-[24px] h-[24px] p-1.5 flex-shrink-0 text-[12px] font-semibold text-white rounded-full bg-primary-dark">
-            {unreadCount > 99 ? "99+" : unreadCount}
+            {unreadMesaggesCount > 99 ? "99+" : unreadMesaggesCount}
           </span>
         )}
-        
+
         {user?.id === channel.ws_admin_id && (
           <Popover
             open={isPopoverOpen}
             onOpenChange={setIsPopoverOpen}
           >
             <PopoverTrigger
-              disabled={isDeleting}
+              disabled={isDeletingChannel}
               asChild
             >
               <button
@@ -137,7 +138,7 @@ const ChannelItem = ({user, currentChannelId, channel, deletingChannel, unreadMe
               <Button
                 className="flex justify-start items-center gap-2 w-full cursor-pointer"
                 variant="ghost"
-                disabled={isDeleting}
+                disabled={isDeletingChannel}
                 onClick={(e) => {
                   setIsPopoverOpen(false);
                   setDeleteChannelId(channel.id);

@@ -74,7 +74,6 @@ const InfoSection = () => {
 
 
   // Consultar los mensajes sin leer de todos los channels
-  // Escuchar evento de channel eliminado en el workspace
   useEffect(() => {
     axios<MessageWithSender[]>({
       method: "GET",
@@ -100,7 +99,7 @@ const InfoSection = () => {
       // Escuchar evento de nuevo channel creado en el workspace
       pusherChannel.bind("new-channel", (newChannel: Channel) => {
         if (user?.id !== newChannel.ws_admin_id) {
-          setWorkspaceChannels([...workspaceChannels, newChannel]);
+          setWorkspaceChannels([newChannel, ...workspaceChannels]);
           toast.success(`A new channel (${newChannel.name}) was created on ${currentWorkspace.workspaceData.name}`, { duration: 10000 });
         }
       });
@@ -145,7 +144,7 @@ const InfoSection = () => {
 
           const messageChannel = workspaceChannels.find((ch) => ch.id === data.channel_id)!;
 
-          // Subir el channel al principio de la lista de channels
+          // Subir el channel al principio de la lista de channels al recibir un nuevo mensaje
           if (messageChannel) {
             const filtered = workspaceChannels.filter((ch) => ch.id !== messageChannel.id);
             const updatedChannels = [messageChannel, ...filtered];
