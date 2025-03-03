@@ -6,7 +6,9 @@ import { GoHash } from "react-icons/go";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { FaRegTrashCan } from "react-icons/fa6";
 import { HiUserGroup } from "react-icons/hi2";
+import toast from "react-hot-toast";
 import Typography from "./Typography";
+import IncomingMsgToastContent from "./IncomingMsgToastContent";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Button } from "./ui/button";
 import { pusherClient } from "@/utils/pusherClientSide";
@@ -24,9 +26,12 @@ interface Props {
   deleteChannelId: string | null;
   setOpenDeleteChannelModal: Dispatch<SetStateAction<boolean>>;
   setDeleteChannelId: Dispatch<SetStateAction<string | null>>;
+  setUnreadChannelMessages: Dispatch<SetStateAction<MessageWithSender[]>>;
 }
 
-const ChannelItem = ({ user, currentChannelId, channel, deletingChannel, unreadMessages, deleteChannelId, setDeleteChannelId, setOpenDeleteChannelModal }: Props) => {
+const ChannelItem = (props: Props) => {
+  const { user, currentChannelId, channel, deletingChannel, unreadMessages, deleteChannelId, setDeleteChannelId, setOpenDeleteChannelModal, setUnreadChannelMessages } = props;
+
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const { workspaceChannels, setWorkspaceChannels, setCurrentChannel } = useWorkspace();
@@ -36,6 +41,42 @@ const ChannelItem = ({ user, currentChannelId, channel, deletingChannel, unreadM
   const isDeletingChannel = deletingChannel && deleteChannelId === channel.id;
 
   const unreadMesaggesCount = isChannelActive ? 0 : unreadMessages.filter((m) => m.channel_id === channel.id).length;
+
+  useEffect(() => {
+    const channelName = `channel-${channel.id}`;
+
+    const pusherChannel = pusherClient.subscribe(channelName);
+
+    // Escuchar los eventos de mensajes entrantes de los channels
+    pusherChannel.bind("new-message", (data: MessageWithSender) => {
+      setUnreadChannelMessages((prev) => [...prev, data]);
+
+      const messageChannel = workspaceChannels.find((ch) => ch.id === data.channel_id)!;
+
+      // Subir el channel al principio de la lista de channels al recibir un nuevo mensaje
+      if (messageChannel) {
+        const filtered = workspaceChannels.filter((ch) => ch.id !== messageChannel.id);
+        const updatedChannels = [messageChannel, ...filtered];
+        setWorkspaceChannels(updatedChannels);
+      }
+
+      // Mostrar notificación toast cuando se reciba un nuevo mensaje en el channel
+      // si no es el channel actual y el usuario no sea el que envio el mensaje
+      if ((!currentChannelId || currentChannelId !== data.channel_id) && user?.id !== data.sender_id) {
+        toast.dismiss();
+        toast.custom(
+          <IncomingMsgToastContent message={data} />,
+          {
+            duration: 15000
+          }
+        );
+      }
+    });
+
+    return () => {
+      pusherChannel.unsubscribe();
+    }
+  }, [user, channel, currentChannelId]);
 
   // Escuchar eventos de video llamada (reunión)
   useEffect(() => {
@@ -83,7 +124,7 @@ const ChannelItem = ({ user, currentChannelId, channel, deletingChannel, unreadM
 
   return (
     <Link
-      className={cn("block w-full flex-shrink-0 overflow-hidden", isDeletingChannel && "pointer-events-none opacity-50")}
+      className={cn("block w-full flex-shrink-0 -outline-offset-2 overflow-hidden", isDeletingChannel && "pointer-events-none opacity-50")}
       href={`/workspace/${channel.workspace_id}/channel/${channel.id}`}
       title={channel.name}
     >
@@ -101,12 +142,6 @@ const ChannelItem = ({ user, currentChannelId, channel, deletingChannel, unreadM
           variant="p"
           text={channel.name}
         />
-
-        {unreadMesaggesCount > 0 && (
-          <span className="flex justify-center items-center min-w-[24px] h-[24px] p-1.5 flex-shrink-0 text-[12px] font-semibold text-white rounded-full bg-primary-dark">
-            {unreadMesaggesCount > 99 ? "99+" : unreadMesaggesCount}
-          </span>
-        )}
 
         {user?.id === channel.ws_admin_id && (
           <Popover
@@ -150,6 +185,12 @@ const ChannelItem = ({ user, currentChannelId, channel, deletingChannel, unreadM
               </Button>
             </PopoverContent>
           </Popover>
+        )}
+
+        {unreadMesaggesCount > 0 && (
+          <span className="flex justify-center items-center min-w-[24px] h-[24px] p-1 flex-shrink-0 text-[12px] font-semibold text-white rounded-full bg-primary-dark">
+            {unreadMesaggesCount > 99 ? "99+" : unreadMesaggesCount}
+          </span>
         )}
       </div>
     </Link>

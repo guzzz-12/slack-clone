@@ -123,58 +123,7 @@ const InfoSection = () => {
         pusherChannel.unsubscribe();
       }
     }
-
   }, [currentWorkspace, user, workspaceChannels, channelId]);
-
-
-  // Escuchar los eventos de mensajes de los channels
-  // y actualizar el state de los mensajes sin leer
-  useEffect(() => {
-    const pusherChannels: PusherChannel[] = [];
-
-    if (workspaceChannels.length > 0) {
-      workspaceChannels.forEach((ch) => {
-        const channelName = `channel-${ch.id}`;
-
-        const channel = pusherClient.subscribe(channelName);
-
-        // Escuchar los eventos de mensajes entrantes de los channels
-        channel.bind("new-message", (data: MessageWithSender) => {
-          setUnreadChannelMessages((prev) => [...prev, data]);
-
-          const messageChannel = workspaceChannels.find((ch) => ch.id === data.channel_id)!;
-
-          // Subir el channel al principio de la lista de channels al recibir un nuevo mensaje
-          if (messageChannel) {
-            const filtered = workspaceChannels.filter((ch) => ch.id !== messageChannel.id);
-            const updatedChannels = [messageChannel, ...filtered];
-            setWorkspaceChannels(updatedChannels);
-          }
-
-          // Mostrar notificación toast cuando se reciba un nuevo mensaje en el channel
-          if ((!channelId || channelId !== data.channel_id) && user?.id !== data.sender_id) {
-            toast.dismiss();
-            toast.custom(
-              <IncomingMsgToastContent message={data} />,
-              {
-                duration: 15000
-              }
-            );
-          }
-        });
-
-        pusherChannels.push(channel);
-      });
-    }
-
-    return () => {
-      if (pusherChannels.length > 0) {
-        pusherChannels.forEach((channel) => {
-          channel.unsubscribe();
-        });
-      }
-    }
-  }, [workspaceChannels, channelId, currentWorkspace, user]);
 
 
   // Consultar los mensajes sin leer de todos los chats privados
@@ -327,7 +276,7 @@ const InfoSection = () => {
           </div>
 
           {/* Renderizar los channels del workspace */}
-          <div className="flex flex-col gap-2 w-full mt-2 p-1 scrollbar-thin overflow-y-auto">
+          <div className="flex flex-col gap-2 w-full mt-2 scrollbar-thin overflow-y-auto">
             {workspaceChannels.map((ch) => (
               <ChannelItem
                 key={ch.id}
@@ -339,6 +288,7 @@ const InfoSection = () => {
                 deletingChannel={deletingChannel}
                 setDeleteChannelId={setDeleteChannelId}
                 setOpenDeleteChannelModal={setOpenDeleteChannelModal}
+                setUnreadChannelMessages={setUnreadChannelMessages}
               />
             ))}
           </div>
@@ -369,7 +319,7 @@ const InfoSection = () => {
             text="Direct Messages"
           />
 
-          <div className="flex flex-col gap-2 p-1 scrollbar-thin overflow-y-auto">
+          <div className="flex flex-col gap-2 scrollbar-thin overflow-y-auto">
             {currentWorkspace.workspaceMembers.map((member) => (
               <PrivateChatItem
                 key={member.id}

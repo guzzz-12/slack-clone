@@ -140,7 +140,10 @@ const ChannelPage = ({ params }: Props) => {
         return setNewIncomingMessage(true);
       }
 
-      setMessages([...messages as MessageWithSender[], data]);
+      // Agregar el nuevo mensaje a la bandeja de mensajes si el channel es el mismo
+      if (data.channel_id === channelData.id) {
+        setMessages([...messages as MessageWithSender[], data]);
+      }
 
       // Scrollear al bottom del chat al recibir un nuevo mensaje
       // si la bandeja está scrolleada al bottom
@@ -165,9 +168,9 @@ const ChannelPage = ({ params }: Props) => {
       setMessages([...currentMessages as MessageWithSender[]]);
     })
 
-    return () => {
-      channel.unsubscribe();
-    };
+    // return () => {
+    //   channel.unsubscribe();
+    // };
   }, [channelData, isScrolledToBottom, messages, pusherClient]);
 
 

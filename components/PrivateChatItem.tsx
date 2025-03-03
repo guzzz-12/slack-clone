@@ -21,7 +21,7 @@ interface Props {
   unreadMessages: PrivateMessageWithSender[];
 }
 
-const PrivateChatItem = ({workspaceId, member, unreadMessages}: Props) => {
+const PrivateChatItem = ({ workspaceId, member, unreadMessages }: Props) => {
   const params = useParams<Params>();
 
   const [incomingVideoCall, setIncomingVideoCall] = useState(false);
@@ -30,8 +30,8 @@ const PrivateChatItem = ({workspaceId, member, unreadMessages}: Props) => {
   const unreadCount = unreadMessages.filter((m) => m.sender.id === member.id).length;
   const isItemActive = params.userId === member.id && params.workspaceId === workspaceId;
 
-  const {user: currentUser} = useUser();
-  const {setCallerId, setVideoCallType} = useMessages();
+  const { user: currentUser } = useUser();
+  const { setCallerId, setVideoCallType } = useMessages();
 
 
   // Escuchar evento de video llamada entrante y
@@ -41,18 +41,18 @@ const PrivateChatItem = ({workspaceId, member, unreadMessages}: Props) => {
 
     // Generar el callerId a partir de las ids de los usuarios de la conversación
     const combinedUserIds = combineUuid(currentUser.id, member.id);
-    
+
     const channel = pusherClient.subscribe(`videocall-${combinedUserIds}-${workspaceId}`);
-    
-    channel.bind("incoming-call", ({callerId}: {callerId: string}) => {
-      console.log({incoming_call: callerId});
+
+    channel.bind("incoming-call", ({ callerId }: { callerId: string }) => {
+      console.log({ incoming_call: callerId });
       setIncomingVideoCall(true);
       setCallerId(callerId);
       setVideoCallType("private");
     });
-    
-    channel.bind("call-ended", ({callerId}: {callerId: string}) => {
-      console.log({videcall_ended: callerId});
+
+    channel.bind("call-ended", ({ callerId }: { callerId: string }) => {
+      console.log({ videcall_ended: callerId });
       setIncomingVideoCall(false);
       setCallerId(null);
       setVideoCallType(null);
@@ -81,7 +81,7 @@ const PrivateChatItem = ({workspaceId, member, unreadMessages}: Props) => {
 
   return (
     <Link
-      className="block w-full overflow-hidden"
+      className="block w-full -outline-offset-2 overflow-hidden"
       href={`/workspace/${workspaceId}/private-chat/${member.id}`}
     >
       <div className={cn("flex justify-start items-center gap-1 w-full pr-2 rounded-sm bg-neutral-700/30 cursor-pointer hover:bg-neutral-600 transition-colors", isItemActive && "bg-neutral-950")}>
@@ -93,7 +93,7 @@ const PrivateChatItem = ({workspaceId, member, unreadMessages}: Props) => {
               alt={member.name || member.email}
             />
 
-            <div className={cn("absolute bottom-0 right-0 w-[6px] h-[6px] rounded-full outline outline-2 outline-white z-30", isAway ? "bg-neutral-400" : "bg-green-500")}/>
+            <div className={cn("absolute bottom-0 right-0 w-[6px] h-[6px] rounded-full outline outline-2 outline-white z-30", isAway ? "bg-neutral-400" : "bg-green-500")} />
           </div>
           <Typography
             className="w-full flex-grow text-sm text-left truncate"
@@ -110,7 +110,7 @@ const PrivateChatItem = ({workspaceId, member, unreadMessages}: Props) => {
 
         {incomingVideoCall && (
           <div className="relative flex justify-center items-center flex-shrink-0 rounded-full">
-            <div className="absolute inline-flex h-5 w-5 animate-ping rounded-full bg-green-500 opacity-75 z-10"/>
+            <div className="absolute inline-flex h-5 w-5 animate-ping rounded-full bg-green-500 opacity-75 z-10" />
             <FaVideo className="relative block w-4 h-4 flex-shrink-0 text-white z-20" />
           </div>
         )}

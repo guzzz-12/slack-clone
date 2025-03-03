@@ -20,7 +20,7 @@ const lato = Lato({
   weight: ["100", "400", "700", "900"]
 });
 
-const RootLayout = ({children}: {children: ReactNode}) => {
+const RootLayout = ({ children }: { children: ReactNode }) => {
   return (
     <html lang="en">
       <body className={`${lato.className} antialiased`}>
@@ -35,7 +35,8 @@ const RootLayout = ({children}: {children: ReactNode}) => {
             toastOptions={{
               style: {
                 color: "white",
-                backgroundColor: "#451c49"
+                backgroundColor: "#451c49",
+                zIndex: 1000
               },
               duration: 5000
             }}
