@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
-import sendgrid from "@sendgrid/mail";
+import nodemailer from "nodemailer";
 import { supabaseServerClient } from "@/utils/supabase/supabaseServerClient";
 import { cronJobEmailTemplate } from "@/utils/cronJobEmailTemplate";
 
 export const dynamic = "force-dynamic";
 
-sendgrid.setApiKey(process.env.SENDGRID_API_KEY!);
+// Inicializar cliente de nodemailer
+const transport = nodemailer.createTransport({
+  host: "sandbox.smtp.mailtrap.io",
+  port: 2525,
+  auth: {
+    user: process.env.MAILTRAP_SMTP_USER,
+    pass: process.env.MAILTRAP_SMTP_PASSWORD
+  }
+});
 
 // Endpoint del cron job de vercel para evitar que el proyecto de supabase se deshabilite por inactividad
 export async function GET(_req: NextRequest) {
@@ -28,19 +36,16 @@ export async function GET(_req: NextRequest) {
 
     console.log({ CRON_JOB_DATA: { activeUsers: data } });
 
-    // Opciones del correo a enviar
-    const mailContent = {
-      to: process.env.SENDGRID_EMAIL as string,
+    // Enviar el email a mailtrap
+    await transport.sendMail({
+      to: process.env.MAILTRAP_EMAIL as string,
       from: {
-        name: "TeamFlow App",
-        email: process.env.SENDGRID_EMAIL as string
+        name: "Spotify Clone App",
+        address: process.env.MAILTRAP_EMAIL as string,
       },
-      subject: "Resultados del cron job de vercel",
-      html: cronJobEmailTemplate({ activeUsers: data })
-    };
-
-    // Enviar el email
-    await sendgrid.send(mailContent);
+      subject: "Resultados del cron job",
+      html: cronJobEmailTemplate({activeUsers: data})
+    });
 
     return NextResponse.json({ CRON_JOB_DATA: { activeUsers: data } });
 
