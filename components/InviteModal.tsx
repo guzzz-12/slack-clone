@@ -50,22 +50,26 @@ const InviteModal = ({workspaceId, workspaceName, inviteCode, isOpen, setIsOpen}
 
   const onSubmitHandler = async (values: FormType) => {
     try {
-      setSuccess(false);
-      setError(false);
-      setLoading(true);
+      formProps.setError("email", {message: "The invite functionality is temporally disabled."});
+      formProps.setValue("email", "");
+      setError(true);
 
-      await axios({
-        method: "POST",
-        url: `/api/invite`,
-        data: {
-          workspaceName,
-          workspaceId,
-          inviteCode,
-          email: values.email
-        }
-      });
+      // setSuccess(false);
+      // setError(false);
+      // setLoading(true);
 
-      setSuccess(true);
+      // await axios({
+      //   method: "POST",
+      //   url: `/api/invite`,
+      //   data: {
+      //     workspaceName,
+      //     workspaceId,
+      //     inviteCode,
+      //     email: values.email
+      //   }
+      // });
+
+      // setSuccess(true);
 
     } catch (error: any) {
       let message = error.message;
@@ -122,7 +126,8 @@ const InviteModal = ({workspaceId, workspaceName, inviteCode, isOpen, setIsOpen}
           className="mt-0"
           type="error"
           title="Error sending the invitation."
-          subtitle="Refresh the page and try again."
+          subtitle="The invite functionality is temporally disabled."
+          // subtitle="Refresh the page and try again."
           open={error}
         />
 

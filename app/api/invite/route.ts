@@ -28,117 +28,119 @@ const emailSchema = z.object({
 
 // Route handler para enviar invitación a un usuario
 export async function POST(req: NextRequest) {
-  const supabase = supabaseServerClient();
+  return NextResponse.json({message: "The invite functionality is temporarily disabled"}, {status: 400});
 
-  try {
-    const { workspaceId, workspaceName, inviteCode, email } = await req.json();
+  // const supabase = supabaseServerClient();
 
-    // Validar el email
-    const {error} = emailSchema.safeParse({ workspaceId, workspaceName, inviteCode, email});
+  // try {
+  //   const { workspaceId, workspaceName, inviteCode, email } = await req.json();
 
-    if (error) {
-      const errors = error.errors.map(err => err.message).join(". ");
-      return NextResponse.json({message: errors}, {status: 400});
-    }
+  //   // Validar el email
+  //   const {error} = emailSchema.safeParse({ workspaceId, workspaceName, inviteCode, email});
 
-    const {data: {user}} = await supabase.auth.getUser();
+  //   if (error) {
+  //     const errors = error.errors.map(err => err.message).join(". ");
+  //     return NextResponse.json({message: errors}, {status: 400});
+  //   }
 
-    if (!user) {
-      return redirect("/signin");
-    } 
+  //   const {data: {user}} = await supabase.auth.getUser();
 
-    // Generar el token de invitación
-    const token = jwt.sign({ workspaceId, inviteCode, email }, process.env.INVITATION_TOKEN_SECRET!, {expiresIn: "24h"});
+  //   if (!user) {
+  //     return redirect("/signin");
+  //   } 
 
-    // Eliminar el token de invitación anterior si existe
-    const {error: deleteError} = await supabase
-    .from("invitation_tokens")
-    .delete()
-    .eq("email", email)
-    .eq("workspace_id", workspaceId);
+  //   // Generar el token de invitación
+  //   const token = jwt.sign({ workspaceId, inviteCode, email }, process.env.INVITATION_TOKEN_SECRET!, {expiresIn: "24h"});
 
-    if (deleteError) {
-      throw deleteError;
-    }
+  //   // Eliminar el token de invitación anterior si existe
+  //   const {error: deleteError} = await supabase
+  //   .from("invitation_tokens")
+  //   .delete()
+  //   .eq("email", email)
+  //   .eq("workspace_id", workspaceId);
 
-    // Verificar si el usuario ya forma parte del workspace
-    const {data: invitedUserData, error: invitedUserError} = await supabase
-    .from("users")
-    .select("id")
-    .eq("email", email)
-    .limit(1);
+  //   if (deleteError) {
+  //     throw deleteError;
+  //   }
 
-    if (invitedUserError) {
-      throw invitedUserError;
-    }
+  //   // Verificar si el usuario ya forma parte del workspace
+  //   const {data: invitedUserData, error: invitedUserError} = await supabase
+  //   .from("users")
+  //   .select("id")
+  //   .eq("email", email)
+  //   .limit(1);
 
-    if (invitedUserData.length > 0) {
-      const {data: isMember, error: isMemberError} = await supabase
-      .from("members_workspaces")
-      .select("id")
-      .eq("workspace_id", workspaceId)
-      .eq("user_id", invitedUserData[0].id)
-      .limit(1);
+  //   if (invitedUserError) {
+  //     throw invitedUserError;
+  //   }
+
+  //   if (invitedUserData.length > 0) {
+  //     const {data: isMember, error: isMemberError} = await supabase
+  //     .from("members_workspaces")
+  //     .select("id")
+  //     .eq("workspace_id", workspaceId)
+  //     .eq("user_id", invitedUserData[0].id)
+  //     .limit(1);
   
-      if (isMemberError) {
-        throw isMemberError;
-      }
+  //     if (isMemberError) {
+  //       throw isMemberError;
+  //     }
   
-      if (isMember.length > 0) {
-        return NextResponse.json({message: "There's already a member with this email"}, {status: 400});
-      }
-    }
+  //     if (isMember.length > 0) {
+  //       return NextResponse.json({message: "There's already a member with this email"}, {status: 400});
+  //     }
+  //   }
 
 
-    // Verificar si el usuario que hizo la ivitación es el admin del workspace
-    const {data: workspaceAdminData, error: workspaceAdminError} = await supabase
-      .from("workspaces")
-      .select("id")
-      .eq("id", workspaceId)
-      .eq("admin_id", user.id)
-      .limit(1);
+  //   // Verificar si el usuario que hizo la ivitación es el admin del workspace
+  //   const {data: workspaceAdminData, error: workspaceAdminError} = await supabase
+  //     .from("workspaces")
+  //     .select("id")
+  //     .eq("id", workspaceId)
+  //     .eq("admin_id", user.id)
+  //     .limit(1);
     
-    if (workspaceAdminError) {
-      throw workspaceAdminError;
-    }
+  //   if (workspaceAdminError) {
+  //     throw workspaceAdminError;
+  //   }
 
-    if (workspaceAdminData.length === 0) {
-      return NextResponse.json({message: "You are not allowed to perform this action"}, {status: 403});
-    }
+  //   if (workspaceAdminData.length === 0) {
+  //     return NextResponse.json({message: "You are not allowed to perform this action"}, {status: 403});
+  //   }
 
-    // Insertar el token en la base de datos
-    const {error: insertError} = await supabase
-    .from("invitation_tokens")
-    .insert({
-      workspace_id: workspaceId,
-      email,
-      token
-    });
+  //   // Insertar el token en la base de datos
+  //   const {error: insertError} = await supabase
+  //   .from("invitation_tokens")
+  //   .insert({
+  //     workspace_id: workspaceId,
+  //     email,
+  //     token
+  //   });
 
-    if (insertError) {
-      throw insertError;
-    }
+  //   if (insertError) {
+  //     throw insertError;
+  //   }
 
-    // Opciones del correo a enviar
-    const mailContent = {
-      to: email,
-      from: {
-        name: "TeamFlow App",
-        email
-      },
-      subject: "Invitation to TeamFlow",
-      html: invitationEmailTemplate(email, workspaceName, token)
-    };
+  //   // Opciones del correo a enviar
+  //   const mailContent = {
+  //     to: email,
+  //     from: {
+  //       name: "TeamFlow App",
+  //       email
+  //     },
+  //     subject: "Invitation to TeamFlow",
+  //     html: invitationEmailTemplate(email, workspaceName, token)
+  //   };
 
-    // Enviar el email de invitación
-    await sendgrid.send(mailContent);
+  //   // Enviar el email de invitación
+  //   await sendgrid.send(mailContent);
 
-    return NextResponse.json("Invitation sent successfully");
+  //   return NextResponse.json("Invitation sent successfully");
     
-  } catch (error: any) {
-    console.log(`Error enviando invitación`, error.message);
-    return NextResponse.json({message: "Internal server error"}, {status: 500});
-  }
+  // } catch (error: any) {
+  //   console.log(`Error enviando invitación`, error.message);
+  //   return NextResponse.json({message: "Internal server error"}, {status: 500});
+  // }
 }
 
 
