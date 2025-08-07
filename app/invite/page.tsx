@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import axios, { isAxiosError } from "axios";
 import toast from "react-hot-toast";
 import { LuLoader2 } from "react-icons/lu";
+import { FiRefreshCw } from "react-icons/fi";
+import { Button } from "@/components/ui/button";
 import { supabaseBrowserClient } from "@/utils/supabase/supabaseBrowserClient";
 import { Workspace } from "@/types/supabase";
 
@@ -72,18 +74,45 @@ const InvitePage = ({searchParams: {token}}: Props) => {
 
       setError(message);
 
-      setTimeout(() => {
-        router.replace("/");
-      }, 2000);
-
     } finally {
       setLoading(false);
     }
   }
 
-  
+  // Comprobar si el usuario está autenticado
   useEffect(() => {
-    confirmInvitation();
+    const checkIfAuth = async () => {
+      throw new Error("Error de prueba...");
+
+      const {data: {session}} = await supabase.auth.getSession();
+      return !!session;
+    }
+
+    checkIfAuth()
+    .then((isAuth) => {
+      if (isAuth) {
+        confirmInvitation();
+      } else {
+        toast.error(
+          "You need to be signed in to confirm the invitation to the workspace. Please, sign in with your email and follow the invitation link again.",
+          {
+            duration: 20000,
+            position: "top-center",
+            ariaProps: {
+              role: "alert",
+              "aria-live": "assertive"
+            }
+          }
+        );
+
+        router.replace("/signin");
+      }
+    })
+    .catch((error: any) => {
+      setError(error.message);
+      setSuccess(false);
+      setLoading(false);
+    });
   }, [token]);
 
   return (
@@ -111,15 +140,29 @@ const InvitePage = ({searchParams: {token}}: Props) => {
 
       {error && (
         <section className="flex flex-col justify-center items-center gap-2 w-full h-full text-center">
-          <LuLoader2 className="animate-spin" size={40} />
-
           <h1 className="text-xl">
-            There was an error confirming the invitation.
+            There was an error confirming the invitation:
           </h1>
 
-          <p className="font-semibold">
-            {error}
-          </p>
+          <div className="w-full max-w-[360px] p-4 border border-destructive rounded-md bg-red-50">
+            <p className="text-center text-destructive font-semibold">
+              {error}
+            </p>
+          </div>
+
+          <Button
+            className="flex justify-center items-center gap-2 mt-5 text-sm"
+            variant="default"
+            size="sm"
+            onClick={() => {
+              setError(null);
+              setSuccess(false);
+              setLoading(true);
+              confirmInvitation();
+            }}
+          >
+            <FiRefreshCw className="size-4" /> Try again
+          </Button>
         </section>
       )}
     </main>

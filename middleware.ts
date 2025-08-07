@@ -17,6 +17,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Excluir del middleware la página de invite
+  if (request.nextUrl.pathname.includes("/invite")) {
+    return NextResponse.next();
+  }
+
   return await updateSession(request);
 }
 
