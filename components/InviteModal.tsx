@@ -1,20 +1,22 @@
 "use client"
 
-import { Dispatch, SetStateAction, useState } from "react";
-import { set, useForm } from "react-hook-form";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios, { isAxiosError } from "axios";
 import toast from "react-hot-toast";
 import { useTheme } from "next-themes";
+import { Loader2 } from "lucide-react";
+import Alert from "./Alert";
 import Typography from "./Typography";
 import FormErrorMessage from "./FormErrorMessage";
-import Alert from "./Alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog"
-import { Form, FormControl, FormField, FormItem, FormLabel } from "./ui/form";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "./ui/form";
+import { Label } from "./ui/label";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -35,6 +37,10 @@ const FormSchema = z.object({
 type FormType = z.infer<typeof FormSchema>;
 
 const InviteModal = ({workspaceId, workspaceName, inviteCode, isOpen, setIsOpen}: Props) => {
+  const invitationLinkInputRef = useRef<HTMLInputElement | null>(null);
+
+  const [invitationLink, setInvitationLink] = useState("");
+  const [copied, setCopied] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -48,28 +54,34 @@ const InviteModal = ({workspaceId, workspaceName, inviteCode, isOpen, setIsOpen}
     }
   });
 
+  useEffect(() => {
+    // Limpiar el state del input de invitationLink al cerrar el modal
+    if(!isOpen && invitationLinkInputRef.current) {
+      setInvitationLink("");
+      invitationLinkInputRef.current.value = "";
+    }
+  }, [isOpen]);
+
   const onSubmitHandler = async (values: FormType) => {
     try {
-      formProps.setError("email", {message: "The invite functionality is temporally disabled."});
-      formProps.setValue("email", "");
-      setError(true);
+      setInvitationLink("");
+      setSuccess(false);
+      setError(false);
+      setLoading(true);
 
-      // setSuccess(false);
-      // setError(false);
-      // setLoading(true);
+      const {data} = await axios<{invitationLink: string}>({
+        method: "POST",
+        url: `/api/invite`,
+        data: {
+          workspaceName,
+          workspaceId,
+          inviteCode,
+          email: values.email
+        }
+      });
 
-      // await axios({
-      //   method: "POST",
-      //   url: `/api/invite`,
-      //   data: {
-      //     workspaceName,
-      //     workspaceId,
-      //     inviteCode,
-      //     email: values.email
-      //   }
-      // });
-
-      // setSuccess(true);
+      setSuccess(true);
+      setInvitationLink(data.invitationLink);
 
     } catch (error: any) {
       let message = error.message;
@@ -86,6 +98,20 @@ const InviteModal = ({workspaceId, workspaceName, inviteCode, isOpen, setIsOpen}
 
     } finally {
       setLoading(false);
+    }
+  }
+
+  const copyToClipboard = () => {
+    if (invitationLink) {
+      setCopied(true);
+
+      navigator.clipboard
+      .writeText(invitationLink)
+      .then(() => {
+        setTimeout(() => {
+          setCopied(false);
+        }, 2000);
+      });
     }
   }
 
@@ -111,14 +137,14 @@ const InviteModal = ({workspaceId, workspaceName, inviteCode, isOpen, setIsOpen}
           </DialogTitle>
 
           <DialogDescription>
-            Type the email of the person you want to invite
+            Generate an invitation link and share it with your friend to invite them to {workspaceName}.
           </DialogDescription>
         </DialogHeader>
 
         <Alert
           className="mt-0"
           type="success"
-          title="Invitation sent successfully."
+          title="Invitation link generated successfully."
           open={success}
         />
 
@@ -126,8 +152,7 @@ const InviteModal = ({workspaceId, workspaceName, inviteCode, isOpen, setIsOpen}
           className="mt-0"
           type="error"
           title="Error sending the invitation."
-          subtitle="The invite functionality is temporally disabled."
-          // subtitle="Refresh the page and try again."
+          subtitle="Refresh the page and try again."
           open={error}
         />
 
@@ -143,17 +168,28 @@ const InviteModal = ({workspaceId, workspaceName, inviteCode, isOpen, setIsOpen}
               control={formProps.control}
               render={({field}) => (
                 <FormItem>
-                  <FormLabel className={cn(theme === "dark" && formProps.formState.errors.email ? "text-red-500" : theme === "light" && formProps.formState.errors.email ? "text-destructive" : "text-white")}>
+                  <FormLabel
+                    id="invite-email-label"
+                    htmlFor="invite-email"
+                    className={cn(theme === "dark" && formProps.formState.errors.email ? "text-red-500" : theme === "light" && formProps.formState.errors.email ? "text-destructive" : "text-white")}
+                  >
                     Email
                   </FormLabel>
+
                   <FormControl>
                     <Input
+                      id="invite-email"
                       className={cn(formProps.formState.errors.email ? "border-destructive" : "border")}
                       disabled={loading}
-                      aria-describedby="invite-email-error-msg"
+                      aria-labelledby="invite-email-label"
+                      aria-describedby="invite-email-description"
                       {...field}
                     />
                   </FormControl>
+
+                  <FormDescription id="invite-email-description">
+                    The email of the person you want to invite.
+                  </FormDescription>
 
                   <FormErrorMessage id="invite-email-error-msg" />
                 </FormItem>
@@ -161,13 +197,70 @@ const InviteModal = ({workspaceId, workspaceName, inviteCode, isOpen, setIsOpen}
             />
 
             <Button
-              className="text-white bg-primary-dark hover:bg-primary-light"
+              className="w-fit ml-auto text-white bg-primary-dark hover:bg-primary-light disabled:pointer-events-none"
+              size="sm"
               disabled={loading}
             >
-              <Typography text="Send invitation" variant="p" />
+              <Typography
+                className="text-sm"
+                text="Generate invitation link"
+                variant="p"
+              />
             </Button>
           </form>
         </Form>
+
+        {invitationLink &&
+          <>
+            <Separator />
+
+            <div className="flex flex-col items-start w-full">
+              <Label
+                id="invitation-link-label"
+                className="mb-3"
+                htmlFor="invitation-link"
+              >
+                Invitation Link
+              </Label>
+
+              <div className="relative flex justify-between items-center w-full mb-1">
+                <Input
+                  ref={invitationLinkInputRef}
+                  id="invitation-link"
+                  className="w-full pe-4 text-white"
+                  value={invitationLink}
+                  disabled
+                  aria-labelledby="invitation-link-label"
+                  aria-describedby="invitation-link-description"
+                />
+
+                {loading && (
+                  <Loader2 className="absolute right-2 size-5 text-neutral-400 animate-spin" />
+                )}
+              </div>
+
+              <span
+                id="invitation-link-description"
+                className="mb-3 text-sm text-neutral-400"
+              >
+                Copy this link and share it with your friend to invite them to {workspaceName}. This link will expire in 24 hours, after which you will need to generate a new one.
+              </span>
+              
+              <Button
+                className="w-fit ml-auto text-white bg-primary-dark hover:bg-primary-light transition-all"
+                size="sm"
+                disabled={loading}
+                onClick={copyToClipboard}
+              >
+                <Typography
+                  className="text-sm"
+                  text={ copied ? "Link copied to clipboard!" : "Copy invitation link"}
+                  variant="p"
+                />
+              </Button>
+            </div>
+          </>
+        }
       </DialogContent>
     </Dialog>
   )
