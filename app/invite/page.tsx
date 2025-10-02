@@ -82,8 +82,6 @@ const InvitePage = ({searchParams: {token}}: Props) => {
   // Comprobar si el usuario está autenticado
   useEffect(() => {
     const checkIfAuth = async () => {
-      throw new Error("Error de prueba...");
-
       const {data: {session}} = await supabase.auth.getSession();
       return !!session;
     }
