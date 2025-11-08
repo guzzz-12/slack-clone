@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { redirect } from "next/navigation";
-import sendgrid from "@sendgrid/mail";
 import { z } from "zod";
 import jwt from "jsonwebtoken";
-import { invitationEmailTemplate } from "@/utils/invitationEmailTemplate";
 import { supabaseServerClient } from "@/utils/supabase/supabaseServerClient";
 import { isPostgresError } from "@/utils/constants";
-
-sendgrid.setApiKey(process.env.SENDGRID_API_KEY!);
 
 const emailSchema = z.object({
   workspaceId: z
