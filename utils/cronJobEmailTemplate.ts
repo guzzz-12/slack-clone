@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 export const cronJobEmailTemplate = (data: { activeUsers: number }) => {
 
   return `
@@ -113,7 +115,7 @@ export const cronJobEmailTemplate = (data: { activeUsers: number }) => {
     
       <body>
         <main class="template">
-          <h1 class="template__logo">Resultados del Cron Job</h1>
+          <h1 class="template__logo">TeamFlow Cron Job - ${dayjs().format("DD/MM/YYYY")}</h1>
 
           <section class="template__inner-wrapper">
             <h2 class="template__title">Hola, Jesús</h2>

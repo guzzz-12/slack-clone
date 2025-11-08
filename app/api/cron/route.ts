@@ -40,10 +40,10 @@ export async function GET(_req: NextRequest) {
     await transport.sendMail({
       to: process.env.MAILTRAP_EMAIL as string,
       from: {
-        name: "Spotify Clone App",
+        name: "TeamFlow App",
         address: process.env.MAILTRAP_EMAIL as string,
       },
-      subject: "Resultados del cron job",
+      subject: "TeamFlow Cron Job",
       html: cronJobEmailTemplate({activeUsers: data})
     });
 
