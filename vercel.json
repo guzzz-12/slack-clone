@@ -5,7 +5,7 @@
       "schedule": "0 0 * * *"
     },
     {
-      "path": "https://snapgram-backend-1fv0.onrender.com/api/keep-alive",
+      "path": "/api/cron/snapgram",
       "schedule": "*/20 * * * *"
     }
   ]
