@@ -6,6 +6,116 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+export type User = {
+  avatar_key: string | null
+  avatar_name: string | null
+  avatar_id: string | null
+  avatar_url: string | null
+  channels: string[] | null
+  created_at: string | null
+  email: string
+  id: string
+  is_away: boolean
+  name: string | null
+  phone: string | null
+  type: string | null
+}
+
+export type Workspace = {
+  admin_id: string
+  created_at: string
+  id: string
+  image_key: string
+  image_name: string
+  image_url: string
+  invite_code: string
+  name: string
+  slug: string
+}
+
+export type WorkspaceMember = {
+  id: string
+  name: string | null
+  email: string
+  avatar_url: string | null
+  is_away: boolean
+}
+
+export type WorkspaceWithMembers = {
+  workspaceData: Workspace;
+  workspaceMembers: WorkspaceMember[]
+}
+
+export type Channel = {
+  id: string;
+  name: string;
+  workspace_id: string;
+  ws_admin_id: string;
+  meeting_members: string[];
+  created_at: string;
+}
+
+type ChannelMessage = {
+  id: string;
+  text_content: string | null;
+  attachment_url: string | null;
+  sender_id: string;
+  message_type: Database["public"]["Enums"]["message_type"];
+  workspace_id: string;
+  channel_id: string;
+  is_deleted: boolean;
+  deleted_for_ids: string[] | null;
+  deleted_for_all: boolean | null;
+  seen_by: string[] | null;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export type MessageWithSender = ChannelMessage & {
+  sender: {
+    id: string;
+    name: string | null;
+    email: string;
+    avatar_url: string | null;
+  }
+}
+
+export type PrivateMessageWithSender = {
+  attachment_key: string | null
+  attachment_name: string | null
+  attachment_url: string | null
+  created_at: string
+  deleted_for_all: boolean
+  deleted_for_ids: string[] | null
+  id: string
+  message_type: Database["public"]["Enums"]["message_type"]
+  recipient_id: string
+  seen_at: string | null
+  sender_id: string
+  text_content: string | null
+  updated_at: string | null
+  workspace_id: string
+  sender: {
+    id: string
+    name: string | null
+    email: string
+    avatar_url: string | null
+  }
+  recipient: {
+    id: string
+    name: string | null
+    email: string
+    avatar_url: string | null
+  }
+}
+
+export type PaginatedMessages<T extends Message> = {
+  messages: T[];
+  hasMore: boolean;
+};
+
+export type Message = MessageWithSender | PrivateMessageWithSender;
+
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
@@ -401,10 +511,20 @@ export type Database = {
           deleted_for_ids: string[]
           id: string
           message_type: Database["public"]["Enums"]["message_type"]
-          recipient: Json
+          recipient: {
+            id: string;
+            name: string | null;
+            email: string;
+            avatar_url: string | null;
+          }
           recipient_id: string
           seen_at: string
-          sender: Json
+          sender: {
+            id: string;
+            name: string | null;
+            email: string;
+            avatar_url: string | null;
+          }
           sender_id: string
           text_content: string
           updated_at: string
@@ -446,7 +566,12 @@ export type Database = {
           is_deleted: boolean
           message_type: Database["public"]["Enums"]["message_type"]
           seen_by: string[]
-          sender: Json
+          sender: {
+            id: string;
+            name: string | null;
+            email: string;
+            avatar_url: string | null;
+          }
           sender_id: string
           text_content: string
           updated_at: string
