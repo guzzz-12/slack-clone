@@ -12,6 +12,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Excluir del middleware los endpoints públicos de métricas / estadísticas
+  if (
+    request.nextUrl.pathname.includes("/api/stats") ||
+    request.nextUrl.pathname.includes("/api/public")
+  ) {
+    return NextResponse.next();
+  }
+
   // Excluir del middleware los endpoints de Socket.io (deprecado)
   if (request.nextUrl.pathname.includes("/api/socket/io")) {
     return NextResponse.next();
