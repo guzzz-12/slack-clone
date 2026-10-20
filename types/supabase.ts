@@ -6,117 +6,12 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type User = {
-  avatar_key: string | null
-  avatar_name: string | null
-  avatar_id: string | null
-  avatar_url: string | null
-  channels: string[] | null
-  created_at: string | null
-  email: string
-  id: string
-  is_away: boolean
-  name: string | null
-  phone: string | null
-  type: string | null
-}
-
-export type Workspace = {
-  admin_id: string
-  created_at: string
-  id: string
-  image_key: string
-  image_name: string
-  image_url: string
-  invite_code: string
-  name: string
-  slug: string
-}
-
-export type WorkspaceMember = {
-  id: string
-  name: string | null
-  email: string
-  avatar_url: string | null
-  is_away: boolean
-}
-
-export type WorkspaceWithMembers = {
-  workspaceData: Workspace;
-  workspaceMembers: WorkspaceMember[]
-}
-
-export type Channel = {
-  id: string;
-  name: string;
-  workspace_id: string;
-  ws_admin_id: string;
-  meeting_members: string[];
-  created_at: string;
-}
-
-type ChannelMessage = {
-  id: string;
-  text_content: string | null;
-  attachment_url: string | null;
-  sender_id: string;
-  message_type: Database["public"]["Enums"]["message_type"];
-  workspace_id: string;
-  channel_id: string;
-  is_deleted: boolean;
-  deleted_for_ids: string[] | null;
-  deleted_for_all: boolean | null;
-  seen_by: string[] | null;
-  created_at: string;
-  updated_at: string | null;
-}
-
-export type MessageWithSender = ChannelMessage & {
-  sender: {
-    id: string;
-    name: string | null;
-    email: string;
-    avatar_url: string | null;
-  }
-}
-
-export type PrivateMessageWithSender = {
-  attachment_key: string | null
-  attachment_name: string | null
-  attachment_url: string | null
-  created_at: string
-  deleted_for_all: boolean
-  deleted_for_ids: string[] | null
-  id: string
-  message_type: Database["public"]["Enums"]["message_type"]
-  recipient_id: string
-  seen_at: string | null
-  sender_id: string
-  text_content: string | null
-  updated_at: string | null
-  workspace_id: string
-  sender: {
-    id: string
-    name: string | null
-    email: string
-    avatar_url: string | null
-  }
-  recipient: {
-    id: string
-    name: string | null
-    email: string
-    avatar_url: string | null
-  }
-}
-
-export type PaginatedMessages<T extends Message> = {
-  messages: T[];
-  hasMore: boolean;
-};
-
-export type Message = MessageWithSender | PrivateMessageWithSender;
-
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.17"
+  }
   public: {
     Tables: {
       channels: {
@@ -244,7 +139,7 @@ export type Database = {
           created_at: string
           deleted_for_all: boolean | null
           deleted_for_ids: string[] | null
-          fts: unknown | null
+          fts: unknown
           id: string
           is_deleted: boolean
           message_type: Database["public"]["Enums"]["message_type"]
@@ -262,7 +157,7 @@ export type Database = {
           created_at?: string
           deleted_for_all?: boolean | null
           deleted_for_ids?: string[] | null
-          fts?: unknown | null
+          fts?: unknown
           id?: string
           is_deleted?: boolean
           message_type: Database["public"]["Enums"]["message_type"]
@@ -280,7 +175,7 @@ export type Database = {
           created_at?: string
           deleted_for_all?: boolean | null
           deleted_for_ids?: string[] | null
-          fts?: unknown | null
+          fts?: unknown
           id?: string
           is_deleted?: boolean
           message_type?: Database["public"]["Enums"]["message_type"]
@@ -322,7 +217,7 @@ export type Database = {
           created_at: string
           deleted_for_all: boolean | null
           deleted_for_ids: string[] | null
-          fts: unknown | null
+          fts: unknown
           id: string
           message_type: Database["public"]["Enums"]["message_type"]
           recipient_id: string
@@ -339,7 +234,7 @@ export type Database = {
           created_at?: string
           deleted_for_all?: boolean | null
           deleted_for_ids?: string[] | null
-          fts?: unknown | null
+          fts?: unknown
           id?: string
           message_type: Database["public"]["Enums"]["message_type"]
           recipient_id?: string
@@ -356,7 +251,7 @@ export type Database = {
           created_at?: string
           deleted_for_all?: boolean | null
           deleted_for_ids?: string[] | null
-          fts?: unknown | null
+          fts?: unknown
           id?: string
           message_type?: Database["public"]["Enums"]["message_type"]
           recipient_id?: string
@@ -487,88 +382,75 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      count_registered_users: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      count_registered_users: { Args: never; Returns: number }
       get_private_messages: {
         Args: {
-          workspace: string
-          sender_user_id: string
-          recipient_user_id: string
-          skip: number
           amount: number
+          recipient_user_id: string
           search_term?: string
+          sender_user_id: string
+          skip: number
+          workspace: string
         }
         Returns: {
-          id: string
-          sender_id: string
-          recipient_id: string
-          workspace_id: string
-          text_content: string
-          attachment_url: string
           attachment_key: string
           attachment_name: string
-          message_type: Database["public"]["Enums"]["message_type"]
-          seen_at: string
+          attachment_url: string
           created_at: string
-          updated_at: string
           deleted_for_all: boolean
           deleted_for_ids: string[]
-          sender: {
-            id: string;
-            name: string | null;
-            email: string;
-            avatar_url: string | null;
-          }
-          recipient: {
-            id: string;
-            name: string | null;
-            email: string;
-            avatar_url: string | null;
-          }
+          id: string
+          message_type: Database["public"]["Enums"]["message_type"]
+          recipient: Json
+          recipient_id: string
+          seen_at: string
+          sender: Json
+          sender_id: string
+          text_content: string
+          updated_at: string
+          workspace_id: string
+        }[]
+      }
+      get_workspace_channel_counts: {
+        Args: never
+        Returns: {
+          channel_count: number
+          workspace_name: string
         }[]
       }
       get_workspaces_with_members: {
-        Args: {
-          user_id: string
-        }
+        Args: { user_id: string }
         Returns: {
-          workspace_id: string
-          workspace_name: string
-          workspace_image: string
           members: Json
+          workspace_id: string
+          workspace_image: string
+          workspace_name: string
         }[]
       }
       search_messages_fts: {
         Args: {
-          term: string
-          current_channel_id: string
           amount: number
+          current_channel_id: string
           skip: number
+          term: string
         }
         Returns: {
-          id: string
-          created_at: string
-          attachment_url: string
-          text_content: string
-          sender_id: string
-          workspace_id: string
-          channel_id: string
-          is_deleted: boolean
-          updated_at: string
-          deleted_for_all: boolean
-          deleted_for_ids: string[]
-          seen_by: string[]
           attachment_key: string
           attachment_name: string
+          attachment_url: string
+          channel_id: string
+          created_at: string
+          deleted_for_all: boolean
+          deleted_for_ids: string[]
+          id: string
+          is_deleted: boolean
           message_type: Database["public"]["Enums"]["message_type"]
-          sender: {
-            id: string;
-            name: string | null;
-            email: string;
-            avatar_url: string | null;
-          }
+          seen_by: string[]
+          sender: Json
+          sender_id: string
+          text_content: string
+          updated_at: string
+          workspace_id: string
         }[]
       }
     }
@@ -581,99 +463,127 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
-  PublicTableNameOrOptions extends
-  | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
-  | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-  ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-    Database[PublicTableNameOrOptions["schema"]]["Views"])
-  : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-    Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-  ? R
-  : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-    PublicSchema["Views"])
-  ? (PublicSchema["Tables"] &
-    PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-      Row: infer R
-    }
-  ? R
-  : never
-  : never
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-  | keyof PublicSchema["Tables"]
-  | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-  ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Insert: infer I
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
   }
-  ? I
-  : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-  ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
-  : never
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-  | keyof PublicSchema["Tables"]
-  | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-  ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Update: infer U
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
   }
-  ? U
-  : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-  ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-    Update: infer U
-  }
-  ? U
-  : never
-  : never
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-  | keyof PublicSchema["Enums"]
-  | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
-  : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-  ? PublicSchema["Enums"][PublicEnumNameOrOptions]
-  : never
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-  | keyof PublicSchema["CompositeTypes"]
-  | { schema: keyof Database },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
   }
-  ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-  : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
-  ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      message_type: ["text", "image", "pdf"],
+    },
+  },
+} as const
